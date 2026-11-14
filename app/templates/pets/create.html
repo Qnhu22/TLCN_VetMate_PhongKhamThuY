@@ -1,0 +1,190 @@
+
+{% extends "layouts/public.html" %}
+
+{% block page_styles %}
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/account.css') }}">
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/pets.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="pets-page">
+    <div class="page-container">
+
+        <div class="pets-heading">
+            <div>
+                <h1>Thêm thú cưng</h1>
+                <p>Điền thông tin cho người bạn nhỏ của bạn.</p>
+            </div>
+
+            <a href="{{ url_for('pets.index') }}"
+               class="pets-back-link">
+                <i class="bi bi-arrow-left"></i>
+                Quay lại
+            </a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="profile-toast-container" aria-live="polite">
+                    {% for category, message in messages %}
+                        <div class="profile-toast profile-toast-{{ category }}">
+                            <span class="profile-toast-message">
+                                {{ message }}
+                            </span>
+                            <button type="button"
+                                    class="profile-toast-close"
+                                    aria-label="Đóng thông báo">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form
+            method="post"
+            enctype="multipart/form-data"
+            class="pet-form-card"
+        >
+            
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token }}"
+            >
+                        <div class="pet-photo-section">
+                <div class="pet-photo-preview" id="petPhotoPreview">
+                    <i class="bi bi-camera"></i>
+                </div>
+
+                <div class="pet-photo-controls">
+                    <h2>Ảnh thú cưng</h2>
+                    <p>JPG, PNG hoặc WebP · Tối đa 5 MB</p>
+
+                    <label for="petPhoto" class="pet-upload-button">
+                        <i class="bi bi-image"></i>
+                        Chọn ảnh
+                    </label>
+
+                    <input
+                        id="petPhoto"
+                        name="photo"
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                        class="pet-file-input"
+                    >
+
+                    <span
+                        id="petPhotoError"
+                        class="pet-photo-error"
+                        role="alert"
+                    ></span>
+                </div>
+            </div>
+
+            <div class="pet-form-divider"></div>
+ 
+            <div class="pet-form-grid">
+
+                <div class="pet-form-field">
+                    <label for="name">Tên thú cưng *</label>
+                    <input id="name"
+                           name="name"
+                           maxlength="150"
+                           required
+                           value="{{ form_data.get('name', '') }}">
+                </div>
+
+                <div class="pet-form-field">
+                    <label for="speciesID">Loài *</label>
+                    <select id="speciesID"
+                            name="speciesID"
+                            required>
+                        <option value="">Chọn loài</option>
+                        {% for species in species_list %}
+                            <option
+                                value="{{ species.speciesID }}"
+                                {% if form_data.get('speciesID')|string == species.speciesID|string %}selected{% endif %}
+                            >
+                                {{ species.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="pet-form-field">
+                    <label for="breedID">Giống</label>
+                    <select id="breedID"
+                            name="breedID"
+                            data-selected="{{ form_data.get('breedID', '') }}">
+                        <option value="">Chưa xác định</option>
+                        {% for breed in breeds %}
+                            <option value="{{ breed.breedID }}"
+                                    data-species="{{ breed.speciesID }}">
+                                {{ breed.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="pet-form-field">
+                    <label for="sex">Giới tính</label>
+                    <select id="sex" name="sex">
+                        {% set selected_sex = form_data.get('sex', 'UNKNOWN') %}
+                        <option value="UNKNOWN" {% if selected_sex == 'UNKNOWN' %}selected{% endif %}>Chưa xác định</option>
+                        <option value="MALE" {% if selected_sex == 'MALE' %}selected{% endif %}>Đực</option>
+                        <option value="FEMALE" {% if selected_sex == 'FEMALE' %}selected{% endif %}>Cái</option>
+                    </select>
+                </div>
+
+                <div class="pet-form-field">
+                    <label for="dateOfBirth">Ngày sinh</label>
+                    <input type="date"
+                           id="dateOfBirth"
+                           name="dateOfBirth"
+                           value="{{ form_data.get('dateOfBirth', '') }}">
+                </div>
+
+                <div class="pet-form-field">
+                    <label for="color">Màu lông</label>
+                    <input id="color"
+                           name="color"
+                           maxlength="100"
+                           value="{{ form_data.get('color', '') }}">
+                </div>
+
+                <div class="pet-form-field pet-form-full">
+                    <label for="note">Ghi chú</label>
+                    <textarea id="note"
+                              name="note"
+                              maxlength="2000"
+                              rows="4">{{ form_data.get('note', '') }}</textarea>
+                </div>
+
+            </div>
+
+            <div class="pet-form-actions">
+                <a href="{{ url_for('pets.index') }}"
+                   class="pets-back-link">
+                    Hủy
+                </a>
+
+                <button type="submit"
+                        class="pets-primary-button">
+                    <i class="bi bi-check2-circle"></i>
+                    Lưu thú cưng
+                </button>
+            </div>
+        </form>
+
+    </div>
+</section>
+{% endblock %}
+
+{% block page_scripts %}
+<script src="{{ url_for('static', filename='js/pets.js') }}"
+        defer></script>
+{% endblock %}

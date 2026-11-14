@@ -1,0 +1,517 @@
+{% set mascot_uid = mascot_id | default('vetmateMascot') %}
+
+<div
+    id="{{ mascot_uid }}"
+    class="vetmate-mascot"
+    aria-hidden="true"
+>
+    <svg
+        class="vetmate-mascot-svg"
+        viewBox="0 0 260 260"
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <defs>
+            <!-- Clip path riêng cho từng mascot -->
+            <clipPath id="{{ mascot_uid }}CircleClip">
+                <circle
+                    cx="130"
+                    cy="130"
+                    r="124"
+                />
+            </clipPath>
+
+            <!-- Gradient nền riêng cho từng mascot -->
+            <linearGradient
+                id="{{ mascot_uid }}Background"
+                x1="0"
+                y1="0"
+                x2="1"
+                y2="1"
+            >
+                <stop
+                    offset="0%"
+                    stop-color="#fffbea"
+                />
+                <stop
+                    offset="55%"
+                    stop-color="#f7e8ed"
+                />
+                <stop
+                    offset="100%"
+                    stop-color="#e1b1c1"
+                />
+            </linearGradient>
+
+            <!-- Gradient mắt riêng cho từng mascot -->
+            <linearGradient
+                id="{{ mascot_uid }}EyeGradient"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+            >
+                <stop
+                    offset="0%"
+                    stop-color="#4f2430"
+                />
+                <stop
+                    offset="58%"
+                    stop-color="#894d5b"
+                />
+                <stop
+                    offset="100%"
+                    stop-color="#e1b1c1"
+                />
+            </linearGradient>
+
+            <!-- Gradient trái tim riêng cho từng mascot -->
+            <linearGradient
+                id="{{ mascot_uid }}HeartGradient"
+                x1="0"
+                y1="0"
+                x2="1"
+                y2="1"
+            >
+                <stop
+                    offset="0%"
+                    stop-color="#f2c1d0"
+                />
+                <stop
+                    offset="100%"
+                    stop-color="#c96f8b"
+                />
+            </linearGradient>
+        </defs>
+
+        <!-- =================================================
+             NỀN AVATAR
+             ================================================= -->
+        <circle
+            cx="130"
+            cy="130"
+            r="124"
+            fill="url(#{{ mascot_uid }}Background)"
+        />
+
+        <g clip-path="url(#{{ mascot_uid }}CircleClip)">
+
+            <!-- Các đốm trang trí nhẹ -->
+            <circle
+                class="mascot-decoration"
+                cx="38"
+                cy="64"
+                r="4"
+            />
+
+            <circle
+                class="mascot-decoration"
+                cx="218"
+                cy="74"
+                r="3"
+            />
+
+            <path
+                class="mascot-sparkle"
+                d="
+                    M211 39
+                    L214 46
+                    L221 49
+                    L214 52
+                    L211 59
+                    L208 52
+                    L201 49
+                    L208 46
+                    Z
+                "
+            />
+
+            <!-- =================================================
+                 ĐUÔI
+                 ================================================= -->
+            <path
+                id="mascotTail"
+                class="mascot-tail"
+                d="
+                    M181 207
+                    C218 198 225 169 215 151
+                    C208 138 197 142 199 153
+                    C201 165 212 166 213 154
+                "
+            />
+
+            <!-- =================================================
+                 THÂN
+                 ================================================= -->
+            <path
+                class="mascot-body"
+                d="
+                    M77 259
+                    C76 232 79 203 91 185
+                    C100 171 113 165 130 165
+                    C147 165 160 171 169 185
+                    C181 203 184 232 183 259
+                    Z
+                "
+            />
+
+            <ellipse
+                class="mascot-belly"
+                cx="130"
+                cy="221"
+                rx="39"
+                ry="49"
+            />
+
+            <!-- Chân sau trái -->
+            <ellipse
+                class="mascot-back-paw"
+                cx="86"
+                cy="241"
+                rx="30"
+                ry="21"
+            />
+
+            <!-- Chân sau phải -->
+            <ellipse
+                class="mascot-back-paw"
+                cx="174"
+                cy="241"
+                rx="30"
+                ry="21"
+            />
+
+            <!-- =================================================
+                 ĐẦU
+                 ================================================= -->
+            <g id="mascotHead">
+
+                <!-- Tai trái -->
+                <path
+                    id="mascotEarLeft"
+                    class="mascot-ear"
+                    d="
+                        M76 88
+                        C64 70 62 43 70 26
+                        C89 31 103 46 110 64
+                        C98 68 87 76 76 88
+                        Z
+                    "
+                />
+
+                <!-- Tai phải -->
+                <path
+                    id="mascotEarRight"
+                    class="mascot-ear"
+                    d="
+                        M184 88
+                        C196 70 198 43 190 26
+                        C171 31 157 46 150 64
+                        C162 68 173 76 184 88
+                        Z
+                    "
+                />
+
+                <!-- Tai trong trái -->
+                <path
+                    class="mascot-inner-ear"
+                    d="
+                        M76 66
+                        C72 55 72 43 75 36
+                        C86 41 94 50 99 60
+                        C90 60 83 62 76 66
+                        Z
+                    "
+                />
+
+                <!-- Tai trong phải -->
+                <path
+                    class="mascot-inner-ear"
+                    d="
+                        M184 66
+                        C188 55 188 43 185 36
+                        C174 41 166 50 161 60
+                        C170 60 177 62 184 66
+                        Z
+                    "
+                />
+
+                <!-- Đầu tròn -->
+                <path
+                    class="mascot-head-shape"
+                    d="
+                        M130 52
+                        C91 52 66 77 66 113
+                        C66 151 91 174 130 174
+                        C169 174 194 151 194 113
+                        C194 77 169 52 130 52
+                        Z
+                    "
+                />
+
+                <!-- Chỏm lông -->
+                <path
+                    class="mascot-head-tuft"
+                    d="
+                        M108 58
+                        C114 53 117 46 119 39
+                        C125 43 128 49 128 55
+                        C134 49 140 45 146 43
+                        C145 50 142 56 137 61
+                    "
+                />
+
+                <!-- =================================================
+                     MẮT
+                     ================================================= -->
+                <g id="mascotEyes">
+
+                    <ellipse
+                        class="mascot-eye"
+                        cx="101"
+                        cy="111"
+                        rx="18"
+                        ry="22"
+                        fill="url(#{{ mascot_uid }}EyeGradient)"
+                    />
+
+                    <ellipse
+                        class="mascot-eye"
+                        cx="159"
+                        cy="111"
+                        rx="18"
+                        ry="22"
+                        fill="url(#{{ mascot_uid }}EyeGradient)"
+                    />
+
+                    <!-- Đồng tử giữ ID để login.js điều khiển -->
+                    <circle
+                        id="mascotPupilLeft"
+                        class="mascot-pupil"
+                        cx="101"
+                        cy="112"
+                        r="10"
+                    />
+
+                    <circle
+                        id="mascotPupilRight"
+                        class="mascot-pupil"
+                        cx="159"
+                        cy="112"
+                        r="10"
+                    />
+
+                    <!-- Ánh sáng trong mắt -->
+                    <circle
+                        class="mascot-eye-highlight mascot-eye-highlight-large"
+                        cx="96"
+                        cy="104"
+                        r="4"
+                    />
+
+                    <circle
+                        class="mascot-eye-highlight mascot-eye-highlight-small"
+                        cx="106"
+                        cy="116"
+                        r="2"
+                    />
+
+                    <circle
+                        class="mascot-eye-highlight mascot-eye-highlight-large"
+                        cx="154"
+                        cy="104"
+                        r="4"
+                    />
+
+                    <circle
+                        class="mascot-eye-highlight mascot-eye-highlight-small"
+                        cx="164"
+                        cy="116"
+                        r="2"
+                    />
+                </g>
+
+                <!-- =================================================
+                     MÁ HỒNG
+                     ================================================= -->
+                <ellipse
+                    class="mascot-cheek"
+                    cx="82"
+                    cy="136"
+                    rx="15"
+                    ry="9"
+                />
+
+                <ellipse
+                    class="mascot-cheek"
+                    cx="178"
+                    cy="136"
+                    rx="15"
+                    ry="9"
+                />
+
+                <!-- Vệt má -->
+                <g class="mascot-cheek-lines">
+                    <path d="M75 133 L72 139" />
+                    <path d="M82 132 L80 140" />
+                    <path d="M89 133 L87 139" />
+
+                    <path d="M171 133 L169 139" />
+                    <path d="M178 132 L180 140" />
+                    <path d="M185 133 L188 139" />
+                </g>
+
+                <!-- =================================================
+                     MŨI
+                     ================================================= -->
+                <path
+                    class="mascot-nose"
+                    d="
+                        M125 128
+                        Q130 124 135 128
+                        Q130 134 125 128
+                        Z
+                    "
+                />
+
+                <!-- =================================================
+                     MIỆNG
+                     ================================================= -->
+                <path
+                    class="mascot-mouth"
+                    d="
+                        M130 132
+                        C129 139 122 141 118 137
+
+                        M130 132
+                        C131 139 138 141 142 137
+                    "
+                />
+
+                <!-- =================================================
+                     RÂU
+                     ================================================= -->
+                <path
+                    class="mascot-whisker"
+                    d="
+                        M84 124 L55 119
+                        M84 132 L52 132
+                        M86 140 L58 146
+
+                        M176 124 L205 119
+                        M176 132 L208 132
+                        M174 140 L202 146
+                    "
+                />
+            </g>
+
+            <!-- =================================================
+                 TRÁI TIM VETMATE
+                 ================================================= -->
+            <g class="mascot-heart">
+
+                <path
+                    fill="url(#{{ mascot_uid }}HeartGradient)"
+                    d="
+                        M130 205
+                        C119 193 103 191 98 202
+                        C91 217 108 229 130 243
+                        C152 229 169 217 162 202
+                        C157 191 141 193 130 205
+                        Z
+                    "
+                />
+
+                <path
+                    class="mascot-heart-highlight"
+                    d="
+                        M109 203
+                        C113 199 119 199 123 202
+                    "
+                />
+            </g>
+
+            <!-- =================================================
+                 CHÂN TRƯỚC TRÁI
+                 Giữ ID để login.js điều khiển che mắt
+                 ================================================= -->
+            <g
+                id="mascotArmLeft"
+                class="mascot-arm mascot-arm-left"
+            >
+                <path
+                    class="mascot-arm-shape"
+                    d="
+                        M111 247
+                        C100 244 94 234 94 220
+                        L95 192
+                        C95 181 101 175 109 176
+                        C117 177 121 184 119 194
+                        L116 219
+                        C116 232 116 241 111 247
+                        Z
+                    "
+                />
+
+                <ellipse
+                    class="mascot-paw"
+                    cx="109"
+                    cy="179"
+                    rx="17"
+                    ry="20"
+                />
+
+                <g class="mascot-paw-lines">
+                    <path d="M102 176 Q105 171 108 176" />
+                    <path d="M109 175 Q112 170 115 176" />
+                </g>
+            </g>
+
+            <!-- =================================================
+                 CHÂN TRƯỚC PHẢI
+                 Giữ ID để login.js điều khiển peek
+                 ================================================= -->
+            <g
+                id="mascotArmRight"
+                class="mascot-arm mascot-arm-right"
+            >
+                <path
+                    class="mascot-arm-shape"
+                    d="
+                        M149 247
+                        C160 244 166 234 166 220
+                        L165 192
+                        C165 181 159 175 151 176
+                        C143 177 139 184 141 194
+                        L144 219
+                        C144 232 144 241 149 247
+                        Z
+                    "
+                />
+
+                <ellipse
+                    class="mascot-paw"
+                    cx="151"
+                    cy="179"
+                    rx="17"
+                    ry="20"
+                />
+
+                <g class="mascot-paw-lines">
+                    <path d="M145 176 Q148 170 151 175" />
+                    <path d="M152 176 Q155 171 158 176" />
+                </g>
+            </g>
+
+        </g>
+
+        <!-- =================================================
+             VIỀN NGOÀI
+             ================================================= -->
+        <circle
+            class="mascot-frame"
+            cx="130"
+            cy="130"
+            r="123"
+        />
+    </svg>
+</div>

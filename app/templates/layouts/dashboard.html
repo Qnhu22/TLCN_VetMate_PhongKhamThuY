@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="default">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% block title %}VetMate Dashboard{% endblock %}
+    </title>
+
+    <script>
+        (() => {
+            const themes = [
+                "default",
+                "light",
+                "dark"
+            ];
+
+            const savedTheme =
+                localStorage.getItem(
+                    "vetmate-theme"
+                );
+
+            document.documentElement.dataset.theme =
+                themes.includes(savedTheme)
+                    ? savedTheme
+                    : "default";
+        })();
+    </script>
+
+    <link
+    rel="stylesheet"
+    href="{{ url_for(
+        'static',
+        filename='css/theme.css'
+    ) }}"
+>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for(
+            'static',
+            filename='css/vetmate-mascot.css'
+        ) }}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for(
+            'static',
+            filename='css/dashboard.css'
+        ) }}"
+    >
+
+    {% block head %}{% endblock %}
+</head>
+
+<body class="dashboard-body">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+
+            <div
+                class="dashboard-toast-container"
+                id="dashboardToastContainer"
+            >
+
+                {% for category, message in messages %}
+
+                    <div
+                        class="dashboard-toast toast-{{ category }}"
+                        data-dashboard-toast
+                    >
+
+                        <span class="dashboard-toast-icon">
+
+                            {% if category == "success" %}
+                                ✓
+                            {% elif category == "error" %}
+                                !
+                            {% elif category == "warning" %}
+                                ⚠
+                            {% else %}
+                                i
+                            {% endif %}
+
+                        </span>
+
+
+                        <div class="dashboard-toast-content">
+                            {{ message }}
+                        </div>
+
+
+                        <button
+                            type="button"
+                            class="dashboard-toast-close"
+                            aria-label="Đóng thông báo"
+                        >
+                            ×
+                        </button>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+    {% endwith %}
+
+<div class="dashboard-shell">
+
+    <!-- SIDEBAR -->
+    <aside
+        class="dashboard-sidebar"
+        id="dashboardSidebar"
+    >
+
+        <div class="sidebar-brand">
+
+            <a
+                href="{{ url_for('admin.dashboard') }}"
+                class="sidebar-brand-link"
+            >
+                <span class="brand-icon">
+                    🐾
+                </span>
+
+                <span class="brand-content">
+                    <strong>VetMate</strong>
+                    <small>System Administration</small>
+                </span>
+            </a>
+
+
+            <!-- Desktop: thu gọn / mở rộng sidebar -->
+            <button
+                type="button"
+                class="sidebar-toggle"
+                id="sidebarToggle"
+                aria-label="Thu gọn thanh điều hướng"
+                title="Thu gọn thanh điều hướng"
+            >
+                ☰
+            </button>
+
+
+            <!-- Mobile: đóng sidebar dạng drawer -->
+            <button
+                class="sidebar-close"
+                id="sidebarClose"
+                type="button"
+                aria-label="Đóng menu"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <p class="sidebar-label">
+                QUẢN TRỊ
+            </p>
+
+            <a
+                href="{{ url_for('admin.dashboard') }}"
+                class="sidebar-item
+                {% if request.endpoint == 'admin.dashboard' %}
+                    is-active
+                {% endif %}"
+            >
+                <span class="sidebar-icon">⌂</span>
+                <span>Tổng quan</span>
+            </a>
+
+
+            <a
+                href="{{ url_for('admin.users') }}"
+                class="sidebar-item
+                {% if request.endpoint in [
+                    'admin.users',
+                    'admin.create_user',
+                    'admin.user_detail',
+                    'admin.user_activity'
+                ] %}
+                    is-active
+                {% endif %}"
+            >
+                <span class="sidebar-icon">♙</span>
+                <span>Tài khoản</span>
+
+                <span class="sidebar-badge">
+                    {{ sidebar_stats.total_users if sidebar_stats is defined else 0 }}
+                </span>
+            </a>
+
+
+            {% if
+                current_user.has_permission("ROLE_VIEW")
+                or current_user.has_permission("PERMISSION_VIEW")
+            %}
+                <a
+                    href="{{
+                        url_for(
+                            'admin.roles'
+                            if current_user.has_permission('ROLE_VIEW')
+                            else 'admin.permissions'
+                        )
+                    }}"
+                    class="sidebar-item
+                    {% if request.endpoint in [
+                        'admin.roles',
+                        'admin.role_detail',
+                        'admin.permissions',
+                        'admin.permission_detail'
+                    ] %}
+                        is-active
+                    {% endif %}"
+                >
+                    <span class="sidebar-icon">⌘</span>
+                    <span>Vai trò & quyền</span>
+                </a>
+            {% endif %}
+
+
+            <a
+                href="#"
+                class="sidebar-item"
+            >
+                <span class="sidebar-icon">◫</span>
+                <span>Nhật ký hệ thống</span>
+            </a>
+
+
+            <p class="sidebar-label">
+                TÀI KHOẢN
+            </p>
+
+            <a
+                href="#"
+                class="sidebar-item"
+            >
+                <span class="sidebar-icon">☺</span>
+                <span>Hồ sơ cá nhân</span>
+            </a>
+
+
+            <a
+                href="{{ url_for('main.home') }}"
+                class="sidebar-item"
+            >
+                <span class="sidebar-icon">↗</span>
+                <span>Trang VetMate</span>
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-footer">
+
+            <form
+                method="POST"
+                action="{{ url_for('auth.logout') }}"
+            >
+                <button
+                    type="submit"
+                    class="sidebar-logout"
+                >
+                    <span>↪</span>
+                    Đăng xuất
+                </button>
+            </form>
+
+        </div>
+
+    </aside>
+
+
+    <div
+        class="dashboard-overlay"
+        id="dashboardOverlay"
+    ></div>
+
+
+    <!-- MAIN -->
+    <div class="dashboard-main">
+
+        <header class="dashboard-topbar">
+
+            <div class="topbar-left">
+
+                <!-- Chỉ hiện trên tablet/mobile -->
+                <button
+                    type="button"
+                    class="topbar-menu"
+                    id="sidebarOpen"
+                    aria-label="Mở thanh điều hướng"
+                    title="Mở menu"
+                >
+                    ☰
+                </button>
+
+                <div class="topbar-search">
+
+                    <span>⌕</span>
+
+                    <input
+                        type="search"
+                        placeholder="Tìm tài khoản, quyền..."
+                    >
+
+                    <kbd>Ctrl K</kbd>
+
+                </div>
+
+            </div>
+
+
+            <div class="topbar-actions">
+
+                <button
+                    type="button"
+                    class="topbar-button"
+                    id="themeToggle"
+                    title="Đổi giao diện"
+                >
+                    ☾
+                </button>
+
+                <button
+                    type="button"
+                    class="topbar-button notification-button"
+                    title="Thông báo"
+                >
+                    ♢
+
+                    <span class="notification-dot"></span>
+                </button>
+
+
+                <div class="topbar-profile">
+
+                    <button
+                        type="button"
+                        class="profile-trigger"
+                        id="profileTrigger"
+                        aria-expanded="false"
+                        aria-controls="profileDropdown"
+                    >
+                        {% set header_avatar_path =
+                            current_user.avatarUrl
+                            or 'images/avatars/avatar-default.webp'
+                        %}
+
+
+                        <img
+                            src="{{ url_for(
+                                'static',
+                                filename=header_avatar_path
+                            ) }}"
+                            alt="Avatar của {{ current_user.fullName }}"
+                            class="profile-avatar"
+                        >
+
+                        <span class="profile-info">
+                            <strong>
+                                {{ current_user.fullName }}
+                            </strong>
+
+                            <small>
+                                Quản trị hệ thống
+                            </small>
+                        </span>
+
+                        <span class="profile-chevron">
+                            ▾
+                        </span>
+
+                    </button>
+
+
+                    <div
+                        class="profile-dropdown"
+                        id="profileDropdown"
+                        hidden
+                    >
+
+                        <div class="profile-dropdown-header">
+
+                            <img
+                                src="{{ url_for(
+                                    'static',
+                                    filename=header_avatar_path
+                                ) }}"
+                                alt="Avatar của {{ current_user.fullName }}"
+                            >
+
+                            <div>
+                                <strong>
+                                    {{ current_user.fullName }}
+                                </strong>
+
+                                <span>
+                                    {{ current_user.email }}
+                                </span>
+                            </div>
+
+                        </div>
+
+
+                        <div class="profile-dropdown-divider"></div>
+
+
+                        <a
+                            href="{{ url_for(
+                                'admin.user_detail',
+                                user_id=current_user.userID
+                            ) }}"
+                            class="profile-dropdown-item"
+                        >
+                            <span>☺</span>
+                            Hồ sơ cá nhân
+                        </a>
+
+
+                        <a
+                            href="{{ url_for('main.home') }}"
+                            class="profile-dropdown-item"
+                        >
+                            <span>↗</span>
+                            Xem website
+                        </a>
+
+
+                        <div class="profile-dropdown-divider"></div>
+
+
+                        <form
+                            method="POST"
+                            action="{{ url_for('auth.logout') }}"
+                        >
+                            <button
+                                type="submit"
+                                class="profile-dropdown-item profile-dropdown-logout"
+                            >
+                                <span>↪</span>
+                                Đăng xuất
+                            </button>
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <main class="dashboard-content">
+
+            {% block content %}{% endblock %}
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<script
+    src="{{ url_for('static', filename='js/dashboard.js') }}"
+></script>
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

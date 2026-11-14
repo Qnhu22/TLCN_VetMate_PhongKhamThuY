@@ -1,0 +1,79 @@
+{% extends "layouts/dashboard.html" %}
+
+
+{% block title %}
+Nhật ký hoạt động | VetMate Admin
+{% endblock %}
+
+
+{% block content %}
+
+<section class="user-activity-page">
+
+    <div class="user-activity-heading">
+
+        <div>
+
+            <a
+                href="{{ url_for(
+                    'admin.users'
+                ) }}"
+                class="user-activity-back"
+            >
+                <span>←</span>
+                Tài khoản
+            </a>
+
+            <p class="dashboard-eyebrow">
+                USER ACTIVITY
+            </p>
+
+            <h1>
+                Nhật ký hoạt động
+            </h1>
+
+            <p>
+                Theo dõi các thay đổi liên quan đến
+                tài khoản {{ user.fullName }}.
+            </p>
+
+        </div>
+
+
+        <a
+            href="{{ url_for(
+                'admin.user_detail',
+                user_id=user.userID
+            ) }}"
+            class="dashboard-secondary-button"
+        >
+            Xem chi tiết tài khoản
+        </a>
+
+    </div>
+
+
+    <section class="user-activity-empty-card">
+
+        <div class="user-activity-empty-icon">
+            ◷
+        </div>
+
+        <div>
+            <h2>
+                Chưa có hoạt động nào được ghi nhận
+            </h2>
+
+            <p>
+                Nhật ký thay đổi vai trò, trạng thái,
+                thông tin tài khoản và các thao tác quản trị
+                sẽ được hiển thị tại đây khi Audit Log
+                được kết nối.
+            </p>
+        </div>
+
+    </section>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,609 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Tạo tài khoản nhân viên | VetMate Admin
+{% endblock %}
+
+
+{% block content %}
+
+<section class="create-user-page">
+    <div class="create-user-heading">
+        <div class="create-user-heading-main">
+            <a
+                href="{{ url_for('admin.users') }}"
+                class="back-link"
+            >
+                <span>←</span>
+                Quay lại danh sách
+            </a>
+
+            <p class="dashboard-eyebrow">
+                USER MANAGEMENT
+            </p>
+
+            <h1>
+                Tạo tài khoản nhân viên
+            </h1>
+
+            <p>
+                Khởi tạo tài khoản mới và phân quyền
+                làm việc trong hệ thống VetMate.
+            </p>
+        </div>
+    </div>
+
+
+    <div class="create-user-layout">
+
+        <!-- FORM -->
+        <section class="create-user-card">
+
+            <form
+                method="POST"
+                action="{{ url_for('admin.create_user') }}"
+                id="createUserForm"
+                novalidate
+            >
+
+                <div class="form-section-heading">
+
+                    <div class="form-section-icon">
+                        ♙
+                    </div>
+
+                    <div>
+                        <h2>
+                            Thông tin tài khoản
+                        </h2>
+
+                        <p>
+                            Các thông tin cơ bản để nhân viên
+                            đăng nhập và sử dụng VetMate.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="form-grid">
+
+                    <!-- FULL NAME -->
+
+                    <div class="form-field form-field-full">
+
+                        <label for="fullName">
+                            Họ và tên
+                            <span>*</span>
+                        </label>
+
+                        <div
+                            class="form-control-wrap
+                            {% if errors.fullName %}
+                                has-error
+                            {% endif %}"
+                        >
+
+                            <span class="form-control-icon">
+                                ♙
+                            </span>
+
+                            <input
+                                id="fullName"
+                                name="fullName"
+                                type="text"
+                                value="{{ form_data.fullName }}"
+                                placeholder="Ví dụ: Nguyễn Văn B"
+                                maxlength="150"
+                                autocomplete="name"
+                                required
+                            >
+
+                        </div>
+
+                        {% if errors.fullName %}
+                            <p class="field-error">
+                                {{ errors.fullName }}
+                            </p>
+                        {% else %}
+                            <p class="field-help">
+                                Nhập đúng họ tên sử dụng trong
+                                hồ sơ nhân viên.
+                            </p>
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- EMAIL -->
+
+                    <div class="form-field">
+
+                        <label for="email">
+                            Email
+                            <span>*</span>
+                        </label>
+
+                        <div
+                            class="form-control-wrap
+                            {% if errors.email %}
+                                has-error
+                            {% endif %}"
+                        >
+
+                            <span class="form-control-icon">
+                                @
+                            </span>
+
+                            <input
+                                id="email"
+                                name="email"
+                                type="email"
+                                value="{{ form_data.email }}"
+                                placeholder="doctor@vetmate.vn"
+                                maxlength="255"
+                                autocomplete="email"
+                                required
+                            >
+
+                        </div>
+
+                        {% if errors.email %}
+                            <p class="field-error">
+                                {{ errors.email }}
+                            </p>
+                        {% else %}
+                            <p class="field-help">
+                                Email được dùng để đăng nhập.
+                            </p>
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- PHONE -->
+
+                    <div class="form-field">
+
+                        <label for="phone">
+                            Số điện thoại
+                        </label>
+
+                        <div
+                            class="form-control-wrap
+                            {% if errors.phone %}
+                                has-error
+                            {% endif %}"
+                        >
+
+                            <span class="form-control-icon">
+                                ☎
+                            </span>
+
+                            <input
+                                id="phone"
+                                name="phone"
+                                type="tel"
+                                value="{{ form_data.phone }}"
+                                placeholder="0901234567"
+                                minlength="10"
+                                maxlength="10"
+                                inputmode="numeric"
+                                pattern="[0-9]{10}"
+                                autocomplete="tel"
+                            >
+
+                        </div>
+
+                        {% if errors.phone %}
+                            <p class="field-error">
+                                {{ errors.phone }}
+                            </p>
+                        {% else %}
+                            <p class="field-help">
+                                Nhập đúng 10 chữ số, ví dụ 0901234567.
+                            </p>
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- ROLE -->
+
+                    <div class="form-field">
+
+                        <label for="roleCode">
+                            Vai trò
+                            <span>*</span>
+                        </label>
+
+                        <div
+                            class="form-control-wrap form-select-wrap
+                            {% if errors.roleCode %}
+                                has-error
+                            {% endif %}"
+                        >
+
+                            <span class="form-control-icon">
+                                ⌘
+                            </span>
+
+                            <select
+                                id="roleCode"
+                                name="roleCode"
+                                required
+                            >
+
+                                <option value="">
+                                    Chọn vai trò nhân viên
+                                </option>
+
+                                {% for role in roles %}
+
+                                    <option
+                                        value="{{ role.roleCode }}"
+                                        {% if form_data.roleCode == role.roleCode %}
+                                            selected
+                                        {% endif %}
+                                    >
+                                        {{ role.name }}
+                                    </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+                        {% if errors.roleCode %}
+                            <p class="field-error">
+                                {{ errors.roleCode }}
+                            </p>
+                        {% else %}
+                            <p class="field-help">
+                                Vai trò quyết định phạm vi
+                                chức năng được sử dụng.
+                            </p>
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- STATUS -->
+
+                    <div class="form-field">
+
+                        <label for="status">
+                            Trạng thái
+                            <span>*</span>
+                        </label>
+
+                        <div class="form-control-wrap form-select-wrap">
+
+                            <span class="form-control-icon">
+                                ◉
+                            </span>
+
+                            <select
+                                id="status"
+                                name="status"
+                            >
+
+                                <option
+                                    value="ACTIVE"
+                                    {% if form_data.status == "ACTIVE" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Đang hoạt động
+                                </option>
+
+                                <option
+                                    value="INACTIVE"
+                                    {% if form_data.status == "INACTIVE" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Ngừng hoạt động
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <p class="field-help">
+                            Nhân viên chỉ đăng nhập được khi
+                            tài khoản hoạt động.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-divider"></div>
+
+
+                <div class="form-section-heading">
+
+                    <div class="form-section-icon">
+                        ◇
+                    </div>
+
+                    <div>
+                        <h2>
+                            Mật khẩu tạm thời
+                        </h2>
+
+                        <p>
+                            Nhân viên sử dụng mật khẩu này
+                            trong lần đăng nhập đầu tiên.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="form-grid">
+
+                    <!-- PASSWORD -->
+
+                    <div class="form-field">
+
+                        <label for="password">
+                            Mật khẩu
+                            <span>*</span>
+                        </label>
+
+                        <div
+                            class="form-control-wrap
+                            {% if errors.password %}
+                                has-error
+                            {% endif %}"
+                        >
+
+                            <span class="form-control-icon">
+                                ◇
+                            </span>
+
+                            <input
+                                id="password"
+                                name="password"
+                                type="password"
+                                placeholder="Tối thiểu 8 ký tự"
+                                minlength="8"
+                                autocomplete="new-password"
+                                required
+                            >
+
+                            <button
+                                type="button"
+                                class="password-toggle"
+                                data-password-target="password"
+                                aria-label="Hiện mật khẩu"
+                            >
+                                ◉
+                            </button>
+
+                        </div>
+
+                        {% if errors.password %}
+                            <p class="field-error">
+                                {{ errors.password }}
+                            </p>
+                        {% else %}
+                            <p class="field-help">
+                                Mật khẩu phải có ít nhất 8 ký tự.
+                            </p>
+                        {% endif %}
+
+                        <div class="password-strength">
+                            <div class="password-strength-track">
+                                <span id="passwordStrengthBar"></span>
+                            </div>
+
+                            <small id="passwordStrengthText">
+                                Chưa nhập mật khẩu
+                            </small>
+                        </div>
+
+                    </div>
+
+
+                    <!-- CONFIRM -->
+
+                    <div class="form-field">
+
+                        <label for="confirmPassword">
+                            Xác nhận mật khẩu
+                            <span>*</span>
+                        </label>
+
+                        <div
+                            class="form-control-wrap
+                            {% if errors.confirmPassword %}
+                                has-error
+                            {% endif %}"
+                        >
+
+                            <span class="form-control-icon">
+                                ✓
+                            </span>
+
+                            <input
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                type="password"
+                                placeholder="Nhập lại mật khẩu"
+                                minlength="8"
+                                autocomplete="new-password"
+                                required
+                            >
+
+                            <button
+                                type="button"
+                                class="password-toggle"
+                                data-password-target="confirmPassword"
+                                aria-label="Hiện mật khẩu"
+                            >
+                                ◉
+                            </button>
+
+                        </div>
+
+                        {% if errors.confirmPassword %}
+                            <p class="field-error">
+                                {{ errors.confirmPassword }}
+                            </p>
+                        {% else %}
+                            <p
+                                class="field-help"
+                                id="passwordMatchMessage"
+                            >
+                                Nhập lại chính xác mật khẩu
+                                phía bên trái.
+                            </p>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <div class="create-user-actions">
+
+                    <button
+                        type="button"
+                        class="dashboard-secondary-button"
+                        id="clearCreateUserForm"
+                    >
+                        <span>↺</span>
+                        Xóa trắng
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="dashboard-primary-button create-user-submit"
+                        id="createUserSubmit"
+                    >
+                        <span>＋</span>
+                        Tạo tài khoản
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <!-- SIDE HELP -->
+
+        <aside class="create-user-aside">
+
+            <div class="create-user-tip-card">
+
+                <div class="create-user-tip-icon">
+                    🐾
+                </div>
+
+                <h3>
+                    Phân quyền nhân viên
+                </h3>
+
+                <p>
+                    Chọn vai trò phù hợp với công việc
+                    của nhân viên tại phòng khám.
+                </p>
+
+
+                <div class="role-guide-list">
+
+                    <div class="role-guide-item">
+                        <span class="role-guide-dot vet"></span>
+
+                        <div>
+                            <strong>
+                                Bác sĩ thú y
+                            </strong>
+
+                            <p>
+                                Khám, điều trị và quản lý
+                                hồ sơ y tế.
+                            </p>
+                        </div>
+                    </div>
+
+
+                    <div class="role-guide-item">
+                        <span class="role-guide-dot receptionist"></span>
+
+                        <div>
+                            <strong>
+                                Lễ tân
+                            </strong>
+
+                            <p>
+                                Tiếp nhận khách và quản lý
+                                lịch hẹn.
+                            </p>
+                        </div>
+                    </div>
+
+
+                    <div class="role-guide-item">
+                        <span class="role-guide-dot manager"></span>
+
+                        <div>
+                            <strong>
+                                Quản lý phòng khám
+                            </strong>
+
+                            <p>
+                                Theo dõi hoạt động và
+                                nghiệp vụ phòng khám.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="create-user-security-card">
+
+                <span>◇</span>
+
+                <div>
+                    <strong>
+                        Lưu ý bảo mật
+                    </strong>
+
+                    <p>
+                        Mật khẩu được lưu dưới dạng hash,
+                        không lưu trực tiếp trong database.
+                    </p>
+                </div>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script
+    src="{{ url_for(
+        'static',
+        filename='js/admin-create-user.js'
+    ) }}"
+></script>
+
+{% endblock %}

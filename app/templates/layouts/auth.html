@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+
+{% block body_class %}
+auth-page
+{% endblock %}
+
+
+{% block styles %}
+<link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='css/auth.css') }}"
+>
+
+{% block auth_styles %}{% endblock %}
+{% endblock %}
+
+
+{% block body %}
+
+<main>
+    {% block auth_content %}{% endblock %}
+</main>
+
+{% endblock %}
+
+
+{% block scripts %}
+{% block auth_scripts %}{% endblock %}
+{% endblock %}

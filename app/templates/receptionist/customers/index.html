@@ -1,0 +1,208 @@
+
+{% extends "layouts/receptionist.html" %}
+
+{% block title %}
+Quản lý khách hàng | VetMate
+{% endblock %}
+
+{% block content %}
+
+<div class="receptionist-customers">
+
+    <div class="receptionist-page-header">
+        <div>
+            <span class="receptionist-eyebrow">
+                VETMATE RECEPTION DESK
+            </span>
+
+            <h1>Quản lý khách hàng</h1>
+
+            <p>
+                Tra cứu và theo dõi hồ sơ chủ nuôi
+                tại phòng khám VetMate.
+            </p>
+        </div>
+    </div>
+
+    <section class="receptionist-panel">
+
+        <div class="receptionist-customers-toolbar">
+
+            <div>
+                <h2>Danh sách khách hàng</h2>
+                <p>
+                    Tổng cộng {{ pagination.total }} hồ sơ
+                    {% if keyword %}phù hợp{% endif %}.
+                </p>
+            </div>
+
+            <form
+                method="GET"
+                action="{{ url_for('receptionist.customers') }}"
+                class="receptionist-customer-search"
+                role="search"
+            >
+                <input
+                    type="search"
+                    name="q"
+                    value="{{ keyword }}"
+                    placeholder="Tên, email, số điện thoại..."
+                    aria-label="Tìm kiếm khách hàng"
+                >
+
+                <button type="submit">
+                    Tìm kiếm
+                </button>
+
+                {% if keyword %}
+                <a href="{{ url_for('receptionist.customers') }}"
+                   class="receptionist-search-reset">
+                    Xóa lọc
+                </a>
+                {% endif %}
+            </form>
+
+            <a
+                href="{{ url_for('receptionist.customer_create') }}"
+                class="customer-add-button"
+            >
+                + Thêm khách hàng
+            </a>
+
+        </div>
+
+        {% if customers %}
+
+        <div class="receptionist-table-wrap">
+
+            <table class="receptionist-customer-table">
+
+                <thead>
+                    <tr>
+                        <th>Khách hàng</th>
+                        <th>Số điện thoại</th>
+                        <th>Thú cưng</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for owner, user, pet_count in customers %}
+
+                    <tr>
+                        <td>
+                            <div class="receptionist-customer-identity">
+                                <span class="receptionist-customer-avatar">
+                                    {{ user.fullName[:1] | upper }}
+                                </span>
+
+                                <div>
+                                    <strong>{{ user.fullName }}</strong>
+                                    <small>{{ user.email }}</small>
+                                    <small>Mã chủ nuôi: {{ owner.ownerID }}</small>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            {{ user.phone or "Chưa cập nhật" }}
+                        </td>
+
+                        <td>
+                            {{ pet_count }}
+                        </td>
+
+                        <td>
+                            {% if user.status == "ACTIVE" %}
+                                <span class="receptionist-status is-active">
+                                    Hoạt động
+                                </span>
+                            {% else %}
+                                <span class="receptionist-status">
+                                    {{ user.status }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a
+                                href="{{ url_for(
+                                    'receptionist.customer_detail',
+                                    owner_id=owner.ownerID
+                                ) }}"
+                                class="receptionist-detail-button"
+                            >
+                                Xem chi tiết
+                            </a>
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div class="receptionist-pagination">
+
+            <span>
+                Trang {{ pagination.page }}
+                / {{ pagination.pages }}
+            </span>
+
+            <div>
+                {% if pagination.has_prev %}
+                <a href="{{ url_for(
+                    'receptionist.customers',
+                    q=keyword,
+                    page=pagination.prev_num
+                ) }}">
+                    ← Trước
+                </a>
+                {% endif %}
+
+                {% if pagination.has_next %}
+                <a href="{{ url_for(
+                    'receptionist.customers',
+                    q=keyword,
+                    page=pagination.next_num
+                ) }}">
+                    Tiếp →
+                </a>
+                {% endif %}
+            </div>
+
+        </div>
+
+        {% else %}
+
+        <div class="receptionist-empty-state">
+            <span>♙</span>
+
+            <strong>
+                {% if keyword %}
+                    Không tìm thấy khách hàng
+                {% else %}
+                    Chưa có hồ sơ khách hàng
+                {% endif %}
+            </strong>
+
+            <p>
+                {% if keyword %}
+                    Hãy thử từ khóa tìm kiếm khác.
+                {% else %}
+                    Danh sách sẽ xuất hiện khi hệ thống
+                    có hồ sơ chủ nuôi.
+                {% endif %}
+            </p>
+        </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,231 @@
+
+{% extends "layouts/receptionist.html" %}
+
+{% block title %}Thêm khách hàng | VetMate{% endblock %}
+
+{% block content %}
+
+<div class="customer-create-page">
+
+    <div class="customer-create-header">
+        <div>
+            <div class="customer-create-breadcrumb">
+                <a href="{{ url_for('receptionist.customers') }}">
+                    Khách hàng
+                </a>
+                <span>/</span>
+                <span>Thêm mới</span>
+            </div>
+
+            <h1>Thêm khách hàng mới</h1>
+
+            <p>
+                Nhập thông tin để tạo hồ sơ
+                khách hàng tại phòng khám.
+            </p>
+        </div>
+
+        <a
+            href="{{ url_for('receptionist.customers') }}"
+            class="customer-create-back"
+        >
+            ← Quay lại
+        </a>
+    </div>
+
+    <div class="customer-create-card">
+
+        <div class="customer-create-section-title">
+            <span>🐾</span>
+            <h2>Thông tin khách hàng</h2>
+        </div>
+
+        {% if errors.get("general") %}
+            <div class="customer-create-alert">
+                {{ errors["general"] }}
+            </div>
+        {% endif %}
+
+        <form
+            method="POST"
+            action="{{ url_for('receptionist.customer_create') }}"
+            class="customer-create-form"
+        >
+
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token }}"
+            >
+
+            <div class="customer-create-grid">
+
+                <div class="customer-create-field">
+                    <label for="fullName">
+                        Họ và tên <span>*</span>
+                    </label>
+
+                    <input
+                        id="fullName"
+                        type="text"
+                        name="fullName"
+                        maxlength="150"
+                        value="{{ form_data.fullName }}"
+                        placeholder="Nhập họ và tên khách hàng"
+                        required
+                    >
+
+                    {% if errors.get("fullName") %}
+                        <small class="customer-create-error">
+                            {{ errors["fullName"] }}
+                        </small>
+                    {% endif %}
+                </div>
+
+                <div class="customer-create-field">
+                    <label for="phone">
+                        Số điện thoại
+                    </label>
+
+                    <input
+                        id="phone"
+                        type="tel"
+                        name="phone"
+                        maxlength="10"
+                        value="{{ form_data.phone }}"
+                        placeholder="09xxxxxxxx"
+                    >
+
+                    {% if errors.get("phone") %}
+                        <small class="customer-create-error">
+                            {{ errors["phone"] }}
+                        </small>
+                    {% endif %}
+                </div>
+
+                <div class="customer-create-field customer-create-full">
+                    <label for="email">
+                        Email <span>*</span>
+                    </label>
+
+                    <input
+                        id="email"
+                        type="email"
+                        name="email"
+                        maxlength="255"
+                        value="{{ form_data.email }}"
+                        placeholder="example@gmail.com"
+                        required
+                    >
+
+                    {% if errors.get("email") %}
+                        <small class="customer-create-error">
+                            {{ errors["email"] }}
+                        </small>
+                    {% endif %}
+                </div>
+
+                <div class="customer-create-field customer-create-full">
+                    <label for="address">
+                        Địa chỉ
+                    </label>
+
+                    <input
+                        id="address"
+                        type="text"
+                        name="address"
+                        maxlength="500"
+                        value="{{ form_data.address }}"
+                        placeholder="Nhập địa chỉ khách hàng"
+                    >
+
+                    {% if errors.get("address") %}
+                        <small class="customer-create-error">
+                            {{ errors["address"] }}
+                        </small>
+                    {% endif %}
+                </div>
+
+                <div class="customer-create-field customer-create-full">
+                    <label for="emergencyPhone">
+                        Số điện thoại liên hệ khẩn cấp
+                    </label>
+
+                    <input
+                        id="emergencyPhone"
+                        type="tel"
+                        name="emergencyPhone"
+                        maxlength="10"
+                        value="{{ form_data.emergencyPhone }}"
+                        placeholder="Nhập số liên hệ khẩn cấp"
+                    >
+
+                    {% if errors.get("emergencyPhone") %}
+                        <small class="customer-create-error">
+                            {{ errors["emergencyPhone"] }}
+                        </small>
+                    {% endif %}
+                </div>
+
+                <div class="customer-create-field customer-create-full">
+                    <label for="note">
+                        Ghi chú
+                    </label>
+
+                    <textarea
+                        id="note"
+                        name="note"
+                        rows="4"
+                        maxlength="2000"
+                        placeholder="Thông tin cần lưu ý về khách hàng..."
+                    >{{ form_data.note }}</textarea>
+
+                    {% if errors.get("note") %}
+                        <small class="customer-create-error">
+                            {{ errors["note"] }}
+                        </small>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <div class="customer-create-notice">
+                <span>✉️</span>
+
+                <div>
+                    <strong>Xác minh tài khoản qua email</strong>
+                    <p>
+                        Sau khi tạo hồ sơ, VetMate sẽ gửi
+                        mã OTP đến email của khách hàng.
+                        Khách hàng cần xác minh email và
+                        tự thiết lập mật khẩu để kích hoạt
+                        tài khoản.
+                    </p>
+                </div>
+            </div>
+
+            <div class="customer-create-actions">
+
+                <a
+                    href="{{ url_for('receptionist.customers') }}"
+                    class="customer-create-cancel"
+                >
+                    Hủy
+                </a>
+
+                <button
+                    type="submit"
+                    class="customer-create-submit"
+                >
+                    + Thêm khách hàng
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

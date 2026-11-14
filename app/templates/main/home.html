@@ -1,0 +1,586 @@
+{% extends "layouts/public.html" %}
+
+
+{% block title %}
+VetMate - Đồng hành cùng sức khỏe thú cưng
+{% endblock %}
+
+{% block page_styles %}
+<link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='css/home.css') }}"
+>
+{% endblock %}
+
+{% block content %}
+
+<section
+    class="home-hero"
+    aria-label="Giới thiệu VetMate"
+>
+    <div class="page-container">
+
+        <div class="home-hero-shell">
+
+            <div class="home-hero-content">
+
+                <div class="home-hero-copy">
+
+                    <span class="home-eyebrow">
+                        <i class="bi bi-heart-pulse"></i>
+                        Chăm sóc bằng cả trái tim
+                    </span>
+
+                    <h1>
+                        Chăm sóc tốt hơn cho
+                        <span>người bạn nhỏ.</span>
+                    </h1>
+
+                    <p>
+                        VetMate giúp bạn quản lý
+                        sức khỏe thú cưng, theo dõi
+                        lịch khám và tiếp cận các
+                        dịch vụ chăm sóc thuận tiện
+                        tại một nơi.
+                    </p>
+
+                    <div class="home-hero-actions">
+
+                        <a
+                            href="#services"
+                            class="home-primary-button"
+                        >
+                            <i class="bi bi-calendar2-heart"></i>
+                            Đặt lịch khám
+                        </a>
+
+                        <a
+                            href="#services"
+                            class="home-secondary-button"
+                        >
+                            Xem dịch vụ
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <div class="home-hero-visual">
+
+                    <div class="home-hero-slides">
+
+                        <article
+                            class="home-hero-slide is-active"
+                            style="
+                                --slide-image:
+                                url('{{ url_for(
+                                    'static',
+                                    filename='images/home/hero-01.jpg'
+                                ) }}');
+                            "
+                        ></article>
+
+                        <article
+                            class="home-hero-slide"
+                            style="
+                                --slide-image:
+                                url('{{ url_for(
+                                    'static',
+                                    filename='images/home/hero-02.jpg'
+                                ) }}');
+                            "
+                        ></article>
+
+                        <article
+                            class="home-hero-slide"
+                            style="
+                                --slide-image:
+                                url('{{ url_for(
+                                    'static',
+                                    filename='images/home/hero-03.jpg'
+                                ) }}');
+                            "
+                        ></article>
+
+                    </div>
+
+
+                    <div class="home-hero-badge">
+                        <span>
+                            <i class="bi bi-shield-check"></i>
+                        </span>
+
+                        <div>
+                            <strong>
+                                Đồng hành cùng thú cưng
+                            </strong>
+
+                            <small>
+                                Từ lần khám đầu tiên
+                            </small>
+                        </div>
+                    </div>
+
+
+                    <div class="home-hero-controls">
+
+                        <button
+                            type="button"
+                            id="heroPrevious"
+                            aria-label="Ảnh trước"
+                        >
+                            <i class="bi bi-arrow-left"></i>
+                        </button>
+
+                        <div
+                            class="home-hero-dots"
+                            id="heroDots"
+                        >
+                            <button
+                                type="button"
+                                class="is-active"
+                                data-slide="0"
+                                aria-label="Ảnh 1"
+                            ></button>
+
+                            <button
+                                type="button"
+                                data-slide="1"
+                                aria-label="Ảnh 2"
+                            ></button>
+
+                            <button
+                                type="button"
+                                data-slide="2"
+                                aria-label="Ảnh 3"
+                            ></button>
+                        </div>
+
+                        <button
+                            type="button"
+                            id="heroNext"
+                            aria-label="Ảnh tiếp theo"
+                        >
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="home-trust-bar">
+
+                <div>
+                    <span>
+                        <i class="bi bi-heart-pulse"></i>
+                    </span>
+
+                    <p>
+                        <strong>Chăm sóc toàn diện</strong>
+                        <small>
+                            Từ khám đến theo dõi sức khỏe
+                        </small>
+                    </p>
+                </div>
+
+                <div>
+                    <span>
+                        <i class="bi bi-journal-medical"></i>
+                    </span>
+
+                    <p>
+                        <strong>Hồ sơ tập trung</strong>
+                        <small>
+                            Lịch sử khám dễ dàng theo dõi
+                        </small>
+                    </p>
+                </div>
+
+                <div>
+                    <span>
+                        <i class="bi bi-calendar2-check"></i>
+                    </span>
+
+                    <p>
+                        <strong>Đặt lịch thuận tiện</strong>
+                        <small>
+                            Chủ động chọn dịch vụ phù hợp
+                        </small>
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+
+<section
+    class="home-section home-services"
+    id="services"
+>
+    <div class="page-container">
+
+        <div class="home-section-heading">
+
+            <span class="home-section-eyebrow">
+                Dịch vụ VetMate
+            </span>
+
+            <h2>
+                Chăm sóc phù hợp cho
+                từng nhu cầu
+            </h2>
+
+            <p>
+                Các dịch vụ cơ bản giúp theo dõi,
+                phòng ngừa và chăm sóc sức khỏe
+                thú cưng trong từng giai đoạn.
+            </p>
+
+        </div>
+
+
+        <div class="home-service-grid">
+
+            <article class="home-service-card">
+
+                <span class="home-service-icon">
+                    <i class="bi bi-heart-pulse"></i>
+                </span>
+
+                <h3>Khám tổng quát</h3>
+
+                <p>
+                    Kiểm tra tình trạng sức khỏe
+                    và ghi nhận thông tin khám
+                    trong hồ sơ thú cưng.
+                </p>
+
+                <a href="#">
+                    Tìm hiểu thêm
+                    <i class="bi bi-arrow-up-right"></i>
+                </a>
+
+            </article>
+
+
+            <article class="home-service-card">
+
+                <span class="home-service-icon">
+                    <i class="bi bi-shield-plus"></i>
+                </span>
+
+                <h3>Tiêm phòng</h3>
+
+                <p>
+                    Theo dõi lịch sử vaccine và
+                    các mốc tiêm phòng cần thiết
+                    cho thú cưng.
+                </p>
+
+                <a href="#">
+                    Tìm hiểu thêm
+                    <i class="bi bi-arrow-up-right"></i>
+                </a>
+
+            </article>
+
+
+            <article class="home-service-card">
+
+                <span class="home-service-icon">
+                    <i class="bi bi-clipboard2-pulse"></i>
+                </span>
+
+                <h3>Xét nghiệm</h3>
+
+                <p>
+                    Hỗ trợ chẩn đoán với kết quả
+                    được lưu cùng lần khám để
+                    tiện theo dõi.
+                </p>
+
+                <a href="#">
+                    Tìm hiểu thêm
+                    <i class="bi bi-arrow-up-right"></i>
+                </a>
+
+            </article>
+
+        </div>
+
+    </div>
+</section>
+
+
+<section class="home-section home-benefits">
+
+    <div class="page-container home-benefits-layout">
+
+        <div class="home-benefits-card">
+
+            <span class="home-section-eyebrow">
+                Trải nghiệm VetMate
+            </span>
+
+            <h2>
+                Mọi thông tin chăm sóc
+                ở cùng một nơi
+            </h2>
+
+            <p class="home-benefits-intro">
+                Không chỉ hỗ trợ đặt lịch,
+                VetMate giúp chủ nuôi theo dõi
+                hành trình sức khỏe của thú cưng
+                một cách rõ ràng hơn.
+            </p>
+
+
+            <div class="home-benefit-list">
+
+                <div>
+                    <span>
+                        <i class="bi bi-check-lg"></i>
+                    </span>
+
+                    <p>
+                        <strong>
+                            Quản lý hồ sơ thú cưng
+                        </strong>
+
+                        <small>
+                            Thông tin cơ bản, cân nặng
+                            và lịch sử chăm sóc.
+                        </small>
+                    </p>
+                </div>
+
+
+                <div>
+                    <span>
+                        <i class="bi bi-check-lg"></i>
+                    </span>
+
+                    <p>
+                        <strong>
+                            Theo dõi lịch sử khám
+                        </strong>
+
+                        <small>
+                            Các lần khám và thông tin
+                            điều trị được lưu tập trung.
+                        </small>
+                    </p>
+                </div>
+
+
+                <div>
+                    <span>
+                        <i class="bi bi-check-lg"></i>
+                    </span>
+
+                    <p>
+                        <strong>
+                            Chủ động lịch hẹn
+                        </strong>
+
+                        <small>
+                            Dễ dàng gửi yêu cầu đặt
+                            lịch theo thú cưng và dịch vụ.
+                        </small>
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="home-mascot-card">
+
+            <div class="home-mascot-orb"></div>
+
+            <div class="home-mascot">
+                {% with mascot_id='homeMascot' %}
+                    {% include "components/vetmate_mascot.html" %}
+                {% endwith %}
+            </div>
+
+            <span class="home-mascot-message">
+                Mình sẽ cùng bạn chăm sóc
+                người bạn nhỏ nhé!
+            </span>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="home-section home-process">
+
+    <div class="page-container">
+
+        <div class="home-section-heading">
+
+            <span class="home-section-eyebrow">
+                Đặt lịch dễ dàng
+            </span>
+
+            <h2>
+                Ba bước để bắt đầu
+            </h2>
+
+            <p>
+                Quy trình đơn giản giúp chủ nuôi
+                gửi yêu cầu đặt lịch nhanh chóng.
+            </p>
+
+        </div>
+
+
+        <div class="home-process-grid">
+
+            <article>
+                <span>01</span>
+
+                <div>
+                    <i class="bi bi-heart"></i>
+
+                    <h3>
+                        Chọn thú cưng
+                    </h3>
+
+                    <p>
+                        Chọn hồ sơ thú cưng
+                        cần được chăm sóc.
+                    </p>
+                </div>
+            </article>
+
+
+            <article>
+                <span>02</span>
+
+                <div>
+                    <i class="bi bi-clipboard2-heart"></i>
+
+                    <h3>
+                        Chọn dịch vụ
+                    </h3>
+
+                    <p>
+                        Lựa chọn dịch vụ phù hợp
+                        với nhu cầu hiện tại.
+                    </p>
+                </div>
+            </article>
+
+
+            <article>
+                <span>03</span>
+
+                <div>
+                    <i class="bi bi-calendar2-check"></i>
+
+                    <h3>
+                        Gửi yêu cầu
+                    </h3>
+
+                    <p>
+                        Chọn thời gian và gửi
+                        yêu cầu đến phòng khám.
+                    </p>
+                </div>
+            </article>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="home-cta">
+
+    <div class="page-container">
+
+        <div class="home-cta-card">
+
+            <div>
+                <span>
+                    VetMate luôn sẵn sàng
+                </span>
+
+                <h2>
+                    Bắt đầu chăm sóc
+                    người bạn nhỏ hôm nay.
+                </h2>
+
+                <p>
+                    Tạo hồ sơ thú cưng và chủ động
+                    theo dõi hành trình chăm sóc
+                    cùng VetMate.
+                </p>
+            </div>
+
+
+            <div class="home-cta-actions">
+
+                {% if current_user.is_authenticated %}
+
+                    <a
+                        href="#services"
+                        class="home-cta-primary"
+                    >
+                        Đặt lịch khám
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+
+                {% else %}
+
+                    <a
+                        href="{{ url_for('auth.register') }}"
+                        class="home-cta-primary"
+                    >
+                        Tạo tài khoản
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+
+                    <a
+                        href="{{ url_for('auth.login') }}"
+                        class="home-cta-secondary"
+                    >
+                        Đăng nhập
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+
+{% block page_scripts %}
+<script
+    src="{{ url_for(
+        'static',
+        filename='js/home.js'
+    ) }}"
+></script>
+{% endblock %}

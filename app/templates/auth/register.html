@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html
+    lang="vi"
+    data-theme="light"
+>
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Đăng ký | VetMate</title>
+
+    <script>
+        (() => {
+            const savedTheme =
+                localStorage.getItem(
+                    "vetmate-theme"
+                );
+
+            const theme = [
+                "light",
+                "dark",
+                "classic"
+            ].includes(savedTheme)
+                ? savedTheme
+                : "light";
+
+            document.documentElement
+                .setAttribute(
+                    "data-theme",
+                    theme
+                );
+        })();
+    </script>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/vetmate-mascot.css') }}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/register.css') }}"
+    >
+</head>
+
+<body class="register-page">
+
+    <main class="register-shell">
+
+        <header class="register-topbar">
+
+            <a
+                class="register-brand"
+                href="{{ url_for('main.home') }}"
+                aria-label="VetMate - Trang chủ"
+            >
+                <span class="register-brand-mark">
+                    🐾
+                </span>
+
+                <span>
+                    <strong>VetMate</strong>
+                    <small>Veterinary Clinic</small>
+                </span>
+            </a>
+
+            <a
+                class="register-home-link"
+                href="{{ url_for('main.home') }}"
+            >
+                <span aria-hidden="true">←</span>
+                Trang chủ
+            </a>
+
+        </header>
+
+
+        <section class="register-card">
+
+            <!-- =====================================
+                 BRAND / MASCOT
+                 ===================================== -->
+
+            <aside class="register-story">
+
+                <div
+                    class="register-story-orb
+                           register-story-orb-one"
+                    aria-hidden="true"
+                ></div>
+
+                <div
+                    class="register-story-orb
+                           register-story-orb-two"
+                    aria-hidden="true"
+                ></div>
+
+                <div class="register-story-content">
+
+                    <span class="register-eyebrow">
+                        🐾 Thành viên mới của VetMate
+                    </span>
+
+                    <h1>
+                        Bắt đầu hành trình
+                        <span>chăm sóc cùng nhau.</span>
+                    </h1>
+
+                    <p class="register-story-description">
+                        Một tài khoản để bạn quản lý
+                        hồ sơ thú cưng, lịch khám và
+                        hành trình sức khỏe của người
+                        bạn nhỏ.
+                    </p>
+
+
+                    <div class="register-mascot-stage">
+
+                        <div class="register-mascot-glow">
+                        </div>
+
+                        <div class="register-mascot">
+                            {% with mascot_id='registerMascot' %}
+                                {% include "components/vetmate_mascot.html" %}
+                            {% endwith %}
+                        </div>
+
+                        <div
+                            class="register-mascot-message"
+                            id="registerMascotMessage"
+                        >
+                            Mình sẽ đồng hành cùng bạn!
+                        </div>
+
+                    </div>
+
+
+                    <div class="register-benefits">
+
+                        <div class="register-benefit">
+                            <span>♡</span>
+                            <div>
+                                <strong>
+                                    Hồ sơ thú cưng
+                                </strong>
+                                <small>
+                                    Thông tin luôn ở
+                                    bên bạn.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="register-benefit">
+                            <span>◷</span>
+                            <div>
+                                <strong>
+                                    Lịch khám
+                                </strong>
+                                <small>
+                                    Theo dõi lịch hẹn
+                                    thuận tiện.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="register-benefit">
+                            <span>✚</span>
+                            <div>
+                                <strong>
+                                    Sức khỏe
+                                </strong>
+                                <small>
+                                    Lưu lại hành trình
+                                    chăm sóc.
+                                </small>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </aside>
+
+
+            <!-- =====================================
+                 REGISTER FORM
+                 ===================================== -->
+
+            <section class="register-form-panel">
+
+                <div class="register-form-inner">
+
+                    <div
+                        class="register-progress"
+                        aria-label="Tiến trình đăng ký"
+                    >
+                        <div
+                            class="register-progress-step
+                                   is-active"
+                        >
+                            <span>1</span>
+                            <small>Tài khoản</small>
+                        </div>
+
+                        <div
+                            class="register-progress-line"
+                        ></div>
+
+                        <div class="register-progress-step">
+                            <span>2</span>
+                            <small>Xác minh</small>
+                        </div>
+
+                        <div
+                            class="register-progress-line"
+                        ></div>
+
+                        <div class="register-progress-step">
+                            <span>3</span>
+                            <small>Hoàn tất</small>
+                        </div>
+                    </div>
+
+
+                    <div class="register-heading">
+                        <span class="register-heading-kicker">
+                            Tạo tài khoản
+                        </span>
+
+                        <h2>
+                            Chào mừng đến VetMate
+                        </h2>
+
+                        <p>
+                            Điền một vài thông tin để
+                            bắt đầu. Bạn có thể bổ sung
+                            hồ sơ sau khi đăng nhập.
+                        </p>
+                    </div>
+
+
+                    <form
+                        class="register-form"
+                        id="registerForm"
+                        method="post"
+                        novalidate
+                    >
+
+                        <div class="register-field">
+                            <label for="fullName">
+                                Họ và tên
+                                <span>*</span>
+                            </label>
+
+                            <div
+                                class="
+                                    register-input-shell
+                                    {% if errors.get('fullName') %}
+                                        has-error
+                                    {% endif %}
+                                "
+                            >
+                                <span
+                                    class="register-input-icon"
+                                    aria-hidden="true"
+                                >
+                                    ♙
+                                </span>
+
+                                <input
+                                    type="text"
+                                    id="fullName"
+                                    name="fullName"
+                                    value="{{ form_data.get('fullName', '') }}"
+                                    autocomplete="name"
+                                    maxlength="150"
+                                    placeholder="Nguyễn Văn A"
+                                >
+                            </div>
+
+                            <small
+                                class="register-field-error"
+                                id="fullNameError"
+                                {% if not errors.get('fullName') %}
+                                    hidden
+                                {% endif %}
+                            >
+                                {{ errors.get('fullName', '') }}
+                            </small>
+                        </div>
+
+
+                        <div class="register-form-grid">
+
+                            <div class="register-field">
+                                <label for="email">
+                                    Email
+                                    <span>*</span>
+                                </label>
+
+                                <div
+                                    class="
+                                        register-input-shell
+                                        {% if errors.get('email') %}
+                                            has-error
+                                        {% endif %}
+                                    "
+                                >
+                                    <span
+                                        class="register-input-icon"
+                                        aria-hidden="true"
+                                    >
+                                        @
+                                    </span>
+
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        name="email"
+                                        value="{{ form_data.get('email', '') }}"
+                                        autocomplete="email"
+                                        placeholder="ban@example.com"
+                                        required
+                                    >
+                                </div>
+
+                                <small
+                                    class="register-field-error"
+                                    id="emailError"
+                                    {% if not errors.get('email') %}
+                                        hidden
+                                    {% endif %}
+                                >
+                                    {{ errors.get('email', '') }}
+                                </small>
+                            </div>
+
+
+                            <div class="register-field">
+                                <label for="phone">
+                                    Số điện thoại
+                                    <span>*</span>
+                                </label>
+
+                                <div
+                                    class="
+                                        register-input-shell
+                                        {% if errors.get('phone') %}
+                                            has-error
+                                        {% endif %}
+                                    "
+                                >
+                                    <span
+                                        class="register-input-icon"
+                                        aria-hidden="true"
+                                    >
+                                        ☎
+                                    </span>
+
+                                    <input
+                                        type="tel"
+                                        id="phone"
+                                        name="phone"
+                                        value="{{ form_data.get('phone', '') }}"
+                                        autocomplete="tel"
+                                        inputmode="numeric"
+                                        maxlength="10"
+                                        placeholder="0901234567"
+                                        required
+                                    >
+                                </div>
+
+                                <small
+                                    class="register-field-error"
+                                    id="phoneError"
+                                    {% if not errors.get('phone') %}
+                                        hidden
+                                    {% endif %}
+                                >
+                                    {{ errors.get('phone', '') }}
+                                </small>
+                            </div>
+
+                        </div>
+
+
+                        <div class="register-form-grid">
+
+                            <div class="register-field">
+                                <label for="password">
+                                    Mật khẩu
+                                    <span>*</span>
+                                </label>
+
+                                <div
+                                    class="
+                                        register-input-shell
+                                        {% if errors.get('password') %}
+                                            has-error
+                                        {% endif %}
+                                    "
+                                >
+                                    <span
+                                        class="register-input-icon"
+                                        aria-hidden="true"
+                                    >
+                                        ◇
+                                    </span>
+
+                                    <input
+                                        type="password"
+                                        id="password"
+                                        name="password"
+                                        placeholder="Ít nhất 8 ký tự"
+                                        autocomplete="new-password"
+                                        required
+                                    >
+
+                                    <button
+                                        type="button"
+                                        class="register-password-toggle"
+                                        data-password-toggle="password"
+                                        aria-label="Hiện mật khẩu"
+                                    >
+                                        ◉
+                                    </button>
+                                </div>
+
+                                <small
+                                    class="register-field-error"
+                                    id="passwordError"
+                                    {% if not errors.get('password') %}
+                                        hidden
+                                    {% endif %}
+                                >
+                                    {{ errors.get('password', '') }}
+                                </small>
+                            </div>
+
+
+                            <div class="register-field">
+                                <label for="confirmPassword">
+                                    Xác nhận mật khẩu
+                                    <span>*</span>
+                                </label>
+
+                                <div
+                                    class="
+                                        register-input-shell
+                                        {% if errors.get('confirmPassword') %}
+                                            has-error
+                                        {% endif %}
+                                    "
+                                >
+                                    <span
+                                        class="register-input-icon"
+                                        aria-hidden="true"
+                                    >
+                                        ✓
+                                    </span>
+
+                                    <input
+                                        type="password"
+                                        id="confirmPassword"
+                                        name="confirmPassword"
+                                        placeholder="Nhập lại mật khẩu"
+                                        autocomplete="new-password"
+                                        required
+                                    >
+
+                                    <button
+                                        type="button"
+                                        class="register-password-toggle"
+                                        data-password-toggle="confirmPassword"
+                                        aria-label="Hiện mật khẩu"
+                                    >
+                                        ◉
+                                    </button>
+                                </div>
+
+                                <small
+                                    class="register-field-error"
+                                    id="confirmPasswordError"
+                                    {% if not errors.get('confirmPassword') %}
+                                        hidden
+                                    {% endif %}
+                                >
+                                    {{ errors.get('confirmPassword', '') }}
+                                </small>
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="register-password-strength"
+                            id="passwordStrength"
+                        >
+                            <div class="register-strength-track">
+                                <span></span>
+                            </div>
+
+                            <div class="register-strength-copy">
+                                <span id="passwordStrengthText">
+                                    Chưa nhập mật khẩu
+                                </span>
+
+                                <small>
+                                    Nên dùng từ 8 ký tự trở lên.
+                                </small>
+                            </div>
+                        </div>
+
+
+                        <label class="register-consent">
+
+                            <input
+                                type="checkbox"
+                                id="termsAccepted"
+                                name="termsAccepted"
+                                {% if terms_accepted %}
+                                    checked
+                                {% endif %}
+                                required
+                            >
+
+                            <span class="register-checkbox">
+                                ✓
+                            </span>
+
+                            <span>
+                                Tôi đồng ý với
+                                <a href="#">
+                                    Điều khoản sử dụng
+                                </a>
+                                và
+                                <a href="#">
+                                    Chính sách bảo mật
+                                </a>
+                                của VetMate.
+                            </span>
+
+                        </label>
+
+                        <small
+                            class="register-field-error register-consent-error"
+                            id="termsError"
+                            {% if not errors.get('terms') %}
+                                hidden
+                            {% endif %}
+                        >
+                            {{ errors.get('terms', '') }}
+                        </small>
+
+
+                        {% if errors.get('general') %}
+                            <div
+                                class="register-server-error"
+                                role="alert"
+                            >
+                                <i class="bi bi-exclamation-circle"></i>
+
+                                <span>
+                                    {{ errors.get('general') }}
+                                </span>
+                            </div>
+                        {% endif %}
+
+                        <button
+                            type="submit"
+                            class="register-submit"
+                            id="registerSubmit"
+                        >
+                            <span>
+                                Tiếp tục xác minh
+                            </span>
+                            <span aria-hidden="true">
+                                →
+                            </span>
+                        </button>
+
+
+                        <p class="register-login-prompt">
+                            Đã có tài khoản?
+                            <a
+                                href="{{ url_for(
+                                    'auth.login'
+                                ) }}"
+                            >
+                                Đăng nhập
+                            </a>
+                        </p>
+
+                    </form>
+
+                </div>
+
+            </section>
+
+        </section>
+
+
+        <footer class="register-footer">
+            <span>
+                © VetMate Veterinary Clinic
+            </span>
+
+            <span aria-hidden="true">•</span>
+
+            <span>
+                Chăm sóc bằng sự thấu hiểu.
+            </span>
+        </footer>
+
+    </main>
+
+
+    <script
+        src="{{ url_for(
+            'static',
+            filename='js/register.js'
+        ) }}"
+    ></script>
+
+</body>
+</html>

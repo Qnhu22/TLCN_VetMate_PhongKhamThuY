@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Xác minh email | VetMate
+{% endblock %}
+
+{% block styles %}
+    <link
+        rel="stylesheet"
+        href="{{ url_for(
+            'static',
+            filename='css/register.css'
+        ) }}"
+    >
+{% endblock %}
+
+{% block body_class %}
+    register-page
+{% endblock %}
+
+{% block body %}
+
+<main class="verify-page">
+
+    <section class="verify-card">
+
+        <div class="verify-mascot">
+            {% with mascot_id='verifyMascot' %}
+                {% include "components/vetmate_mascot.html" %}
+            {% endwith %}
+        </div>
+
+        <div
+            class="register-progress"
+            aria-label="Tiến trình đăng ký"
+        >
+            <div
+                class="register-progress-step is-complete"
+            >
+                <span>1</span>
+                <small>Tài khoản</small>
+            </div>
+
+            <div
+                class="register-progress-line is-complete"
+            ></div>
+
+            <div
+                class="register-progress-step is-active"
+            >
+                <span>2</span>
+                <small>Xác minh</small>
+            </div>
+
+            <div
+                class="register-progress-line"
+            ></div>
+
+            <div
+                class="register-progress-step"
+            >
+                <span>3</span>
+                <small>Hoàn tất</small>
+            </div>
+        </div>
+
+        <div class="verify-heading">
+            <h1>
+                Xác nhận OTP
+            </h1>
+
+            <p>
+                VetMate đã gửi mã xác minh
+                gồm 6 chữ số đến
+                <strong>
+                    {{ user.email }}
+                </strong>
+            </p>
+        </div>
+
+
+        {% with messages =
+            get_flashed_messages(
+                with_categories=true
+            )
+        %}
+            {% for category, message in messages %}
+                <div
+                    class="
+                        verify-alert
+                        verify-alert-{{ category }}
+                        js-auto-dismiss
+                    "
+                >
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+
+        {% if error %}
+            <div
+                class="
+                    verify-alert
+                    verify-alert-error
+                    js-auto-dismiss
+                "
+                id="verifyServerError"
+                role="alert"
+            >
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <form
+            method="post"
+            id="verifyOtpForm"
+            class="verify-form"
+            novalidate
+        >
+
+            <div
+                class="verify-otp"
+                id="verifyOtpInputs"
+            >
+                {% for index in range(6) %}
+                    <input
+                        type="text"
+                        class="verify-otp-input"
+                        inputmode="numeric"
+                        autocomplete="{{
+                            'one-time-code'
+                            if index == 0
+                            else 'off'
+                        }}"
+                        maxlength="1"
+                        aria-label="Chữ số OTP {{ index + 1 }}"
+                    >
+                {% endfor %}
+            </div>
+
+            <input
+                type="hidden"
+                name="otp"
+                id="otpValue"
+            >
+
+            <p class="verify-expiry">
+                Mã sẽ hết hạn sau
+                <strong id="otpCountdown">
+                    05:00
+                </strong>
+            </p>
+
+            <button
+                type="submit"
+                class="register-submit"
+                id="verifyOtpSubmit"
+            >
+                Xác minh email
+                <span aria-hidden="true">
+                    →
+                </span>
+            </button>
+
+        </form>
+
+
+        <div class="verify-resend">
+
+            <span>
+                Chưa nhận được mã?
+            </span>
+
+            <form
+                method="post"
+                action="{{
+                    url_for(
+                        'auth.resend_verification'
+                    )
+                }}"
+            >
+                <button
+                    type="submit"
+                    id="resendOtpButton"
+                    disabled
+                >
+                    Gửi lại mã
+                    <span id="resendCountdown">
+                        (30s)
+                    </span>
+                </button>
+            </form>
+
+        </div>
+
+        <a
+            href="{{ url_for('auth.register') }}"
+            class="verify-back"
+        >
+            ← Quay lại đăng ký
+        </a>
+
+    </section>
+
+</main>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+    window.VETMATE_OTP_EXPIRES_AT =
+        {{ expires_at | tojson }};
+
+    window.VETMATE_RESEND_AVAILABLE_AT =
+        {{ resend_available_at | tojson }};
+</script>
+
+<script
+    src="{{ url_for(
+        'static',
+        filename='js/verify-email.js'
+    ) }}"
+></script>
+
+{% endblock %}

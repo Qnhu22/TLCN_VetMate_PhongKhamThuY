@@ -1,0 +1,171 @@
+
+{% extends "layouts/receptionist.html" %}
+
+{% block title %}
+Tổng quan lễ tân | VetMate
+{% endblock %}
+
+{% block content %}
+
+<div class="receptionist-dashboard">
+
+    <!-- HEADER -->
+    <div class="receptionist-page-header">
+
+        <div>
+            <span class="receptionist-eyebrow">
+                VETMATE RECEPTION DESK
+            </span>
+
+            <h1>Tổng quan lễ tân</h1>
+
+            <p>
+                Xin chào {{ current_user.fullName }}!
+                Chúc bạn một ngày làm việc hiệu quả.
+            </p>
+        </div>
+
+        <div class="receptionist-header-icon">
+            🐾
+        </div>
+
+    </div>
+
+    <!-- STATISTICS -->
+    <div class="receptionist-stats-grid">
+
+        <div class="receptionist-stat-card">
+            <div class="receptionist-stat-icon">
+                ♙
+            </div>
+
+            <span>Hồ sơ khách hàng</span>
+
+            <strong>
+                {{ stats.total_customers }}
+            </strong>
+
+            <small>
+                Tổng số hồ sơ chủ nuôi
+            </small>
+        </div>
+
+        <div class="receptionist-stat-card">
+            <div class="receptionist-stat-icon">
+                🐾
+            </div>
+
+            <span>Thú cưng đang hoạt động</span>
+
+            <strong>
+                {{ stats.total_pets }}
+            </strong>
+
+            <small>
+                Hồ sơ thú cưng ACTIVE
+            </small>
+        </div>
+
+        <div class="receptionist-stat-card">
+            <div class="receptionist-stat-icon">
+                ▦
+            </div>
+
+            <span>Lịch hẹn hôm nay</span>
+
+            <strong>—</strong>
+
+            <small>
+                Chưa kết nối dữ liệu lịch hẹn
+            </small>
+        </div>
+
+        <div class="receptionist-stat-card">
+            <div class="receptionist-stat-icon">
+                ◷
+            </div>
+
+            <span>Chờ xác nhận</span>
+
+            <strong>—</strong>
+
+            <small>
+                Chưa kết nối dữ liệu lịch hẹn
+            </small>
+        </div>
+
+    </div>
+
+    <!-- MAIN SECTIONS -->
+    <div class="receptionist-dashboard-grid">
+
+        <section class="receptionist-panel">
+
+            <div class="receptionist-panel-header">
+                <h2>Thao tác nhanh</h2>
+                <p>
+                    Các chức năng tiếp nhận và quản lý
+                    thông tin phòng khám.
+                </p>
+            </div>
+
+            <div class="receptionist-quick-grid">
+
+                <a href="{{ url_for('receptionist.customers') }}"
+                    class="receptionist-quick-item receptionist-quick-link">
+                    <span>♙</span>
+                    <strong>Tra cứu khách hàng</strong>
+                    <small>Xem danh sách khách hàng</small>
+                </a>
+                <div class="receptionist-quick-item">
+                    <span>🐾</span>
+                    <strong>Tra cứu thú cưng</strong>
+                    <small>Sắp triển khai</small>
+                </div>
+
+                <div class="receptionist-quick-item">
+                    <span>▦</span>
+                    <strong>Quản lý lịch hẹn</strong>
+                    <small>Sắp triển khai</small>
+                </div>
+
+                <div class="receptionist-quick-item">
+                    <span>＋</span>
+                    <strong>Tiếp nhận khách hàng</strong>
+                    <small>Sắp triển khai</small>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="receptionist-panel">
+
+            <div class="receptionist-panel-header">
+                <h2>Lịch hẹn gần đây</h2>
+                <p>
+                    Theo dõi các lịch hẹn của phòng khám.
+                </p>
+            </div>
+
+            <div class="receptionist-empty-state">
+                <span>▦</span>
+
+                <strong>
+                    Chưa kết nối lịch hẹn
+                </strong>
+
+                <p>
+                    Danh sách lịch hẹn sẽ xuất hiện
+                    sau khi chức năng quản lý lịch hẹn
+                    được triển khai.
+                </p>
+            </div>
+
+        </section>
+
+    </div>
+
+</div>
+
+{% endblock %}

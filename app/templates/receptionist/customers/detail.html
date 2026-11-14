@@ -1,0 +1,186 @@
+
+{% extends "layouts/receptionist.html" %}
+
+{% block title %}
+Chi tiết khách hàng | VetMate
+{% endblock %}
+
+{% block content %}
+
+<div class="receptionist-customers">
+
+    <div class="receptionist-detail-heading">
+        <div>
+            <a href="{{ url_for('receptionist.customers') }}"
+               class="receptionist-back-link">
+                ← Quay lại danh sách
+            </a>
+
+            <h1>Hồ sơ khách hàng</h1>
+            <p>
+                Thông tin chủ nuôi và danh sách thú cưng.
+            </p>
+        </div>
+    </div>
+
+    <!-- CUSTOMER PROFILE -->
+    <section class="receptionist-panel receptionist-detail-panel">
+
+        <div class="receptionist-customer-hero">
+
+            <span class="receptionist-customer-avatar
+                         receptionist-customer-avatar-lg">
+                {{ customer.fullName[:1] | upper }}
+            </span>
+
+            <div>
+                <h2>{{ customer.fullName }}</h2>
+
+                <p>
+                    Mã chủ nuôi: {{ owner.ownerID }}
+                </p>
+
+                {% if customer.status == "ACTIVE" %}
+                    <span class="receptionist-status is-active">
+                        Hoạt động
+                    </span>
+                {% else %}
+                    <span class="receptionist-status">
+                        {{ customer.status }}
+                    </span>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <div class="receptionist-detail-info-grid">
+
+            <div class="receptionist-detail-field">
+                <span>Email</span>
+                <strong>{{ customer.email }}</strong>
+            </div>
+
+            <div class="receptionist-detail-field">
+                <span>Số điện thoại</span>
+                <strong>
+                    {{ customer.phone or "Chưa cập nhật" }}
+                </strong>
+            </div>
+
+            <div class="receptionist-detail-field">
+                <span>Địa chỉ</span>
+                <strong>
+                    {{ owner.address or "Chưa cập nhật" }}
+                </strong>
+            </div>
+
+            <div class="receptionist-detail-field">
+                <span>Số điện thoại khẩn cấp</span>
+                <strong>
+                    {{ owner.emergencyPhone or "Chưa cập nhật" }}
+                </strong>
+            </div>
+
+            <div class="receptionist-detail-field">
+                <span>Ngày tạo tài khoản</span>
+                <strong>
+                    {% if customer.createdAt %}
+                        {{ customer.createdAt.strftime("%d/%m/%Y") }}
+                    {% else %}
+                        Chưa có dữ liệu
+                    {% endif %}
+                </strong>
+            </div>
+
+            <div class="receptionist-detail-field">
+                <span>Tổng số thú cưng</span>
+                <strong>{{ pets | length }}</strong>
+            </div>
+
+        </div>
+
+        {% if owner.note %}
+        <div class="receptionist-customer-note">
+            <strong>Ghi chú</strong>
+            <p>{{ owner.note }}</p>
+        </div>
+        {% endif %}
+
+    </section>
+
+    <!-- PETS -->
+    <section class="receptionist-panel receptionist-detail-panel">
+
+        <div class="receptionist-panel-header">
+            <h2>Danh sách thú cưng</h2>
+            <p>
+                {{ pets | length }} hồ sơ thú cưng
+                thuộc khách hàng này.
+            </p>
+        </div>
+
+        {% if pets %}
+
+        <div class="receptionist-table-wrap">
+            <table class="receptionist-customer-table">
+                <thead>
+                    <tr>
+                        <th>Thú cưng</th>
+                        <th>Mã thú cưng</th>
+                        <th>Loài</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for pet in pets %}
+                    <tr>
+                        <td>
+                            <strong>{{ pet.name }}</strong>
+                        </td>
+
+                        <td>{{ pet.petCode }}</td>
+
+                        <td>
+                            {% if pet.species %}
+                                {{ pet.species.name }}
+                            {% else %}
+                                Chưa xác định
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if pet.status == "ACTIVE" %}
+                                <span class="receptionist-status is-active">
+                                    Hoạt động
+                                </span>
+                            {% else %}
+                                <span class="receptionist-status">
+                                    {{ pet.status }}
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+
+        <div class="receptionist-empty-state">
+            <span>🐾</span>
+            <strong>Khách hàng chưa có thú cưng</strong>
+            <p>
+                Hồ sơ thú cưng sẽ xuất hiện tại đây
+                khi được thêm vào hệ thống.
+            </p>
+        </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}

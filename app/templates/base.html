@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+
+<html lang="vi" data-theme="default">
+
+<head>
+
+    <script>
+        (() => {
+            const THEME_KEY = "vetmate-theme";
+
+            const VALID_THEMES = [
+                "default",
+                "light",
+                "dark"
+            ];
+
+            try {
+                const savedTheme =
+                    localStorage.getItem(THEME_KEY);
+
+                const theme =
+                    VALID_THEMES.includes(savedTheme)
+                        ? savedTheme
+                        : "default";
+
+                document.documentElement.dataset.theme =
+                    theme;
+            } catch (error) {
+                document.documentElement.dataset.theme =
+                    "default";
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="{% block meta_description %}VetMate - Hệ thống quản lý phòng khám thú y{% endblock %}"
+    >
+
+    <title>
+        {% block title %}VetMate{% endblock %}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/theme.css') }}"
+    >
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/vetmate-mascot.css') }}"
+    >
+
+    {% block styles %}{% endblock %}
+</head>
+
+<body class="{% block body_class %}{% endblock %}">
+
+    {% block body %}{% endblock %}
+
+    {% block scripts %}{% endblock %}
+
+</body>
+</html>

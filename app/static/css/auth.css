@@ -1,0 +1,2004 @@
+/* =========================================================
+   VETMATE LOGIN
+   ========================================================= */
+
+.auth-page {
+    min-height: 100%;
+}
+
+.auth-page main {
+    min-height: 100svh;
+}
+
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
+.login-page {
+    position: relative;
+
+    min-height: 100svh;
+
+    padding:
+        clamp(16px, 2.2vh, 24px)
+        clamp(18px, 3vw, 46px);
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+    overflow-y: auto;
+
+    color: var(--text-primary);
+
+    background:
+        var(--background);
+
+    font-family:
+        "Segoe UI",
+        Arial,
+        sans-serif;
+}
+
+
+/* =========================================================
+   DECORATIVE BACKGROUND
+   ========================================================= */
+
+.login-background,
+.login-overlay {
+    position: absolute;
+    inset: 0;
+
+    pointer-events: none;
+}
+
+.login-background {
+    z-index: 0;
+
+    background:
+        radial-gradient(
+            circle at 8% 12%,
+            rgba(225, 177, 193, 0.38),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 92% 88%,
+            rgba(196, 233, 248, 0.44),
+            transparent 32%
+        );
+}
+
+.login-overlay {
+    z-index: 0;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.10),
+            transparent 45%,
+            rgba(137, 77, 91, 0.04)
+        );
+}
+
+
+/* =========================================================
+   TOP BAR
+   ========================================================= */
+
+.login-topbar {
+    position: relative;
+    z-index: 5;
+
+    width: min(1180px, 100%);
+
+    margin:
+        0 auto
+        clamp(12px, 1.8vh, 18px);
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+
+/* =========================================================
+   BRAND
+   ========================================================= */
+
+.login-brand {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 10px;
+
+    color: var(--text-primary);
+}
+
+.login-brand-icon {
+    width: 40px;
+    height: 40px;
+
+    display: grid;
+    place-items: center;
+
+    flex: 0 0 auto;
+
+    border:
+        1px solid
+        rgba(137, 77, 91, 0.14);
+
+    border-radius: 13px;
+
+    color: var(--magenta);
+
+    background:
+        var(--surface);
+
+    box-shadow:
+        var(--shadow-small);
+}
+
+.login-brand-icon i {
+    font-size: 1.05rem;
+}
+
+.login-brand-text {
+    display: flex;
+    flex-direction: column;
+
+    line-height: 1.05;
+}
+
+.login-brand-text strong {
+    font-size: 1rem;
+    font-weight: 800;
+
+    letter-spacing: -0.02em;
+}
+
+.login-brand-text small {
+    margin-top: 4px;
+
+    color: var(--text-secondary);
+
+    font-size: 0.67rem;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   BACK HOME
+   ========================================================= */
+
+.login-back-home {
+    min-height: 39px;
+
+    padding: 0 14px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 12px;
+
+    color:
+        var(--text-secondary);
+
+    background:
+        color-mix(
+            in srgb,
+            var(--surface) 86%,
+            transparent
+        );
+
+    font-size: 0.76rem;
+    font-weight: 700;
+
+    transition:
+        color 0.2s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.login-back-home:hover {
+    color:
+        var(--magenta);
+
+    border-color:
+        rgba(137, 77, 91, 0.28);
+
+    background:
+        var(--surface);
+
+    transform:
+        translateY(-1px);
+}
+
+
+/* =========================================================
+   MAIN LOGIN SHELL
+   ========================================================= */
+
+.login-layout {
+    position: relative;
+    z-index: 2;
+
+    width: min(1180px, 100%);
+
+    margin: auto;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 0.82fr)
+        minmax(470px, 1.18fr);
+
+    min-height: 590px;
+    max-height: 680px;
+
+    overflow: hidden;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 30px;
+
+    background:
+        var(--surface);
+
+    box-shadow:
+        0 24px 70px
+        rgba(41, 30, 35, 0.14);
+}
+
+
+/* =========================================================
+   LEFT VISUAL PANEL
+   ========================================================= */
+
+.login-welcome {
+    position: relative;
+
+    min-width: 0;
+
+    overflow: hidden;
+
+    isolation: isolate;
+
+    color: #ffffff;
+
+    background:
+        var(--magenta-deep);
+}
+
+.login-welcome-image,
+.login-welcome-shade {
+    position: absolute;
+    inset: 0;
+}
+
+.login-welcome-image {
+    z-index: -3;
+
+    background-image:
+        url("../images/auth/login-background.jpg");
+
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+
+    transform: scale(1.015);
+}
+
+.login-welcome-shade {
+    z-index: -2;
+
+    background:
+        linear-gradient(
+            105deg,
+            rgba(42, 20, 27, 0.90) 0%,
+            rgba(79, 36, 48, 0.78) 46%,
+            rgba(79, 36, 48, 0.30) 100%
+        );
+}
+
+.login-welcome::after {
+    content: "";
+
+    position: absolute;
+
+    right: -130px;
+    bottom: -150px;
+
+    z-index: -1;
+
+    width: 360px;
+    height: 360px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(196, 233, 248, 0.18);
+
+    filter: blur(4px);
+}
+
+.login-welcome-content {
+    width: 100%;
+    height: 100%;
+
+    padding:
+        clamp(34px, 4vw, 52px);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    position: relative;
+    z-index: 1;
+}
+
+
+/* =========================================================
+   LEFT PANEL CONTENT
+   ========================================================= */
+
+.login-eyebrow {
+    width: fit-content;
+
+    margin-bottom: 18px;
+
+    padding:
+        7px
+        11px;
+
+    display: inline-flex;
+    align-items: center;
+
+    gap: 7px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.22);
+
+    border-radius: 999px;
+
+    color:
+        #fff3f7;
+
+    background:
+        rgba(255, 255, 255, 0.11);
+
+    backdrop-filter:
+        blur(10px);
+
+    font-size: 0.69rem;
+    font-weight: 800;
+
+    letter-spacing: 0.035em;
+}
+
+.login-welcome h1 {
+    max-width: 440px;
+
+    margin:
+        0
+        0
+        14px;
+
+    color: #ffffff;
+
+    font-size:
+        clamp(2rem, 3.35vw, 3rem);
+
+    line-height: 1.03;
+
+    letter-spacing: -0.05em;
+
+    text-wrap: balance;
+}
+
+.login-welcome h1 span {
+    color:
+        #f1c6d4;
+}
+
+.login-welcome > p,
+.login-welcome-content > p {
+    max-width: 430px;
+
+    margin:
+        0
+        0
+        21px;
+
+    color:
+        rgba(255, 255, 255, 0.82);
+
+    font-size: 0.81rem;
+    font-weight: 500;
+
+    line-height: 1.65;
+}
+
+
+/* =========================================================
+   FEATURES
+   ========================================================= */
+
+.login-welcome-features {
+    display: grid;
+
+    grid-template-columns: 1fr;
+
+    gap: 8px;
+
+    margin-bottom: 13px;
+}
+
+.login-welcome-feature {
+    min-width: 0;
+
+    padding: 12px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.15);
+
+    border-radius: 15px;
+
+    background:
+        rgba(255, 255, 255, 0.09);
+
+    backdrop-filter:
+        blur(9px);
+}
+
+.login-welcome-feature > span {
+    width: 35px;
+    height: 35px;
+
+    display: grid;
+    place-items: center;
+
+    flex: 0 0 auto;
+
+    border-radius: 11px;
+
+    color:
+        #fff3f7;
+
+    background:
+        rgba(255, 255, 255, 0.14);
+}
+
+.login-welcome-feature div {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 2px;
+}
+
+.login-welcome-feature strong {
+    color: #ffffff;
+
+    font-size: 0.73rem;
+    font-weight: 800;
+}
+
+.login-welcome-feature small {
+    color:
+        rgba(255, 255, 255, 0.67);
+
+    font-size: 0.61rem;
+
+    line-height: 1.35;
+}
+
+
+/* =========================================================
+   SECURITY NOTE
+   ========================================================= */
+
+.login-welcome-note {
+    padding:
+        11px
+        13px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.14);
+
+    border-radius: 14px;
+
+    color:
+        rgba(255, 255, 255, 0.78);
+
+    background:
+        rgba(20, 20, 24, 0.15);
+
+    font-size: 0.68rem;
+    font-weight: 600;
+
+    line-height: 1.45;
+}
+
+.login-welcome-note i {
+    flex: 0 0 auto;
+
+    color:
+        #dff3cc;
+
+    font-size: 0.94rem;
+}
+
+
+/* =========================================================
+   LOGIN CARD
+   ========================================================= */
+
+.login-card {
+    position: relative;
+
+    min-width: 0;
+
+    padding:
+        34px
+        clamp(48px, 5vw, 70px)
+        34px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    background:
+        var(--surface);
+}
+
+
+/* =========================================================
+   MASCOT
+   ========================================================= */
+
+.login-card-mascot {
+    height: 116px;
+
+    margin-bottom: 7px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-card-mascot .vetmate-mascot {
+    width: 148px;
+
+    transform-origin:
+        center bottom;
+}
+
+
+/* =========================================================
+   CARD HEADING
+   ========================================================= */
+
+.login-card-heading {
+    margin-bottom: 25px;
+
+    text-align: center;
+}
+
+.login-card-label {
+    width: fit-content;
+
+    margin:
+        0 auto
+        9px;
+
+    display: inline-flex;
+    align-items: center;
+
+    gap: 7px;
+
+    color:
+        var(--magenta);
+
+    font-size: 0.72rem;
+    font-weight: 800;
+
+    letter-spacing: 0.055em;
+
+    text-transform: uppercase;
+}
+
+.login-card-heading h2 {
+    margin:
+        0
+        0
+        7px;
+
+    color:
+        var(--text-primary);
+
+    font-size:
+        clamp(1.9rem, 2.5vw, 2.3rem);
+
+    line-height: 1.08;
+
+    letter-spacing: -0.035em;
+}
+
+.login-card-heading p {
+    max-width: 390px;
+
+    margin:
+        0 auto;
+
+    color:
+        var(--text-secondary);
+
+    font-size: 0.86rem;
+
+    line-height: 1.55;
+}
+
+
+/* =========================================================
+   FLASH MESSAGES
+   ========================================================= */
+
+.auth-messages {
+    margin-bottom: 12px;
+
+    display: grid;
+
+    gap: 7px;
+}
+
+.auth-message {
+    min-height: 40px;
+
+    padding:
+        9px
+        11px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 11px;
+
+    color:
+        var(--text-primary);
+
+    background:
+        var(--background);
+
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.auth-message-success {
+    border-color:
+        rgba(105, 133, 29, 0.25);
+
+    background:
+        rgba(136, 168, 42, 0.10);
+}
+
+.auth-message-success i {
+    color:
+        var(--apple-green-dark);
+}
+
+.auth-message-warning {
+    border-color:
+        rgba(187, 136, 39, 0.26);
+
+    background:
+        rgba(229, 183, 78, 0.10);
+}
+
+.auth-message-warning i {
+    color:
+        #a46f16;
+}
+
+.auth-message-error,
+.auth-message-danger {
+    border-color:
+        rgba(137, 77, 91, 0.24);
+
+    background:
+        rgba(137, 77, 91, 0.09);
+}
+
+.auth-message-error i,
+.auth-message-danger i {
+    color:
+        var(--magenta);
+}
+
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.login-form {
+    display: grid;
+
+    gap: 16px;
+}
+
+.login-field {
+    display: grid;
+
+    gap: 8px;
+}
+
+.login-field > label,
+.login-label-row > label:first-child {
+    color:
+        var(--text-primary);
+
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.login-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+}
+
+
+/* =========================================================
+   INPUT
+   ========================================================= */
+
+.login-input-shell {
+    min-height: 53px;
+
+    padding:
+        0
+        16px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 14px;
+
+    background:
+        var(--background);
+
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.login-input-shell > i {
+    flex: 0 0 auto;
+
+    color:
+        var(--text-secondary);
+
+    font-size: 1rem;
+
+    transition:
+        color 0.2s ease;
+}
+
+.login-input-shell:focus-within {
+    border-color:
+        rgba(137, 77, 91, 0.58);
+
+    background:
+        var(--surface);
+
+    box-shadow:
+        0 0 0 4px
+        rgba(137, 77, 91, 0.09);
+
+    transform:
+        translateY(-1px);
+}
+
+.login-input-shell:focus-within > i {
+    color:
+        var(--magenta);
+}
+
+.login-input-shell input {
+    width: 100%;
+
+    min-width: 0;
+
+    border: 0;
+    outline: 0;
+
+    color:
+        var(--text-primary);
+
+    background:
+        transparent;
+
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.login-input-shell input::placeholder {
+    color:
+        var(--text-secondary);
+
+    opacity: 0.70;
+
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   CHECKBOXES
+   ========================================================= */
+
+.show-password-option,
+.remember-option {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 8px;
+
+    color:
+        var(--text-secondary);
+
+    font-size: 0.76rem;
+    font-weight: 650;
+
+    cursor: pointer;
+
+    user-select: none;
+}
+
+.show-password-option input,
+.remember-option input {
+    position: absolute;
+
+    width: 1px;
+    height: 1px;
+
+    opacity: 0;
+
+    pointer-events: none;
+}
+
+.show-password-checkbox,
+.remember-checkbox {
+    width: 19px;
+    height: 19px;
+
+    display: grid;
+    place-items: center;
+
+    flex: 0 0 auto;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius: 5px;
+
+    color:
+        transparent;
+
+    background:
+        var(--background);
+
+    transition:
+        color 0.18s ease,
+        border-color 0.18s ease,
+        background-color 0.18s ease;
+}
+
+.show-password-checkbox i,
+.remember-checkbox i {
+    font-size: 0.76rem;
+    line-height: 1;
+}
+
+.show-password-option
+input:checked
++
+.show-password-checkbox,
+.remember-option
+input:checked
++
+.remember-checkbox {
+    color:
+        #ffffff;
+
+    border-color:
+        var(--magenta);
+
+    background:
+        var(--magenta);
+}
+
+
+/* =========================================================
+   FORM OPTIONS
+   ========================================================= */
+
+.login-options {
+    min-height: 26px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 14px;
+}
+
+.forgot-password-link {
+    color:
+        var(--magenta);
+
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+.forgot-password-link:hover {
+    color:
+        var(--magenta-dark);
+
+    text-decoration: underline;
+}
+
+
+/* =========================================================
+   SUBMIT
+   ========================================================= */
+
+.login-submit-button {
+    width: 100%;
+    min-height: 52px;
+
+    padding:
+        0
+        19px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    border: 0;
+
+    border-radius: 14px;
+
+    color:
+        #ffffff;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--magenta),
+            var(--magenta-dark)
+        );
+
+    box-shadow:
+        0 12px 24px
+        rgba(137, 77, 91, 0.20);
+
+    font-size: 0.87rem;
+    font-weight: 800;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        filter 0.2s ease;
+}
+
+.login-submit-button:hover {
+    transform:
+        translateY(-2px);
+
+    box-shadow:
+        0 15px 29px
+        rgba(137, 77, 91, 0.26);
+
+    filter:
+        brightness(1.04);
+}
+
+.login-submit-button:active {
+    transform:
+        translateY(0);
+}
+
+.login-submit-button i {
+    transition:
+        transform 0.2s ease;
+}
+
+.login-submit-button:hover i {
+    transform:
+        translateX(3px);
+}
+
+
+/* =========================================================
+   DIVIDER / REGISTER
+   ========================================================= */
+
+.login-divider {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    color:
+        var(--text-secondary);
+
+    font-size: 0.72rem;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: "";
+
+    height: 1px;
+
+    flex: 1;
+
+    background:
+        var(--border);
+}
+
+.login-register {
+    margin: -1px 0 0;
+
+    color:
+        var(--text-secondary);
+
+    text-align: center;
+
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.login-register a {
+    margin-left: 3px;
+
+    color:
+        var(--magenta);
+
+    font-weight: 800;
+}
+
+.login-register a:hover {
+    color:
+        var(--magenta-dark);
+
+    text-decoration: underline;
+}
+
+/* =========================================================
+   RESPONSIVE - LOW HEIGHT LAPTOP
+   ========================================================= */
+
+@media
+(max-height: 790px)
+and
+(min-width: 901px) {
+
+    .login-page {
+        padding:
+            10px
+            clamp(18px, 3vw, 42px);
+    }
+
+    .login-topbar {
+        margin-bottom: 8px;
+    }
+
+    .login-brand-icon {
+        width: 36px;
+        height: 36px;
+
+        border-radius: 11px;
+    }
+
+    .login-brand-text strong {
+        font-size: 0.92rem;
+    }
+
+    .login-brand-text small {
+        margin-top: 2px;
+
+        font-size: 0.6rem;
+    }
+
+    .login-back-home {
+        min-height: 35px;
+    }
+
+    .login-layout {
+        min-height: 0;
+
+        height:
+            min(
+                600px,
+                calc(100svh - 72px)
+            );
+
+        max-height: none;
+    }
+
+    .login-welcome-content {
+        padding:
+            32px
+            40px;
+    }
+
+    .login-eyebrow {
+        margin-bottom: 13px;
+    }
+
+    .login-welcome h1 {
+        margin-bottom: 11px;
+
+        font-size:
+            clamp(
+                2rem,
+                3.5vw,
+                2.85rem
+            );
+    }
+
+    .login-welcome-content > p {
+        margin-bottom: 17px;
+
+        font-size: 0.78rem;
+
+        line-height: 1.55;
+    }
+
+    .login-welcome-feature {
+        padding: 9px;
+    }
+
+    .login-welcome-feature > span {
+        width: 31px;
+        height: 31px;
+    }
+
+    .login-welcome-note {
+        padding:
+            8px
+            11px;
+    }
+
+    .login-card {
+        padding:
+            17px
+            40px
+            19px;
+    }
+
+    .login-card-mascot {
+        height: 76px;
+
+        margin-bottom: 0;
+    }
+
+    .login-card-mascot
+    .vetmate-mascot {
+        width: 102px;
+    }
+
+    .login-card-heading {
+        margin-bottom: 12px;
+    }
+
+    .login-card-label {
+        margin-bottom: 5px;
+    }
+
+    .login-card-heading h2 {
+        margin-bottom: 4px;
+
+        font-size: 1.55rem;
+    }
+
+    .login-card-heading p {
+        font-size: 0.7rem;
+
+        line-height: 1.35;
+    }
+
+    .login-form {
+        gap: 8px;
+    }
+
+    .login-field {
+        gap: 5px;
+    }
+
+    .login-input-shell {
+        min-height: 41px;
+    }
+
+    .login-options {
+        min-height: 22px;
+    }
+
+    .login-submit-button {
+        min-height: 42px;
+    }
+
+}
+
+/* =========================================================
+   LOGIN THEMES
+   ========================================================= */
+
+/*
+ * DEFAULT
+ * Theme mặc định dùng nền trung tính hơi ấm.
+ * Không trắng sáng như Light.
+ */
+
+html:not([data-theme]),
+html[data-theme="default"] {
+
+    .login-page {
+        background:
+            linear-gradient(
+                135deg,
+                #f2eeee 0%,
+                #f4f1ef 48%,
+                #eceff0 100%
+            );
+    }
+
+    .login-layout {
+        background:
+            #f8f5f4;
+    }
+
+    .login-card {
+        background:
+            #f8f5f4;
+    }
+
+    .login-input-shell {
+        background:
+            #f1edeb;
+    }
+
+    .login-input-shell:focus-within {
+        background:
+            #fffafa;
+    }
+
+    .login-back-home {
+        background:
+            rgba(248, 245, 244, 0.88);
+    }
+
+}
+
+
+/*
+ * LIGHT
+ * Sáng hơn Default rõ rệt.
+ */
+
+html[data-theme="light"] {
+
+    .login-page {
+        background:
+            linear-gradient(
+                135deg,
+                #fffafd 0%,
+                #fffefe 48%,
+                #f4fbfd 100%
+            );
+    }
+
+    .login-background {
+        opacity: 0.72;
+    }
+
+    .login-layout {
+        border-color:
+            rgba(137, 77, 91, 0.12);
+
+        background:
+            #ffffff;
+
+        box-shadow:
+            0 24px 70px
+            rgba(137, 77, 91, 0.10);
+    }
+
+    .login-card {
+        background:
+            #ffffff;
+    }
+
+    .login-brand-icon {
+        background:
+            #ffffff;
+    }
+
+    .login-back-home {
+        background:
+            rgba(255, 255, 255, 0.88);
+    }
+
+    .login-input-shell {
+        border-color:
+            rgba(137, 77, 91, 0.15);
+
+        background:
+            #fff9fb;
+    }
+
+    .login-input-shell:focus-within {
+        border-color:
+            rgba(137, 77, 91, 0.56);
+
+        background:
+            #ffffff;
+    }
+
+    .show-password-checkbox,
+    .remember-checkbox {
+        background:
+            #fff9fb;
+    }
+
+}
+
+
+/*
+ * DARK
+ */
+
+html[data-theme="dark"] {
+
+    .login-page {
+        background:
+            linear-gradient(
+                135deg,
+                #101722 0%,
+                #151e2c 52%,
+                #111925 100%
+            );
+    }
+
+    .login-background {
+        opacity: 0.55;
+
+        background:
+            radial-gradient(
+                circle at 8% 12%,
+                rgba(137, 77, 91, 0.30),
+                transparent 31%
+            ),
+            radial-gradient(
+                circle at 91% 88%,
+                rgba(196, 233, 248, 0.08),
+                transparent 30%
+            );
+    }
+
+    .login-overlay {
+        background:
+            linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.015),
+                transparent 48%,
+                rgba(137, 77, 91, 0.06)
+            );
+    }
+
+    .login-layout {
+        border-color:
+            rgba(225, 177, 193, 0.13);
+
+        background:
+            #1b2537;
+
+        box-shadow:
+            0 28px 80px
+            rgba(0, 0, 0, 0.38);
+    }
+
+    .login-card {
+        background:
+            #1b2537;
+    }
+
+    .login-brand-icon {
+        border-color:
+            rgba(225, 177, 193, 0.15);
+
+        background:
+            #1b2537;
+
+        box-shadow:
+            0 8px 24px
+            rgba(0, 0, 0, 0.20);
+    }
+
+    .login-back-home {
+        border-color:
+            rgba(225, 177, 193, 0.14);
+
+        background:
+            rgba(27, 37, 55, 0.88);
+    }
+
+    .login-back-home:hover {
+        border-color:
+            rgba(225, 177, 193, 0.28);
+
+        background:
+            #222e43;
+    }
+
+    .login-input-shell {
+        border-color:
+            rgba(225, 177, 193, 0.13);
+
+        background:
+            #151e2c;
+    }
+
+    .login-input-shell:focus-within {
+        border-color:
+            rgba(225, 177, 193, 0.48);
+
+        background:
+            #202b3e;
+
+        box-shadow:
+            0 0 0 4px
+            rgba(137, 77, 91, 0.14);
+    }
+
+    .show-password-checkbox,
+    .remember-checkbox {
+        border-color:
+            rgba(225, 177, 193, 0.18);
+
+        background:
+            #151e2c;
+    }
+
+    .login-divider::before,
+    .login-divider::after {
+        background:
+            rgba(225, 177, 193, 0.13);
+    }
+
+    .auth-message {
+        background:
+            #151e2c;
+    }
+
+}
+
+/* =========================================================
+   RESPONSIVE - TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .login-page {
+        min-height: 100svh;
+
+        padding:
+            15px
+            20px
+            25px;
+
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .login-topbar {
+        width:
+            min(
+                620px,
+                100%
+            );
+
+        margin-bottom: 13px;
+    }
+
+    .login-layout {
+        width:
+            min(
+                620px,
+                100%
+            );
+
+        grid-template-columns: 1fr;
+
+        min-height: 0;
+        max-height: none;
+
+        margin: 0 auto;
+
+        border-radius: 25px;
+    }
+
+    /*
+     * Tablet vẫn giữ ảnh,
+     * nhưng biến thành banner ngắn.
+     */
+
+    .login-welcome {
+        min-height: 205px;
+    }
+
+    .login-welcome-image {
+        background-position:
+            center 42%;
+    }
+
+    .login-welcome-shade {
+        background:
+            linear-gradient(
+                90deg,
+                rgba(42, 20, 27, 0.90),
+                rgba(79, 36, 48, 0.62),
+                rgba(79, 36, 48, 0.25)
+            );
+    }
+
+    .login-welcome-content {
+        padding:
+            28px
+            34px;
+
+        justify-content: center;
+    }
+
+    .login-eyebrow {
+        margin-bottom: 10px;
+    }
+
+    .login-welcome h1 {
+        max-width: 430px;
+
+        margin-bottom: 8px;
+
+        font-size:
+            clamp(
+                1.9rem,
+                6vw,
+                2.65rem
+            );
+    }
+
+    .login-welcome-content > p {
+        max-width: 420px;
+
+        margin-bottom: 0;
+
+        font-size: 0.76rem;
+
+        line-height: 1.55;
+    }
+
+    /*
+     * Tablet không cần feature cards.
+     * Tránh page quá dài.
+     */
+
+    .login-welcome-features,
+    .login-welcome-note {
+        display: none;
+    }
+
+    .login-card {
+        padding:
+            25px
+            clamp(
+                27px,
+                7vw,
+                52px
+            )
+            29px;
+    }
+
+    .login-card-mascot {
+        height: 87px;
+
+        margin-bottom: 2px;
+    }
+
+    .login-card-mascot
+    .vetmate-mascot {
+        width: 113px;
+    }
+
+}
+
+/* =========================================================
+   RESPONSIVE - MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    .login-page {
+        padding:
+            11px
+            13px
+            18px;
+    }
+
+    .login-topbar {
+        margin-bottom: 10px;
+    }
+
+
+    /* -------------------------
+       BRAND
+       ------------------------- */
+
+    .login-brand {
+        gap: 8px;
+    }
+
+    .login-brand-icon {
+        width: 36px;
+        height: 36px;
+
+        border-radius: 11px;
+    }
+
+    .login-brand-text strong {
+        font-size: 0.93rem;
+    }
+
+    .login-brand-text small {
+        display: none;
+    }
+
+
+    /* -------------------------
+       BACK HOME
+       ------------------------- */
+
+    .login-back-home {
+        width: 36px;
+        height: 36px;
+        min-height: 36px;
+
+        padding: 0;
+
+        border-radius: 11px;
+    }
+
+    .login-back-home span {
+        display: none;
+    }
+
+
+    /* -------------------------
+       SHELL
+       ------------------------- */
+
+    .login-layout {
+        border-radius: 21px;
+    }
+
+
+    /* -------------------------
+       VISUAL BANNER
+       ------------------------- */
+
+    .login-welcome {
+        min-height: 125px;
+    }
+
+    .login-welcome-image {
+        background-position:
+            center 40%;
+    }
+
+    .login-welcome-shade {
+        background:
+            linear-gradient(
+                90deg,
+                rgba(42, 20, 27, 0.91),
+                rgba(79, 36, 48, 0.55),
+                rgba(79, 36, 48, 0.18)
+            );
+    }
+
+    .login-welcome-content {
+        padding:
+            18px
+            21px;
+    }
+
+    .login-eyebrow {
+        margin-bottom: 8px;
+
+        padding:
+            5px
+            8px;
+
+        font-size: 0.58rem;
+    }
+
+    .login-welcome h1 {
+        max-width: 300px;
+
+        margin: 0;
+
+        font-size:
+            clamp(
+                1.45rem,
+                7.7vw,
+                1.85rem
+            );
+
+        line-height: 1.03;
+    }
+
+    .login-welcome-content > p,
+    .login-welcome-features,
+    .login-welcome-note {
+        display: none;
+    }
+
+
+    /* -------------------------
+       FORM CARD
+       ------------------------- */
+
+    .login-card {
+        padding:
+            18px
+            19px
+            23px;
+    }
+
+    .login-card-mascot {
+        height: 73px;
+
+        margin-bottom: 0;
+    }
+
+    .login-card-mascot
+    .vetmate-mascot {
+        width: 96px;
+    }
+
+    .login-card-heading {
+        margin-bottom: 15px;
+    }
+
+    .login-card-label {
+        margin-bottom: 5px;
+
+        font-size: 0.58rem;
+    }
+
+    .login-card-heading h2 {
+        margin-bottom: 4px;
+
+        font-size: 1.45rem;
+    }
+
+    .login-card-heading p {
+        max-width: 275px;
+
+        font-size: 0.68rem;
+
+        line-height: 1.4;
+    }
+
+
+    /* -------------------------
+       FORM
+       ------------------------- */
+
+    .login-form {
+        gap: 11px;
+    }
+
+    .login-field {
+        gap: 6px;
+    }
+
+    .login-input-shell {
+        min-height: 44px;
+
+        padding:
+            0
+            12px;
+    }
+
+    .login-input-shell input {
+        font-size: 0.76rem;
+    }
+
+    .login-options {
+        min-height: 24px;
+
+        align-items: center;
+    }
+
+    .login-submit-button {
+        min-height: 45px;
+    }
+
+}
+
+/* =========================================================
+   RESPONSIVE - SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 390px) {
+
+    .login-page {
+        padding:
+            9px
+            9px
+            16px;
+    }
+
+    .login-welcome {
+        min-height: 112px;
+    }
+
+    .login-welcome-content {
+        padding:
+            15px
+            17px;
+    }
+
+    .login-eyebrow {
+        margin-bottom: 6px;
+    }
+
+    .login-welcome h1 {
+        max-width: 270px;
+
+        font-size: 1.4rem;
+    }
+
+    .login-card {
+        padding:
+            17px
+            15px
+            21px;
+    }
+
+    .login-card-mascot {
+        height: 67px;
+    }
+
+    .login-card-mascot
+    .vetmate-mascot {
+        width: 89px;
+    }
+
+    .login-card-heading {
+        margin-bottom: 13px;
+    }
+
+    .login-options {
+        gap: 8px;
+    }
+
+    .remember-option,
+    .forgot-password-link,
+    .show-password-option {
+        font-size: 0.61rem;
+    }
+
+}
+
+/* =========================================================
+   SHORT MOBILE / LANDSCAPE
+   ========================================================= */
+
+@media
+(max-width: 900px)
+and
+(max-height: 650px) {
+
+    .login-welcome {
+        min-height: 105px;
+    }
+
+    .login-welcome-content > p {
+        display: none;
+    }
+
+    .login-eyebrow {
+        margin-bottom: 7px;
+    }
+
+    .login-welcome h1 {
+        margin-bottom: 0;
+
+        font-size:
+            clamp(
+                1.45rem,
+                5vw,
+                2rem
+            );
+    }
+
+    .login-card-mascot {
+        height: 65px;
+    }
+
+    .login-card-mascot
+    .vetmate-mascot {
+        width: 88px;
+    }
+
+}
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .login-submit-button,
+    .login-submit-button i,
+    .login-input-shell,
+    .login-back-home {
+        transition: none;
+    }
+
+}

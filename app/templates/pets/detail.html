@@ -1,0 +1,248 @@
+
+{% extends "layouts/public.html" %}
+
+{% block page_styles %}
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/account.css') }}">
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/pets.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="pets-page">
+    <div class="page-container">
+    
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="profile-toast-container" aria-live="polite">
+                    {% for category, message in messages %}
+                        <div
+                            class="profile-toast profile-toast-{{ category }}"
+                            role="{{ 'alert' if category == 'error' else 'status' }}"
+                        >
+                            <span class="profile-toast-message">
+                                {{ message }}
+                            </span>
+
+                            <button
+                                type="button"
+                                class="profile-toast-close"
+                                aria-label="Đóng thông báo"
+                            >
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+
+        <div class="pets-heading">
+            <div>
+                <h1>
+                    <i class="bi bi-heart-pulse"></i>
+                    Hồ sơ {{ pet.name }}
+                </h1>
+                <p>
+                    Mã thú cưng: {{ pet.petCode }}
+                </p>
+            </div>
+
+            <a
+                href="{{ url_for('pets.index') }}"
+                class="pets-back-link"
+            >
+                <i class="bi bi-arrow-left"></i>
+                Quay lại danh sách
+            </a>
+        </div>
+
+        <div class="pet-detail-actions">
+
+            <a
+                href="{{ url_for('pets.edit', pet_id=pet.petID) }}"
+                class="pets-primary-button"
+            >
+                <i class="bi bi-pencil-square"></i>
+                Chỉnh sửa hồ sơ
+            </a>
+
+            {% if pet.status == 'ACTIVE' %}
+                <form
+                    method="post"
+                    action="{{ url_for('pets.change_status', pet_id=pet.petID) }}"
+                    class="pet-status-form"
+                    onsubmit="return confirm('Bạn có chắc muốn ngừng quản lý hồ sơ thú cưng này? Thông tin sẽ không bị xóa.');"
+                >
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token }}"
+                    >
+                    <input
+                        type="hidden"
+                        name="action"
+                        value="deactivate"
+                    >
+
+                    <button
+                        type="submit"
+                        class="pet-status-button pet-status-deactivate"
+                    >
+                        <i class="bi bi-pause-circle"></i>
+                        Ngừng quản lý
+                    </button>
+                </form>
+
+            {% elif pet.status == 'INACTIVE' %}
+                <form
+                    method="post"
+                    action="{{ url_for('pets.change_status', pet_id=pet.petID) }}"
+                    class="pet-status-form"
+                >
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token }}"
+                    >
+                    <input
+                        type="hidden"
+                        name="action"
+                        value="activate"
+                    >
+
+                    <button
+                        type="submit"
+                        class="pet-status-button pet-status-activate"
+                    >
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        Khôi phục hồ sơ
+                    </button>
+                </form>
+            {% endif %}
+
+        </div>
+
+
+
+        <div class="pet-detail-layout">
+
+            <div class="pet-detail-panel">
+                <div class="pet-detail-avatar">
+                    {% if pet.photoUrl %}
+                        <img
+                            src="{{ url_for('static', filename=pet.photoUrl) }}"
+                            alt="Ảnh {{ pet.name }}"
+                            loading="lazy"
+                        >
+                    {% else %}
+                        <i class="bi bi-heart-pulse"></i>
+                    {% endif %}
+                </div>
+
+                <h2>{{ pet.name }}</h2>
+
+                <p>
+                    {{ pet.species.name }}
+                    {% if pet.breed %}
+                        · {{ pet.breed.name }}
+                    {% endif %}
+                </p>
+
+                <span class="pet-code">
+                    {{ pet.petCode }}
+                </span>
+            </div>
+
+            <div class="pet-detail-panel">
+
+                <h2>Thông tin thú cưng</h2>
+
+                <dl class="pet-detail-info">
+                    <div>
+                        <dt>Loài</dt>
+                        <dd>{{ pet.species.name }}</dd>
+                    </div>
+
+                    <div>
+                        <dt>Giống</dt>
+                        <dd>
+                            {{ pet.breed.name if pet.breed else 'Chưa xác định' }}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>Giới tính</dt>
+                        <dd>
+                            {% if pet.sex == 'MALE' %}
+                                Đực
+                            {% elif pet.sex == 'FEMALE' %}
+                                Cái
+                            {% else %}
+                                Chưa xác định
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>Ngày sinh</dt>
+                        <dd>
+                            {{ pet.dateOfBirth.strftime('%d/%m/%Y') if pet.dateOfBirth else 'Chưa cập nhật' }}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>Màu lông</dt>
+                        <dd>{{ pet.color or 'Chưa cập nhật' }}</dd>
+                    </div>
+
+                    <div>
+                        <dt>Triệt sản</dt>
+                        <dd>
+                            {% if pet.sterilized is none %}
+                                Chưa xác định
+                            {% elif pet.sterilized %}
+                                Đã triệt sản
+                            {% else %}
+                                Chưa triệt sản
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>Microchip</dt>
+                        <dd>{{ pet.microchipNumber or 'Chưa cập nhật' }}</dd>
+                    </div>
+                    
+                    <div>
+                        <dt>Dị ứng</dt>
+                        <dd class="pet-detail-multiline">{{ pet.allergies or 'Chưa ghi nhận' }}</dd>
+                    </div>
+
+                    <div>
+                        <dt>Bệnh mãn tính</dt>
+                        <dd class="pet-detail-multiline">{{ pet.chronicConditions or 'Chưa ghi nhận' }}</dd>
+                    </div>
+
+                    <div>
+                        <dt>Ghi chú</dt>
+                        <dd class="pet-detail-multiline">{{ pet.note or 'Không có' }}</dd>
+                    </div>
+
+                </dl>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+{% endblock %}
+
+{% block page_scripts %}
+<script
+    src="{{ url_for('static', filename='js/pets.js') }}"
+    defer
+></script>
+{% endblock %}

@@ -1,0 +1,583 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Quyền hạn | VetMate
+{% endblock %}
+
+{% block head %}
+<link
+    rel="stylesheet"
+    href="{{ url_for(
+        'static',
+        filename='css/admin-access.css'
+    ) }}"
+>
+{% endblock %}
+
+{% block content %}
+<section class="access-page">
+
+    <header class="access-heading">
+        <div class="access-heading-main">
+            <a
+                href="{{ url_for('admin.dashboard') }}"
+                class="access-back-link"
+            >
+                <span aria-hidden="true">←</span>
+                Quay lại tổng quan
+            </a>
+
+            <div>
+                <p class="access-eyebrow">
+                    Phân quyền hệ thống
+                </p>
+
+                <h1>Quản lý vai trò & quyền hạn</h1>
+
+                <p class="access-heading-description">
+                    Theo dõi các quyền nghiệp vụ đang được
+                    sử dụng để kiểm soát truy cập trong VetMate.
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <nav
+        class="access-tabs"
+        aria-label="Điều hướng vai trò và quyền hạn"
+    >
+        {% if current_user.has_permission("ROLE_VIEW") %}
+            <a
+                href="{{ url_for('admin.roles') }}"
+                class="access-tab"
+            >
+                <span class="access-tab-icon">♙</span>
+
+                <span>
+                    <strong>Vai trò</strong>
+                    <small>Nhóm người dùng</small>
+                </span>
+            </a>
+        {% endif %}
+
+        <a
+            href="{{ url_for('admin.permissions') }}"
+            class="access-tab is-active"
+            aria-current="page"
+        >
+            <span class="access-tab-icon">⌘</span>
+
+            <span>
+                <strong>Quyền hạn</strong>
+                <small>Hành động được phép</small>
+            </span>
+        </a>
+    </nav>
+
+    <div class="access-summary-grid">
+        <article class="access-summary-card">
+            <span class="access-summary-icon">⌘</span>
+
+            <div>
+                <span>Tổng quyền hạn</span>
+                <strong>
+                    {{ permission_summary.total }}
+                </strong>
+                <small>
+                    Quyền trong hệ thống
+                </small>
+            </div>
+        </article>
+
+        <article class="access-summary-card">
+            <span class="access-summary-icon is-success">
+                ✓
+            </span>
+
+            <div>
+                <span>Đang hoạt động</span>
+                <strong>
+                    {{ permission_summary.active }}
+                </strong>
+                <small>
+                    Có thể được kiểm tra
+                </small>
+            </div>
+        </article>
+
+        <article class="access-summary-card">
+            <span class="access-summary-icon is-muted">
+                —
+            </span>
+
+            <div>
+                <span>Ngừng hoạt động</span>
+                <strong>
+                    {{ permission_summary.inactive }}
+                </strong>
+                <small>
+                    Không còn khả dụng
+                </small>
+            </div>
+        </article>
+
+        <article class="access-summary-card">
+            <span class="access-summary-icon is-primary">
+                ◫
+            </span>
+
+            <div>
+                <span>Module</span>
+                <strong>
+                    {{ permission_summary.modules }}
+                </strong>
+                <small>
+                    Nhóm nghiệp vụ
+                </small>
+            </div>
+        </article>
+    </div>
+
+    <section class="access-panel">
+        <div class="access-panel-heading">
+            <div>
+                <p class="access-panel-eyebrow">
+                    Danh mục quyền hạn
+                </p>
+
+                <h2>Quyền trong hệ thống</h2>
+
+                <p>
+                    Permission xác định hành động mà một
+                    tài khoản được phép thực hiện thông qua
+                    các vai trò đang sở hữu.
+                </p>
+            </div>
+        </div>
+
+        <form
+            method="get"
+            action="{{ url_for('admin.permissions') }}"
+            class="access-filter-form"
+            id="accessFilterForm"
+        >
+            <div class="access-search-field">
+                <span
+                    class="access-search-icon"
+                    aria-hidden="true"
+                >
+                    ⌕
+                </span>
+
+                <input
+                    type="search"
+                    name="q"
+                    value="{{ search }}"
+                    placeholder="Tìm mã, tên hoặc mô tả quyền..."
+                    aria-label="Tìm kiếm quyền hạn"
+                    autocomplete="off"
+                    id="accessSearchInput"
+                >
+
+                {% if search %}
+                    <a
+                        href="{{ url_for(
+                            'admin.permissions',
+                            module=selected_module,
+                            status=selected_status,
+                            per_page=per_page
+                        ) }}"
+                        class="access-clear-search"
+                        aria-label="Xóa từ khóa tìm kiếm"
+                    >
+                        ×
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="access-filter-field">
+                <label for="permissionModuleFilter">
+                    Module
+                </label>
+
+                <select
+                    name="module"
+                    id="permissionModuleFilter"
+                    data-auto-submit
+                >
+                    <option
+                        value=""
+                        {% if not selected_module %}
+                            selected
+                        {% endif %}
+                    >
+                        Tất cả module
+                    </option>
+
+                    {% for module_name in modules %}
+                        <option
+                            value="{{ module_name }}"
+                            {% if
+                                selected_module
+                                == module_name
+                            %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ module_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="access-filter-field">
+                <label for="permissionStatusFilter">
+                    Trạng thái
+                </label>
+
+                <select
+                    name="status"
+                    id="permissionStatusFilter"
+                    data-auto-submit
+                >
+                    <option
+                        value=""
+                        {% if not selected_status %}
+                            selected
+                        {% endif %}
+                    >
+                        Tất cả trạng thái
+                    </option>
+
+                    <option
+                        value="ACTIVE"
+                        {% if selected_status == "ACTIVE" %}
+                            selected
+                        {% endif %}
+                    >
+                        Đang hoạt động
+                    </option>
+
+                    <option
+                        value="INACTIVE"
+                        {% if selected_status == "INACTIVE" %}
+                            selected
+                        {% endif %}
+                    >
+                        Ngừng hoạt động
+                    </option>
+                </select>
+            </div>
+
+            <div class="access-filter-field access-per-page">
+                <label for="permissionPerPage">
+                    Hiển thị
+                </label>
+
+                <select
+                    name="per_page"
+                    id="permissionPerPage"
+                    data-auto-submit
+                >
+                    {% for size in [12, 24, 48] %}
+                        <option
+                            value="{{ size }}"
+                            {% if per_page == size %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ size }} dòng
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button
+                type="submit"
+                class="access-search-button"
+            >
+                Tìm kiếm
+            </button>
+
+            {% if
+                search
+                or selected_module
+                or selected_status
+            %}
+                <a
+                    href="{{ url_for(
+                        'admin.permissions'
+                    ) }}"
+                    class="access-reset-button"
+                >
+                    Đặt lại
+                </a>
+            {% endif %}
+        </form>
+
+        <div class="access-result-meta">
+            <p>
+                {% if pagination.total %}
+                    Tìm thấy
+                    <strong>
+                        {{ pagination.total }}
+                    </strong>
+                    quyền hạn.
+                {% else %}
+                    Không có quyền hạn phù hợp.
+                {% endif %}
+            </p>
+
+            {% if pagination.total %}
+                <span>
+                    Trang {{ pagination.page }}
+                    / {{ pagination.pages }}
+                </span>
+            {% endif %}
+        </div>
+
+        {% if permission_rows %}
+            <div class="access-table-wrapper">
+                <table class="access-table">
+                    <thead>
+                        <tr>
+                            <th>Quyền hạn</th>
+                            <th>Module</th>
+                            <th>Trạng thái</th>
+                            <th>Vai trò sử dụng</th>
+                            <th>Mô tả</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in permission_rows %}
+                            {% set permission = item.permission %}
+
+                            <tr>
+                                <td data-label="Quyền hạn">
+                                    <a
+                                        href="{{ url_for(
+                                            'admin.permission_detail',
+                                            permission_id=permission.permissionID
+                                        ) }}"
+                                        class="
+                                            access-permission-name
+                                            access-permission-link
+                                        "
+                                    >
+                                        <div>
+                                            <strong>
+                                                {{ permission.name }}
+                                            </strong>
+
+                                            <code>
+                                                {{
+                                                    permission.permissionCode
+                                                }}
+                                            </code>
+                                        </div>
+
+                                        <span
+                                            class="access-row-arrow"
+                                            aria-hidden="true"
+                                        >
+                                            ›
+                                        </span>
+                                    </a>
+                                </td>
+
+                                <td data-label="Module">
+                                    <span class="access-module-badge">
+                                        {{ permission.module }}
+                                    </span>
+                                </td>
+
+                                <td data-label="Trạng thái">
+                                    {% if permission.isActive %}
+                                        <span
+                                            class="access-status-badge is-active"
+                                        >
+                                            <i></i>
+                                            Đang hoạt động
+                                        </span>
+                                    {% else %}
+                                        <span
+                                            class="access-status-badge is-inactive"
+                                        >
+                                            <i></i>
+                                            Ngừng hoạt động
+                                        </span>
+                                    {% endif %}
+                                </td>
+
+                                <td data-label="Vai trò sử dụng">
+                                    <span class="access-count">
+                                        <strong>
+                                            {{ item.role_count }}
+                                        </strong>
+                                        vai trò
+                                    </span>
+                                </td>
+
+                                <td
+                                    data-label="Mô tả"
+                                    class="access-description-cell"
+                                >
+                                    {{
+                                        permission.description
+                                        or "Chưa có mô tả cho quyền này."
+                                    }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if pagination.pages > 1 %}
+                <nav
+                    class="access-pagination"
+                    aria-label="Phân trang quyền hạn"
+                >
+                    {% if pagination.has_prev %}
+                        <a
+                            href="{{ url_for(
+                                'admin.permissions',
+                                page=pagination.prev_num,
+                                q=search,
+                                module=selected_module,
+                                status=selected_status,
+                                per_page=per_page
+                            ) }}"
+                            class="access-page-button"
+                        >
+                            ←
+                            <span>Trước</span>
+                        </a>
+                    {% else %}
+                        <span
+                            class="access-page-button is-disabled"
+                        >
+                            ←
+                            <span>Trước</span>
+                        </span>
+                    {% endif %}
+
+                    <div class="access-page-numbers">
+                        {% for page_number in
+                            pagination.iter_pages(
+                                left_edge=1,
+                                right_edge=1,
+                                left_current=1,
+                                right_current=1
+                            )
+                        %}
+                            {% if page_number %}
+                                {% if
+                                    page_number
+                                    == pagination.page
+                                %}
+                                    <span
+                                        class="access-page-number is-active"
+                                    >
+                                        {{ page_number }}
+                                    </span>
+                                {% else %}
+                                    <a
+                                        href="{{ url_for(
+                                            'admin.permissions',
+                                            page=page_number,
+                                            q=search,
+                                            module=selected_module,
+                                            status=selected_status,
+                                            per_page=per_page
+                                        ) }}"
+                                        class="access-page-number"
+                                    >
+                                        {{ page_number }}
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <span
+                                    class="access-page-ellipsis"
+                                >
+                                    …
+                                </span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    {% if pagination.has_next %}
+                        <a
+                            href="{{ url_for(
+                                'admin.permissions',
+                                page=pagination.next_num,
+                                q=search,
+                                module=selected_module,
+                                status=selected_status,
+                                per_page=per_page
+                            ) }}"
+                            class="access-page-button"
+                        >
+                            <span>Sau</span>
+                            →
+                        </a>
+                    {% else %}
+                        <span
+                            class="access-page-button is-disabled"
+                        >
+                            <span>Sau</span>
+                            →
+                        </span>
+                    {% endif %}
+                </nav>
+            {% endif %}
+
+        {% else %}
+            <div class="access-empty-state">
+                <div class="access-empty-icon">
+                    ⌘
+                </div>
+
+                {% if
+                    search
+                    or selected_module
+                    or selected_status
+                %}
+                    <h3>Không tìm thấy quyền hạn</h3>
+
+                    <p>
+                        Không có quyền nào phù hợp với
+                        bộ lọc hiện tại.
+                    </p>
+
+                    <a
+                        href="{{ url_for(
+                            'admin.permissions'
+                        ) }}"
+                        class="access-empty-button"
+                    >
+                        Xóa bộ lọc
+                    </a>
+                {% else %}
+                    <h3>Chưa có quyền hạn</h3>
+
+                    <p>
+                        Hệ thống hiện chưa có dữ liệu
+                        quyền hạn để hiển thị.
+                    </p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </section>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script
+    src="{{ url_for(
+        'static',
+        filename='js/admin-access.js'
+    ) }}"
+></script>
+{% endblock %}

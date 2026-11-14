@@ -1,0 +1,298 @@
+
+{% extends "layouts/public.html" %}
+
+{% block page_styles %}
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/account.css') }}">
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/pets.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="pets-page">
+    <div class="page-container">
+
+        <div class="pets-heading">
+            <div>
+                <h1>
+                    <i class="bi bi-pencil-square"></i>
+                    Chỉnh sửa {{ pet.name }}
+                </h1>
+                <p>
+                    Cập nhật thông tin và ảnh đại diện
+                    cho thú cưng.
+                </p>
+            </div>
+
+            <a
+                href="{{ url_for('pets.detail', pet_id=pet.petID) }}"
+                class="pets-back-link"
+            >
+                <i class="bi bi-arrow-left"></i>
+                Quay lại
+            </a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="profile-toast-container" aria-live="polite">
+                    {% for category, message in messages %}
+                        <div class="profile-toast profile-toast-{{ category }}"
+                             role="{{ 'alert' if category == 'error' else 'status' }}">
+                            <span class="profile-toast-message">
+                                {{ message }}
+                            </span>
+                            <button
+                                type="button"
+                                class="profile-toast-close"
+                                aria-label="Đóng thông báo"
+                            >
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form
+            method="post"
+            enctype="multipart/form-data"
+            class="pet-form-card"
+            id="petEditForm"
+        >
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token }}"
+            >
+            <div class="pet-photo-section">
+                <div class="pet-photo-preview" id="petPhotoPreview">
+                    {% if pet.photoUrl %}
+                        <img
+                            src="{{ url_for('static', filename=pet.photoUrl) }}"
+                            alt="Ảnh {{ pet.name }}"
+                            id="petPreviewImage"
+                        >
+                    {% else %}
+                        <i
+                            class="bi bi-camera"
+                            id="petPreviewPlaceholder"
+                        ></i>
+                    {% endif %}
+                </div>
+
+                <div class="pet-photo-controls">
+                    <h2>Ảnh đại diện</h2>
+                    <p>JPG, PNG hoặc WebP · Tối đa 5 MB</p>
+
+                    <label for="petPhoto" class="pet-upload-button">
+                        <i class="bi bi-image"></i>
+                        Chọn ảnh
+                    </label>
+
+                    <input
+                        type="file"
+                        id="petPhoto"
+                        name="photo"
+                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                        class="pet-file-input"
+                    >
+
+                    <button
+                        type="button"
+                        id="removePetPhotoButton"
+                        class="pet-remove-photo-button"
+                    >
+                        <i class="bi bi-trash3"></i>
+                        Xóa ảnh
+                    </button>
+
+                    <input
+                        type="hidden"
+                        id="removePhoto"
+                        name="removePhoto"
+                        value="0"
+                    >
+
+                    <span
+                        id="petPhotoError"
+                        class="pet-photo-error"
+                        role="alert"
+                    ></span>
+                </div>
+            </div>
+
+            <div class="pet-form-divider"></div>
+
+            <h2 class="pet-form-section-title">
+                <i class="bi bi-heart-pulse"></i>
+                Thông tin cơ bản
+            </h2>
+
+            {% set f = form_data %}
+
+            <div class="pet-form-grid">
+                <div class="pet-form-field">
+                    <label for="name">Tên thú cưng *</label>
+                    <input
+                        id="name"
+                        name="name"
+                        required
+                        maxlength="150"
+                        value="{{ f.get('name', '') if f is not none else pet.name }}"
+                    >
+                </div>
+
+                <div class="pet-form-field">
+                    <label for="speciesID">Loài *</label>
+                    {% set selected_species = f.get('speciesID', '') if f is not none else pet.speciesID|string %}
+                    <select id="speciesID" name="speciesID" required>
+                        <option value="">Chọn loài</option>
+                        {% for species in species_list %}
+                            <option
+                                value="{{ species.speciesID }}"
+                                {% if selected_species|string == species.speciesID|string %}selected{% endif %}
+                            >
+                                {{ species.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="pet-form-field">
+                    <label for="breedID">Giống</label>
+                    {% set selected_breed = f.get('breedID', '') if f is not none else (pet.breedID|string if pet.breedID else '') %}
+                    <select
+                        id="breedID"
+                        name="breedID"
+                        data-selected="{{ selected_breed }}"
+                    >
+                        <option value="">Chưa xác định</option>
+                        {% for breed in breeds %}
+                            <option
+                                value="{{ breed.breedID }}"
+                                data-species="{{ breed.speciesID }}"
+                            >
+                                {{ breed.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="pet-form-field">
+                    <label for="sex">Giới tính</label>
+                    {% set selected_sex = f.get('sex', 'UNKNOWN') if f is not none else pet.sex %}
+                    <select id="sex" name="sex">
+                        <option value="UNKNOWN" {% if selected_sex == 'UNKNOWN' %}selected{% endif %}>Chưa xác định</option>
+                        <option value="MALE" {% if selected_sex == 'MALE' %}selected{% endif %}>Đực</option>
+                        <option value="FEMALE" {% if selected_sex == 'FEMALE' %}selected{% endif %}>Cái</option>
+                    </select>
+                </div>
+
+                <div class="pet-form-field">
+                    <label for="dateOfBirth">Ngày sinh</label>
+                    <input
+                        type="date"
+                        id="dateOfBirth"
+                        name="dateOfBirth"
+                        value="{{ f.get('dateOfBirth', '') if f is not none else (pet.dateOfBirth.isoformat() if pet.dateOfBirth else '') }}"
+                    >
+                </div>
+
+                <div class="pet-form-field">
+                    <label for="color">Màu lông</label>
+                    <input
+                        id="color"
+                        name="color"
+                        maxlength="100"
+                        value="{{ f.get('color', '') if f is not none else (pet.color or '') }}"
+                    >
+                </div>
+
+                <div class="pet-form-field">
+                    <label for="sterilized">Triệt sản</label>
+                    {% set selected_sterilized = f.get('sterilized', '') if f is not none else ('true' if pet.sterilized is true else ('false' if pet.sterilized is false else '')) %}
+                    <select id="sterilized" name="sterilized">
+                        <option value="" {% if selected_sterilized == '' %}selected{% endif %}>Chưa xác định</option>
+                        <option value="true" {% if selected_sterilized == 'true' %}selected{% endif %}>Đã triệt sản</option>
+                        <option value="false" {% if selected_sterilized == 'false' %}selected{% endif %}>Chưa triệt sản</option>
+                    </select>
+                </div>
+
+                <div class="pet-form-field">
+                    <label for="microchipNumber">Mã microchip</label>
+                    <input
+                        id="microchipNumber"
+                        name="microchipNumber"
+                        maxlength="100"
+                        value="{{ f.get('microchipNumber', '') if f is not none else (pet.microchipNumber or '') }}"
+                    >
+                </div>
+            </div>
+
+            <div class="pet-form-divider"></div>
+
+            <h2 class="pet-form-section-title">
+                <i class="bi bi-clipboard2-pulse"></i>
+                Thông tin sức khỏe
+            </h2>
+
+            <div class="pet-form-grid">
+                <div class="pet-form-field pet-form-full">
+                    <label for="allergies">Dị ứng</label>
+                    <textarea
+                        id="allergies"
+                        name="allergies"
+                        rows="3"
+                        maxlength="2000"
+                        placeholder="Ví dụ: Dị ứng thịt gà..."
+                    >{{ f.get('allergies', '') if f is not none else (pet.allergies or '') }}</textarea>
+                </div>
+
+                <div class="pet-form-field pet-form-full">
+                    <label for="chronicConditions">Bệnh mãn tính</label>
+                    <textarea
+                        id="chronicConditions"
+                        name="chronicConditions"
+                        rows="3"
+                        maxlength="2000"
+                        placeholder="Các bệnh lý cần theo dõi..."
+                    >{{ f.get('chronicConditions', '') if f is not none else (pet.chronicConditions or '') }}</textarea>
+                </div>
+
+                <div class="pet-form-field pet-form-full">
+                    <label for="note">Ghi chú</label>
+                    <textarea
+                        id="note"
+                        name="note"
+                        rows="3"
+                        maxlength="2000"
+                    >{{ f.get('note', '') if f is not none else (pet.note or '') }}</textarea>
+                </div>
+            </div>
+
+            <div class="pet-form-actions">
+                <a
+                    href="{{ url_for('pets.detail', pet_id=pet.petID) }}"
+                    class="pets-back-link"
+                >
+                    Hủy
+                </a>
+
+                <button type="submit" class="pets-primary-button">
+                    <i class="bi bi-check2-circle"></i>
+                    Lưu thay đổi
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block page_scripts %}
+<script
+    src="{{ url_for('static', filename='js/pets.js') }}"
+    defer
+></script>
+{% endblock %}

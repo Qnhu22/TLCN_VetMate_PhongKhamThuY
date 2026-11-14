@@ -1,0 +1,389 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Tổng quan | VetMate Admin
+{% endblock %}
+
+
+{% block content %}
+
+<section class="dashboard-heading">
+
+    <div class="dashboard-welcome">
+
+        <div class="dashboard-welcome-text">
+
+            <p class="dashboard-eyebrow">
+                SYSTEM ADMIN
+            </p>
+
+            <h1>
+                Xin chào,
+                {{ current_user.fullName }}
+                <span class="welcome-wave">👋</span>
+            </h1>
+
+            <p>
+                Đây là tổng quan hoạt động và tình trạng
+                hệ thống VetMate.
+            </p>
+
+        </div>
+
+
+        <div class="dashboard-welcome-mascot">
+            {% with mascot_id='dashboardMascot' %}
+                {% include "components/vetmate_mascot.html" %}
+            {% endwith %}
+
+            <div
+                class="mascot-message"
+                id="dashboardMascotMessage"
+            >
+                Chào bạn! Cùng xem tình hình VetMate hôm nay nhé.
+            </div>
+        </div>
+
+    </div>
+
+    <div class="dashboard-heading-actions">
+
+        <button class="dashboard-secondary-button">
+            Xuất báo cáo
+        </button>
+
+        <a
+            href="{{ url_for('admin.users') }}"
+            class="dashboard-primary-button"
+        >
+            Quản lý tài khoản
+        </a>
+
+    </div>
+
+</section>
+
+
+<!-- STAT CARDS -->
+
+<section class="stats-grid">
+
+    <article class="stat-card">
+
+        <div class="stat-card-top">
+
+            <span class="stat-icon">
+                ♙
+            </span>
+
+            <span class="stat-change positive">
+                +{{ dashboard_stats.new_users|default(0) }}
+            </span>
+
+        </div>
+
+        <strong class="stat-value">
+            {{ dashboard_stats.total_users|default(0) }}
+        </strong>
+
+        <span class="stat-title">
+            Tổng tài khoản
+        </span>
+
+        <small>
+            +{{ dashboard_stats.new_users|default(0) }}
+            tài khoản trong 7 ngày gần đây
+        </small>
+
+    </article>
+
+
+    <article class="stat-card">
+
+        <div class="stat-card-top">
+
+            <span class="stat-icon">
+                ✓
+            </span>
+
+        </div>
+
+        <strong class="stat-value">
+            {{ dashboard_stats.active_users|default(0) }}
+        </strong>
+
+        <span class="stat-title">
+            Đang hoạt động
+        </span>
+
+        <small>
+            Tài khoản trạng thái Active
+        </small>
+
+    </article>
+
+
+    <article class="stat-card">
+
+        <div class="stat-card-top">
+
+            <span class="stat-icon">
+                ◉
+            </span>
+
+        </div>
+
+        <strong class="stat-value">
+            {{ dashboard_stats.staff_users|default(0) }}
+        </strong>
+
+        <span class="stat-title">
+            Nhân viên
+        </span>
+
+        <small>
+            Tài khoản thuộc nhóm nhân sự
+        </small>
+
+    </article>
+
+
+    <article class="stat-card stat-card-warning">
+
+        <div class="stat-card-top">
+
+            <span class="stat-icon">
+                !
+            </span>
+
+        </div>
+
+        <strong class="stat-value">
+            {{ dashboard_stats.locked_users|default(0) }}
+        </strong>
+
+        <span class="stat-title">
+            Đang bị khóa
+        </span>
+
+        <small>
+            Cần kiểm tra khi có bất thường
+        </small>
+
+    </article>
+
+</section>
+
+
+<section class="dashboard-grid">
+
+    <article class="dashboard-panel dashboard-chart-panel">
+
+        <div class="panel-heading">
+
+            <div>
+                <h2>Hoạt động tài khoản</h2>
+
+                <p>
+                    Thống kê tài khoản theo thời gian
+                </p>
+            </div>
+
+            <select
+                class="dashboard-select"
+                id="accountChartRange"
+            >
+                <option value="7">
+                    7 ngày
+                </option>
+
+                <option value="30">
+                    30 ngày
+                </option>
+
+                <option value="90">
+                    90 ngày
+                </option>
+            </select>
+
+        </div>
+
+
+        <div class="chart-placeholder">
+
+            <canvas
+                id="accountChart"
+            ></canvas>
+
+        </div>
+
+    </article>
+
+
+    <article class="dashboard-panel">
+
+        <div class="panel-heading">
+
+            <div>
+                <h2>Phân bố vai trò</h2>
+
+                <p>
+                    Tài khoản đang sử dụng
+                </p>
+            </div>
+
+        </div>
+
+
+        <div class="role-summary">
+
+            {% for role in role_stats %}
+
+                <div class="role-summary-item">
+
+                    <div>
+
+                        <span class="role-dot"></span>
+
+                        <span>
+                            {{ role.name }}
+                        </span>
+
+                    </div>
+
+                    <strong>
+                        {{ role.total }}
+                    </strong>
+
+                </div>
+
+            {% else %}
+
+                <div class="empty-state">
+                    Chưa có dữ liệu role.
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </article>
+
+</section>
+
+
+<section class="dashboard-grid dashboard-bottom-grid">
+
+    <article class="dashboard-panel">
+
+        <div class="panel-heading">
+
+            <div>
+                <h2>Hoạt động gần đây</h2>
+
+                <p>
+                    Các thay đổi mới trong hệ thống
+                </p>
+            </div>
+
+            <a href="#">
+                Xem tất cả
+            </a>
+
+        </div>
+
+
+        <div class="activity-list">
+
+            <div class="activity-item">
+
+                <div class="activity-icon">
+                    +
+                </div>
+
+                <div>
+                    <strong>
+                        Hệ thống quản trị đã sẵn sàng
+                    </strong>
+
+                    <p>
+                        Các role và permission đã được thiết lập.
+                    </p>
+
+                    <small>
+                        Gần đây
+                    </small>
+                </div>
+
+            </div>
+
+        </div>
+
+    </article>
+
+
+    <article class="dashboard-panel quick-panel">
+
+        <div class="panel-heading">
+
+            <div>
+                <h2>Thao tác nhanh</h2>
+
+                <p>
+                    Truy cập chức năng thường dùng
+                </p>
+            </div>
+
+        </div>
+
+
+        <div class="quick-actions">
+
+            <a href="#" class="quick-action">
+                <span>＋</span>
+                Tạo tài khoản
+            </a>
+
+            <a href="#" class="quick-action">
+                <span>♙</span>
+                Quản lý người dùng
+            </a>
+
+            <a href="#" class="quick-action">
+                <span>⌘</span>
+                Role & quyền
+            </a>
+
+            <a href="#" class="quick-action">
+                <span>◫</span>
+                Audit log
+            </a>
+
+        </div>
+
+    </article>
+
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+    window.VETMATE_DASHBOARD = {
+        accountChart: {{ account_chart | tojson }}
+    };
+</script>
+
+<script
+    src="https://cdn.jsdelivr.net/npm/chart.js"
+></script>
+
+<script
+    src="{{ url_for(
+        'static',
+        filename='js/admin-dashboard.js'
+    ) }}"
+></script>
+
+{% endblock %}

@@ -1,0 +1,313 @@
+{% extends "layouts/public.html" %}
+
+{% block page_styles %}
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/account.css') }}">
+
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/pets.css') }}">
+{% endblock %}
+
+
+{% block content %}
+<section class="pets-page">
+    <div class="page-container">
+
+        <div class="pets-heading">
+            <div>
+                <h1>
+                    <i class="bi bi-heart"></i>
+                    Thú cưng của tôi
+                </h1>
+                <p>Quản lý những người bạn nhỏ của bạn.</p>
+            </div>
+
+            <a href="{{ url_for('pets.create') }}"
+               class="pets-primary-button">
+                <i class="bi bi-plus-lg"></i>
+                Thêm thú cưng
+            </a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="profile-toast-container" aria-live="polite">
+                    {% for category, message in messages %}
+                        <div class="profile-toast profile-toast-{{ category }}">
+                            <span class="profile-toast-message">
+                                {{ message }}
+                            </span>
+                            <button type="button"
+                                    class="profile-toast-close"
+                                    aria-label="Đóng thông báo">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+            <!-- Tìm kiếm và lọc thú cưng -->
+            <form
+                method="get"
+                action="{{ url_for('pets.index') }}"
+                class="pets-filter-form"
+            >
+                <div class="pets-filter-search">
+                    <label for="pet-search">Tìm kiếm thú cưng</label>
+
+                    <div class="pets-search-input">
+                        <i class="bi bi-search"></i>
+                        <input
+                            type="search"
+                            id="pet-search"
+                            name="q"
+                            placeholder="Nhập tên hoặc mã thú cưng..."
+                            value="{{ keyword }}"
+                        >
+                    </div>
+                </div>
+
+                <div class="pets-filter-field">
+                    <label for="pet-status-filter">Trạng thái</label>
+
+                    <select id="pet-status-filter" name="status">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="ACTIVE"
+                            {% if selected_status == 'ACTIVE' %}selected{% endif %}>
+                            Đang quản lý
+                        </option>
+                        <option value="INACTIVE"
+                            {% if selected_status == 'INACTIVE' %}selected{% endif %}>
+                            Ngừng quản lý
+                        </option>
+                        <option value="DECEASED"
+                            {% if selected_status == 'DECEASED' %}selected{% endif %}>
+                            Đã mất
+                        </option>
+                    </select>
+                </div>
+
+                <div class="pets-filter-field">
+                    <label for="pet-species-filter">Loài</label>
+
+                    <select id="pet-species-filter" name="species">
+                        <option value="">Tất cả loài</option>
+
+                        {% for species in species_list %}
+                            <option
+                                value="{{ species.speciesID }}"
+                                {% if selected_species == species.speciesID|string %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ species.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="pets-filter-actions">
+                    <button type="submit" class="pets-filter-submit">
+                        <i class="bi bi-search"></i>
+                        Tìm kiếm
+                    </button>
+
+                    <a
+                        href="{{ url_for('pets.index') }}"
+                        class="pets-filter-reset"
+                    >
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        Xóa lọc
+                    </a>
+                </div>
+            </form>
+
+            <div class="pets-results-summary">
+                <span>
+                    Hiển thị <strong>{{ pets|length }}</strong>
+                    / {{ total_pets }} hồ sơ thú cưng
+                </span>
+            </div>
+
+
+        {% if pets %}
+            <div class="pets-grid">
+                {% for pet in pets %}
+                    <article class="pet-card">
+                        <div class="pet-card-cover">
+                            
+                            <span class="pet-status-badge
+                                {% if pet.status == 'ACTIVE' %}
+                                    is-active
+                                {% else %}
+                                    is-inactive
+                                {% endif %}
+                            ">
+                                <i class="bi bi-circle-fill"></i>
+
+                                {% if pet.status == 'ACTIVE' %}
+                                    Đang quản lý
+                                {% elif pet.status == 'INACTIVE' %}
+                                    Ngừng quản lý
+                                {% elif pet.status == 'DECEASED' %}
+                                    Đã mất
+                                {% else %}
+                                    Không xác định
+                                {% endif %}
+                            </span>
+
+                            <div class="pet-card-avatar">
+                                {% if pet.photoUrl %}
+                                    <img
+                                        src="{{ url_for('static', filename=pet.photoUrl) }}"
+                                        alt="Ảnh {{ pet.name }}"
+                                        loading="lazy"
+                                    >
+                                {% else %}
+                                    {% set species_name = pet.species.name|lower %}
+
+                                    {% if 'mèo' in species_name %}
+                                        <i class="bi bi-emoji-smile"></i>
+                                    {% elif 'chó' in species_name %}
+                                        <i class="bi bi-heart-pulse"></i>
+                                    {% else %}
+                                        <i class="bi bi-heart-fill"></i>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+
+                            <span class="pet-cover-decoration">
+                                <i class="bi bi-stars"></i>
+                            </span>
+                        </div>
+
+                        <div class="pet-card-content">
+
+                            <h2>{{ pet.name }}</h2>
+
+                            <p class="pet-card-breed">
+                                <i class="bi bi-heart"></i>
+                                {{ pet.species.name }}
+
+                                {% if pet.breed %}
+                                    <span>· {{ pet.breed.name }}</span>
+                                {% endif %}
+                            </p>
+
+                            <div class="pet-card-tags">
+
+                                <span class="pet-code">
+                                    <i class="bi bi-upc-scan"></i>
+                                    {{ pet.petCode }}
+                                </span>
+
+                                <span class="pet-sex">
+                                    {% if pet.sex == 'MALE' %}
+                                        <i class="bi bi-gender-male"></i>
+                                        Đực
+                                    {% elif pet.sex == 'FEMALE' %}
+                                        <i class="bi bi-gender-female"></i>
+                                        Cái
+                                    {% else %}
+                                        <i class="bi bi-question-circle"></i>
+                                        Chưa xác định
+                                    {% endif %}
+                                </span>
+                                
+                                <span class="pet-age">
+                                    <i class="bi bi-calendar-heart"></i>
+
+                                    {% if pet.dateOfBirth %}
+                                        {% set age_months =
+                                            (today.year - pet.dateOfBirth.year) * 12
+                                            + today.month - pet.dateOfBirth.month
+                                            - (1 if today.day < pet.dateOfBirth.day else 0)
+                                        %}
+
+                                        {% if age_months < 0 %}
+                                            Chưa xác định
+                                        {% elif age_months < 1 %}
+                                            Dưới 1 tháng
+                                        {% elif age_months < 12 %}
+                                            {{ age_months }} tháng
+                                        {% else %}
+                                            {{ age_months // 12 }} tuổi
+                                            {% if age_months % 12 %}
+                                                {{ age_months % 12 }} tháng
+                                            {% endif %}
+                                        {% endif %}
+                                    {% else %}
+                                        Chưa rõ tuổi
+                                    {% endif %}
+                                </span>
+
+                            </div>
+
+                            <div class="pet-card-footer">
+                                <a
+                                    href="{{ url_for('pets.detail', pet_id=pet.petID) }}"
+                                    class="pet-detail-button"
+                                >
+                                    Xem chi tiết
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        
+        {% else %}
+            <div class="pets-empty">
+
+                {% if total_pets > 0 %}
+                    <i class="bi bi-search"></i>
+
+                    <h2>Không tìm thấy thú cưng phù hợp</h2>
+
+                    <p>
+                        Hãy thử từ khóa khác hoặc thay đổi
+                        bộ lọc để xem thêm kết quả.
+                    </p>
+
+                    <a
+                        href="{{ url_for('pets.index') }}"
+                        class="pets-primary-button"
+                    >
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        Xóa bộ lọc
+                    </a>
+
+                {% else %}
+                    <i class="bi bi-heart"></i>
+
+                    <h2>Bạn chưa có thú cưng nào</h2>
+
+                    <p>
+                        Hãy thêm người bạn đầu tiên
+                        vào gia đình VetMate nhé!
+                    </p>
+
+                    <a
+                        href="{{ url_for('pets.create') }}"
+                        class="pets-primary-button"
+                    >
+                        <i class="bi bi-plus-lg"></i>
+                        Thêm thú cưng đầu tiên
+                    </a>
+                {% endif %}
+
+            </div>
+        {% endif %}
+
+
+    </div>
+</section>
+{% endblock %}
+
+{% block page_scripts %}
+<script src="{{ url_for('static', filename='js/pets.js') }}"
+        defer></script>
+{% endblock %}

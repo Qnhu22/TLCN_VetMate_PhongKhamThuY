@@ -1,0 +1,355 @@
+{% extends "layouts/auth.html" %}
+
+{% block title %}
+Đăng nhập - VetMate
+{% endblock %}
+
+{% block auth_content %}
+
+<section class="login-page">
+
+    <div class="login-background" aria-hidden="true"></div>
+    <div class="login-overlay" aria-hidden="true"></div>
+
+    <div class="login-topbar">
+        <a
+            href="{{ url_for('main.home') }}"
+            class="login-brand"
+            aria-label="Quay về trang chủ VetMate"
+        >
+            <span class="login-brand-icon">
+                <i class="bi bi-heart-pulse-fill"></i>
+            </span>
+
+            <span class="login-brand-text">
+                <strong>VetMate</strong>
+                <small>Veterinary Clinic</small>
+            </span>
+        </a>
+
+        <a
+            href="{{ url_for('main.home') }}"
+            class="login-back-home"
+        >
+            <i class="bi bi-arrow-left"></i>
+            <span>Về trang chủ</span>
+        </a>
+    </div>
+
+
+    <div class="login-layout">
+
+        <!-- =====================================================
+             VISUAL / WELCOME
+             ===================================================== -->
+
+        <section class="login-welcome">
+
+            <div class="login-welcome-image" aria-hidden="true"></div>
+
+            <div class="login-welcome-shade" aria-hidden="true"></div>
+
+            <div class="login-welcome-content">
+
+                <span class="login-eyebrow">
+                    <i class="bi bi-stars"></i>
+                    Chào mừng trở lại
+                </span>
+
+                <h1>
+                    Đồng hành cùng
+                    <span>người bạn nhỏ</span>
+                    mỗi ngày.
+                </h1>
+
+                <p>
+                    Một nơi để bạn theo dõi hồ sơ, lịch khám
+                    và hành trình chăm sóc thú cưng cùng VetMate.
+                </p>
+
+                <div class="login-welcome-features">
+
+                    <div class="login-welcome-feature">
+                        <span>
+                            <i class="bi bi-heart-pulse"></i>
+                        </span>
+
+                        <div>
+                            <strong>Hồ sơ sức khỏe</strong>
+                            <small>
+                                Theo dõi thông tin thú cưng thuận tiện.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="login-welcome-feature">
+                        <span>
+                            <i class="bi bi-calendar2-heart"></i>
+                        </span>
+
+                        <div>
+                            <strong>Lịch khám dễ dàng</strong>
+                            <small>
+                                Chủ động quản lý lịch chăm sóc.
+                            </small>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="login-welcome-note">
+                    <i class="bi bi-shield-check"></i>
+
+                    <span>
+                        Thông tin được quản lý theo quyền truy cập
+                        của từng tài khoản.
+                    </span>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             LOGIN FORM
+             ===================================================== -->
+
+        <section class="login-card">
+
+            <div class="login-card-mascot">
+                {% with mascot_id='loginMascot' %}
+                    {% include "components/vetmate_mascot.html" %}
+                {% endwith %}
+            </div>
+
+            <div class="login-card-heading">
+
+                <span class="login-card-label">
+                    <i class="bi bi-paw"></i>
+                    Tài khoản VetMate
+                </span>
+
+                <h2>Chào bạn quay lại!</h2>
+
+                <p>
+                    Đăng nhập để tiếp tục chăm sóc
+                    người bạn nhỏ của bạn.
+                </p>
+
+            </div>
+
+
+            {% with messages = get_flashed_messages(
+                with_categories=true
+            ) %}
+
+                {% if messages %}
+
+                    <div
+                        class="auth-messages"
+                        role="alert"
+                        aria-live="polite"
+                    >
+
+                        {% for category, message in messages %}
+
+                            <div
+                                class="
+                                    auth-message
+                                    auth-message-{{ category }}
+                                "
+                            >
+                                <i
+                                    class="
+                                        bi
+
+                                        {% if category == 'success' %}
+                                            bi-check-circle-fill
+
+                                        {% elif category == 'warning' %}
+                                            bi-exclamation-triangle-fill
+
+                                        {% else %}
+                                            bi-exclamation-circle-fill
+
+                                        {% endif %}
+                                    "
+                                ></i>
+
+                                <span>
+                                    {{ message }}
+                                </span>
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            {% endwith %}
+
+
+            <form
+                id="loginForm"
+                class="login-form"
+                action="{{ url_for('auth.login') }}"
+                method="post"
+            >
+
+                <!-- EMAIL -->
+
+                <div class="login-field">
+
+                    <label for="loginEmail">
+                        Email
+                    </label>
+
+                    <div class="login-input-shell">
+
+                        <i class="bi bi-envelope"></i>
+
+                        <input
+                            id="loginEmail"
+                            name="email"
+                            type="email"
+                            placeholder="Nhập email của bạn"
+                            autocomplete="email"
+                            maxlength="255"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- PASSWORD -->
+
+                <div class="login-field">
+
+                    <div class="login-label-row">
+
+                        <label for="loginPassword">
+                            Mật khẩu
+                        </label>
+
+                        <label
+                            class="show-password-option"
+                            for="showPasswordCheck"
+                        >
+                            <input
+                                id="showPasswordCheck"
+                                type="checkbox"
+                            >
+
+                            <span class="show-password-checkbox">
+                                <i class="bi bi-check"></i>
+                            </span>
+
+                            <span>
+                                Hiện mật khẩu
+                            </span>
+                        </label>
+
+                    </div>
+
+
+                    <div class="login-input-shell">
+
+                        <i class="bi bi-lock"></i>
+
+                        <input
+                            id="loginPassword"
+                            name="password"
+                            type="password"
+                            placeholder="Nhập mật khẩu"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- OPTIONS -->
+
+                <div class="login-options">
+
+                    <label class="remember-option">
+
+                        <input
+                            name="remember"
+                            type="checkbox"
+                        >
+
+                        <span class="remember-checkbox">
+                            <i class="bi bi-check"></i>
+                        </span>
+
+                        <span>
+                            Ghi nhớ đăng nhập
+                        </span>
+
+                    </label>
+
+
+                    <a
+                        href="{{ url_for('auth.forgot_password') }}"
+                        class="forgot-password-link"
+                    >
+                        Quên mật khẩu?
+                    </a>
+
+                </div>
+
+
+                <!-- SUBMIT -->
+
+                <button
+                    class="login-submit-button"
+                    type="submit"
+                >
+                    <span>
+                        Đăng nhập
+                    </span>
+
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+
+
+                <div class="login-divider">
+                    <span>hoặc</span>
+                </div>
+
+
+                <p class="login-register">
+
+                    Chưa có tài khoản?
+
+                    <a href="{{ url_for('auth.register') }}">
+                        Đăng ký ngay
+                    </a>
+
+                </p>
+
+            </form>
+
+        </section>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+
+{% block auth_scripts %}
+
+<script
+    src="{{ url_for('static', filename='js/login.js') }}"
+></script>
+
+{% endblock %}

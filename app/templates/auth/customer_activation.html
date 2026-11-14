@@ -1,0 +1,310 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>Kích hoạt tài khoản | VetMate</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background: #fff4f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .activation-card {
+            width: 100%;
+            max-width: 460px;
+            background: white;
+            padding: 32px;
+            border-radius: 18px;
+            box-shadow: 0 8px 28px
+                rgba(216, 83, 130, 0.12);
+        }
+
+        h1 {
+            color: #d84c83;
+            margin: 0 0 10px;
+            text-align: center;
+        }
+
+        .description {
+            color: #777;
+            font-size: 14px;
+            line-height: 1.6;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 7px;
+            color: #444;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e7cbd6;
+            border-radius: 9px;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #df6293;
+        }
+
+        .error {
+            color: #c62828;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        .general-error {
+            background: #fff0f0;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+        }
+
+        button {
+            width: 100%;
+            border: none;
+            border-radius: 9px;
+            background: #db5b8c;
+            color: white;
+            padding: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #c84578;
+        }
+
+        .login-link {
+            display: block;
+            margin-top: 18px;
+            text-align: center;
+            color: #d84c83;
+            text-decoration: none;
+        }
+
+        .resend-section {
+            margin-top: 20px;
+            padding-top: 18px;
+            border-top: 1px solid #f2dce5;
+            text-align: center;
+        }
+
+        .resend-section p {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .resend-button {
+            background: #fff0f5;
+            color: #cf4c7e;
+            border: 1px solid #f0c1d3;
+        }
+
+        .resend-button:hover {
+            background: #ffe1ec;
+        }
+        
+        .flash-message {
+            padding: 12px 14px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .flash-success {
+            background: #edf9f0;
+            color: #287443;
+        }
+
+        .flash-warning {
+            background: #fff6e5;
+            color: #966000;
+        }
+
+        .flash-error {
+            background: #fff0f0;
+            color: #b42318;
+        }
+
+
+    </style>
+</head>
+
+<body>
+    <div class="activation-card">
+        <h1>🐾 VetMate</h1>
+
+        <p class="description">
+            Xác minh email và thiết lập mật khẩu
+            để kích hoạt tài khoản khách hàng.
+        </p>
+
+        {% with messages = get_flashed_messages(
+            with_categories=true
+        ) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if errors.get("general") %}
+            <div class="error general-error">
+                {{ errors["general"] }}
+            </div>
+        {% endif %}
+
+        <form method="POST">
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token }}"
+            >
+            <div class="field">
+                <label>Email</label>
+
+                <input
+                    type="email"
+                    name="email"
+                    maxlength="255"
+                    value="{{ form_data.email }}"
+                    required
+                >
+
+                {% if errors.get("email") %}
+                    <div class="error">
+                        {{ errors["email"] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label>Mã OTP</label>
+
+                <input
+                    type="text"
+                    name="otp"
+                    maxlength="6"
+                    inputmode="numeric"
+                    pattern="[0-9]{6}"
+                    autocomplete="one-time-code"
+                    placeholder="Nhập 6 chữ số"
+                    required
+                >
+
+                {% if errors.get("otp") %}
+                    <div class="error">
+                        {{ errors["otp"] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label>Mật khẩu mới</label>
+
+                <input
+                    type="password"
+                    name="password"
+                    minlength="8"
+                    autocomplete="new-password"
+                    required
+                >
+
+                {% if errors.get("password") %}
+                    <div class="error">
+                        {{ errors["password"] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label>Xác nhận mật khẩu</label>
+
+                <input
+                    type="password"
+                    name="confirmPassword"
+                    minlength="8"
+                    autocomplete="new-password"
+                    required
+                >
+
+                {% if errors.get("confirmPassword") %}
+                    <div class="error">
+                        {{ errors["confirmPassword"] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit">
+                Kích hoạt tài khoản
+            </button>
+        </form>
+        
+        <div class="resend-section">
+            <p>Không nhận được mã OTP?</p>
+
+            <form
+                method="POST"
+                action="{{ url_for('auth.resend_customer_activation') }}"
+            >
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token }}"
+                >
+
+                <input
+                    type="hidden"
+                    name="email"
+                    value="{{ form_data.email }}"
+                >
+
+                <button
+                    type="submit"
+                    class="resend-button"
+                >
+                    Gửi lại mã OTP
+                </button>
+            </form>
+        </div>
+
+        <a
+            class="login-link"
+            href="{{ url_for('auth.login') }}"
+        >
+            Quay lại đăng nhập
+        </a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,487 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+{{ permission.name }} | Quyền hạn | VetMate
+{% endblock %}
+
+{% block head %}
+<link
+    rel="stylesheet"
+    href="{{ url_for(
+        'static',
+        filename='css/admin-access.css'
+    ) }}"
+>
+{% endblock %}
+
+{% block content %}
+<section class="access-page permission-detail-page">
+
+    <!-- =========================================
+         BREADCRUMB
+         ========================================= -->
+
+    <nav
+        class="access-breadcrumb"
+        aria-label="Breadcrumb"
+    >
+        <a href="{{ url_for('admin.dashboard') }}">
+            Tổng quan
+        </a>
+
+        <span>/</span>
+
+        <a href="{{ url_for('admin.permissions') }}">
+            Vai trò & quyền
+        </a>
+
+        <span>/</span>
+
+        <span aria-current="page">
+            {{ permission.name }}
+        </span>
+    </nav>
+
+    <!-- =========================================
+         HERO
+         ========================================= -->
+
+    <section class="permission-detail-hero">
+
+        <div class="permission-detail-hero-main">
+
+            <a
+                href="{{ url_for('admin.permissions') }}"
+                class="access-back-link"
+            >
+                <span aria-hidden="true">←</span>
+                Quay lại danh sách quyền
+            </a>
+
+            <div class="permission-detail-identity">
+
+                <div
+                    class="permission-detail-avatar"
+                    aria-hidden="true"
+                >
+                    ⌘
+                </div>
+
+                <div class="permission-detail-title">
+
+                    <div class="permission-detail-title-row">
+
+                        <h1>
+                            {{ permission.name }}
+                        </h1>
+
+                        {% if permission.isActive %}
+                            <span
+                                class="access-status-badge is-active"
+                            >
+                                <i></i>
+                                Đang hoạt động
+                            </span>
+                        {% else %}
+                            <span
+                                class="access-status-badge is-inactive"
+                            >
+                                <i></i>
+                                Ngừng hoạt động
+                            </span>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="permission-detail-meta">
+                        <code>
+                            {{
+                                permission.permissionCode
+                            }}
+                        </code>
+
+                        <span class="access-module-badge">
+                            {{
+                                permission.module
+                                or "OTHER"
+                            }}
+                        </span>
+                    </div>
+
+                    <p>
+                        {{
+                            permission.description
+                            or
+                            "Quyền này hiện chưa có mô tả."
+                        }}
+                    </p>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="role-detail-system-note">
+            <span class="role-detail-system-note-icon">
+                ⓘ
+            </span>
+
+            <div>
+                <strong>
+                    Permission hệ thống
+                </strong>
+
+                <p>
+                    Mã quyền được backend sử dụng để
+                    kiểm tra khả năng truy cập route và
+                    chức năng tương ứng.
+                </p>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- =========================================
+         SUMMARY
+         ========================================= -->
+
+    <div class="permission-summary-grid">
+
+        <article class="access-summary-card">
+            <span class="access-summary-icon">
+                ♙
+            </span>
+
+            <div>
+                <span>Vai trò sử dụng</span>
+
+                <strong>
+                    {{
+                        permission_summary.role_count
+                    }}
+                </strong>
+
+                <small>
+                    Role đang được cấp quyền
+                </small>
+            </div>
+        </article>
+
+        <article class="access-summary-card">
+            <span
+                class="access-summary-icon is-success"
+            >
+                ✓
+            </span>
+
+            <div>
+                <span>Vai trò hoạt động</span>
+
+                <strong>
+                    {{
+                        permission_summary.active_role_count
+                    }}
+                </strong>
+
+                <small>
+                    Role đang khả dụng
+                </small>
+            </div>
+        </article>
+
+        <article class="access-summary-card">
+            <span
+                class="access-summary-icon is-primary"
+            >
+                ◎
+            </span>
+
+            <div>
+                <span>Tài khoản ảnh hưởng</span>
+
+                <strong>
+                    {{
+                        permission_summary.affected_user_count
+                    }}
+                </strong>
+
+                <small>
+                    Được hưởng quyền qua Role
+                </small>
+            </div>
+        </article>
+
+    </div>
+
+    <!-- =========================================
+         CONTENT
+         ========================================= -->
+
+    <div class="permission-detail-grid">
+
+        <!-- =====================================
+             ASSIGNED ROLES
+             ===================================== -->
+
+        <section class="access-panel">
+
+            <header class="role-section-heading">
+                <div>
+                    <p class="access-panel-eyebrow">
+                        Phân bổ quyền
+                    </p>
+
+                    <h2>
+                        Vai trò đang sử dụng
+                    </h2>
+
+                    <p>
+                        Những vai trò hiện được cấp
+                        permission
+                        <strong>
+                            {{ permission.permissionCode }}
+                        </strong>.
+                    </p>
+                </div>
+
+                <span class="role-section-count">
+                    {{
+                        permission_summary.role_count
+                    }}
+                    vai trò
+                </span>
+            </header>
+
+            {% if assigned_roles %}
+
+                <div class="permission-role-list">
+
+                    {% for role in assigned_roles %}
+
+                        <a
+                            href="{{ url_for(
+                                'admin.role_detail',
+                                role_id=role.roleID
+                            ) }}"
+                            class="permission-role-item"
+                        >
+
+                            <div
+                                class="permission-role-avatar"
+                                aria-hidden="true"
+                            >
+                                {{
+                                    role.name[:1]
+                                    | upper
+                                }}
+                            </div>
+
+                            <div
+                                class="permission-role-content"
+                            >
+                                <div
+                                    class="permission-role-title"
+                                >
+                                    <strong>
+                                        {{ role.name }}
+                                    </strong>
+
+                                    {% if role.isActive %}
+                                        <span
+                                            class="access-status-badge is-active"
+                                        >
+                                            <i></i>
+                                            Hoạt động
+                                        </span>
+                                    {% else %}
+                                        <span
+                                            class="access-status-badge is-inactive"
+                                        >
+                                            <i></i>
+                                            Ngừng hoạt động
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                <code>
+                                    {{ role.roleCode }}
+                                </code>
+
+                                <p>
+                                    {{
+                                        role.description
+                                        or
+                                        "Vai trò chưa có mô tả."
+                                    }}
+                                </p>
+                            </div>
+
+                            <span
+                                class="permission-role-arrow"
+                                aria-hidden="true"
+                            >
+                                ›
+                            </span>
+
+                        </a>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <div class="role-detail-empty">
+                    <div
+                        class="role-detail-empty-icon"
+                        aria-hidden="true"
+                    >
+                        ♙
+                    </div>
+
+                    <h3>
+                        Chưa được sử dụng
+                    </h3>
+
+                    <p>
+                        Hiện chưa có vai trò nào được
+                        cấp quyền này.
+                    </p>
+                </div>
+
+            {% endif %}
+
+        </section>
+
+        <!-- =====================================
+             INFO
+             ===================================== -->
+
+        <aside class="permission-detail-side">
+
+            <section class="access-panel">
+
+                <header class="role-section-heading">
+                    <div>
+                        <p class="access-panel-eyebrow">
+                            Thông tin
+                        </p>
+
+                        <h2>
+                            Chi tiết quyền hạn
+                        </h2>
+                    </div>
+                </header>
+
+                <dl class="role-info-list">
+
+                    <div>
+                        <dt>Tên hiển thị</dt>
+
+                        <dd>
+                            {{ permission.name }}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>Mã quyền</dt>
+
+                        <dd>
+                            <code>
+                                {{
+                                    permission.permissionCode
+                                }}
+                            </code>
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>Module</dt>
+
+                        <dd>
+                            <span
+                                class="access-module-badge"
+                            >
+                                {{
+                                    permission.module
+                                    or "OTHER"
+                                }}
+                            </span>
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>Trạng thái</dt>
+
+                        <dd>
+                            {% if permission.isActive %}
+                                <span
+                                    class="access-status-badge is-active"
+                                >
+                                    <i></i>
+                                    Hoạt động
+                                </span>
+                            {% else %}
+                                <span
+                                    class="access-status-badge is-inactive"
+                                >
+                                    <i></i>
+                                    Ngừng hoạt động
+                                </span>
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>Vai trò sử dụng</dt>
+
+                        <dd>
+                            {{
+                                permission_summary.role_count
+                            }}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>Tài khoản ảnh hưởng</dt>
+
+                        <dd>
+                            {{
+                                permission_summary.affected_user_count
+                            }}
+                        </dd>
+                    </div>
+
+                </dl>
+
+            </section>
+
+            <section
+                class="permission-explain-card"
+            >
+                <span
+                    class="permission-explain-icon"
+                    aria-hidden="true"
+                >
+                    ◇
+                </span>
+
+                <div>
+                    <strong>
+                        Quyền được kế thừa qua vai trò
+                    </strong>
+
+                    <p>
+                        Tài khoản không được gán
+                        permission trực tiếp. Người dùng
+                        nhận quyền thông qua một hoặc
+                        nhiều vai trò đang sở hữu.
+                    </p>
+                </div>
+            </section>
+
+        </aside>
+
+    </div>
+
+</section>
+{% endblock %}

@@ -1,0 +1,295 @@
+
+{% extends "layouts/public.html" %}
+
+{% block page_styles %}
+<link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='css/account.css') }}"
+>
+{% endblock %}
+
+{% block content %}
+
+<section class="account-page">
+    <div class="page-container">
+
+        <div class="profile-heading">
+            <span class="profile-avatar">
+                <i class="bi bi-person-circle"></i>
+            </span>
+
+            <div>
+                <h1>Hồ sơ của tôi</h1>
+                <p>
+                    Quản lý thông tin cá nhân
+                    và bảo mật tài khoản VetMate.
+                </p>
+            </div>
+        </div>
+
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div
+                    id="profileToastContainer"
+                    class="profile-toast-container"
+                    aria-live="polite"
+                    aria-atomic="false"
+                >
+                    {% for category, message in messages %}
+                        <div
+                            class="profile-toast profile-toast-{{ category }}"
+                            role="{{ 'alert' if category in ['error', 'danger'] else 'status' }}"
+                        >
+                            <span class="profile-toast-icon">
+                                {% if category == 'success' %}
+                                    <i class="bi bi-check-circle-fill"></i>
+                                {% elif category in ['error', 'danger'] %}
+                                    <i class="bi bi-exclamation-circle-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-info-circle-fill"></i>
+                                {% endif %}
+                            </span>
+
+                            <span class="profile-toast-message">
+                                {{ message }}
+                            </span>
+
+                            <button
+                                type="button"
+                                class="profile-toast-close"
+                                aria-label="Đóng thông báo"
+                            >
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+
+        <form
+            id="profileInfoSection"
+            method="post"
+            action="{{ url_for('account.profile') }}"
+            class="profile-card"
+        >
+            <input
+                type="hidden"
+                name="action"
+                value="update_profile"
+            >
+
+            <div class="profile-section-title">
+                <i class="bi bi-person-vcard"></i>
+                <h2>Thông tin cá nhân</h2>
+            </div>
+
+            <div class="profile-grid">
+
+                <div class="profile-field">
+                    <label for="fullName">Họ và tên</label>
+                    <input
+                        id="fullName"
+                        name="fullName"
+                        type="text"
+                        maxlength="150"
+                        minlength="2"
+                        required
+                        value="{{ current_user.fullName }}"
+                    >
+                </div>
+
+                <div class="profile-field">
+                    <label for="phone">Số điện thoại</label>
+                    <input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        maxlength="10"
+                        inputmode="numeric"
+                        value="{{ current_user.phone or '' }}"
+                    >
+                </div>
+
+                <div class="profile-field profile-field-full">
+                    <label for="email">
+                        Email đã xác thực
+                    </label>
+
+                    <input
+                        id="email"
+                        type="email"
+                        value="{{ current_user.email }}"
+                        readonly
+                    >
+
+                    <small>
+                        Email hiện không thể thay đổi trực tiếp.
+                    </small>
+                </div>
+
+            </div>
+
+            <div class="profile-section-title profile-section-spacing">
+                <i class="bi bi-house-heart"></i>
+                <h2>Thông tin chủ nuôi</h2>
+            </div>
+
+            <div class="profile-grid">
+
+                <div class="profile-field profile-field-full">
+                    <label for="address">Địa chỉ</label>
+
+                    <textarea
+                        id="address"
+                        name="address"
+                        rows="2"
+                        maxlength="500"
+                        placeholder="Nhập địa chỉ của bạn"
+                    >{{ owner.address if owner and owner.address else '' }}</textarea>
+                </div>
+
+                <div class="profile-field">
+                    <label for="emergencyPhone">
+                        Số điện thoại khẩn cấp
+                    </label>
+
+                    <input
+                        id="emergencyPhone"
+                        name="emergencyPhone"
+                        type="tel"
+                        maxlength="10"
+                        inputmode="numeric"
+                        value="{{ owner.emergencyPhone if owner and owner.emergencyPhone else '' }}"
+                    >
+                </div>
+
+                <div class="profile-field profile-field-full">
+                    <label for="note">Ghi chú</label>
+
+                    <textarea
+                        id="note"
+                        name="note"
+                        rows="3"
+                        maxlength="1000"
+                        placeholder="Thông tin bổ sung (không bắt buộc)"
+                    >{{ owner.note if owner and owner.note else '' }}</textarea>
+                </div>
+
+                <label class="profile-checkbox profile-field-full">
+                    <input
+                        type="checkbox"
+                        name="allowPublicPhone"
+                        {% if owner and owner.allowPublicPhone %}
+                            checked
+                        {% endif %}
+                    >
+
+                    <span>
+                        Cho phép hiển thị số điện thoại
+                        trong các tính năng công khai
+                        có hỗ trợ tùy chọn này.
+                    </span>
+                </label>
+
+            </div>
+
+            <div class="profile-actions">
+                <button type="submit" class="profile-save-button">
+                    <i class="bi bi-check2-circle"></i>
+                    Lưu thay đổi
+                </button>
+            </div>
+        </form>
+
+        <form
+            id="profileSecuritySection"
+            method="post"
+            action="{{ url_for('account.profile') }}"
+            class="profile-card"
+        >
+            <input
+                type="hidden"
+                name="action"
+                value="change_password"
+            >
+
+            <div class="profile-section-title">
+                <i class="bi bi-shield-lock"></i>
+                <h2>Đổi mật khẩu</h2>
+            </div>
+
+            <p class="profile-section-description">
+                Nhập mật khẩu hiện tại để bảo vệ tài khoản.
+            </p>
+
+            <div class="profile-grid">
+
+                <div class="profile-field profile-field-full">
+                    <label for="oldPassword">
+                        Mật khẩu hiện tại
+                    </label>
+
+                    <input
+                        id="oldPassword"
+                        name="oldPassword"
+                        type="password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+
+                <div class="profile-field">
+                    <label for="newPassword">
+                        Mật khẩu mới
+                    </label>
+
+                    <input
+                        id="newPassword"
+                        name="newPassword"
+                        type="password"
+                        minlength="8"
+                        autocomplete="new-password"
+                        required
+                    >
+                </div>
+
+                <div class="profile-field">
+                    <label for="confirmPassword">
+                        Xác nhận mật khẩu mới
+                    </label>
+
+                    <input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type="password"
+                        minlength="8"
+                        autocomplete="new-password"
+                        required
+                    >
+                </div>
+
+            </div>
+
+            <div class="profile-actions">
+                <button type="submit" class="profile-save-button">
+                    <i class="bi bi-key"></i>
+                    Đổi mật khẩu
+                </button>
+            </div>
+        </form>
+
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block page_scripts %}
+<script
+    src="{{ url_for('static', filename='js/account.js') }}"
+    defer
+></script>
+{% endblock %}

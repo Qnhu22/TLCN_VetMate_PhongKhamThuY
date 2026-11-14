@@ -1,0 +1,2220 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Chi tiết tài khoản | VetMate Admin
+{% endblock %}
+
+
+{% block content %}
+
+{% set status_labels = {
+    "ACTIVE": "Đang hoạt động",
+    "LOCKED": "Đã khóa",
+    "INACTIVE": "Ngừng hoạt động",
+    "PENDING_VERIFICATION": "Chờ xác minh"
+} %}
+
+{% set avatar_path =
+    user.avatarUrl
+    or "images/avatars/avatar-default.webp"
+%}
+
+{% set can_update_user =
+    current_user.has_permission("USER_UPDATE")
+%}
+
+{% set can_assign_role =
+    current_user.has_permission("USER_ROLE_ASSIGN")
+%}
+
+{% set can_update_status =
+    current_user.has_permission("USER_STATUS_UPDATE")
+%}
+
+{% set is_system_admin =
+    current_user.has_role("SYSTEM_ADMIN")
+%}
+
+<section
+    class="account-detail-page"
+    id="accountDetailPage"
+    data-editing="{{ 'true' if edit_mode else 'false' }}"
+>
+
+    <!-- HEADER -->
+
+    <header class="account-detail-header">
+
+        <div class="account-detail-heading">
+
+            <a
+                href="{{ url_for('admin.users') }}"
+                class="account-detail-back"
+                id="accountDetailBack"
+            >
+                <span aria-hidden="true">←</span>
+                Quản lý tài khoản
+            </a>
+
+            <p class="dashboard-eyebrow">
+                USER MANAGEMENT
+            </p>
+
+            <h1>
+                Chi tiết tài khoản
+            </h1>
+
+
+            <div class="account-detail-heading-row">
+
+                <p class="account-detail-description">
+                    Xem và quản lý thông tin,
+                    quyền truy cập và bảo mật tài khoản.
+                </p>
+
+
+            {% if can_update_user %}
+                <div class="account-detail-actions">
+
+                    <button
+                        type="button"
+                        class="dashboard-secondary-button"
+                        id="cancelAccountEdit"
+                        {% if not edit_mode %}
+                            hidden
+                        {% endif %}
+                    >
+                        Hủy thay đổi
+                    </button>
+
+                    <button
+                        type="button"
+                        class="dashboard-primary-button"
+                        id="toggleAccountEdit"
+                        {% if edit_mode %}
+                            disabled
+                        {% endif %}
+                    >
+                        {% if edit_mode %}
+                            Cập nhật
+                        {% else %}
+                            Chỉnh sửa
+                        {% endif %}
+                    </button>
+
+                </div>
+            {% endif %}
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- EDIT MODE BANNER -->
+
+    <div
+        class="account-edit-banner"
+        id="accountEditBanner"
+        {% if not edit_mode %}
+            hidden
+        {% endif %}
+    >
+        <span class="account-edit-banner-icon">
+            ✎
+        </span>
+
+        <div>
+            <strong>
+                Đang chỉnh sửa tài khoản
+            </strong>
+
+            <p>
+                Các trường có thể thay đổi đã được mở.
+                Những trường hệ thống vẫn được bảo vệ.
+            </p>
+        </div>
+    </div>
+
+
+    <form
+        method="POST"
+        id="accountDetailForm"
+        novalidate
+    >
+
+        <div class="account-detail-layout">
+
+            <!-- =================================================
+                 LEFT PROFILE
+                 ================================================= -->
+
+            <aside class="account-profile-card">
+
+                <div class="account-avatar-wrap">
+
+                    <img
+                        src="{{ url_for(
+                            'static',
+                            filename=avatar_path
+                        ) }}"
+                        alt="Avatar của {{ user.fullName }}"
+                        class="account-avatar"
+                    >
+
+                {% if can_update_user %}
+                    <button
+                        type="button"
+                        class="account-avatar-edit"
+                        id="changeAvatarButton"
+                        title="Thay đổi ảnh đại diện"
+                        aria-label="Thay đổi ảnh đại diện"
+                        hidden
+                    >
+                        ✎
+                    </button>
+                {% endif %}
+
+                </div>
+
+
+                <div class="account-profile-main">
+
+                    <h2 id="profileDisplayName">
+                        {{ user.fullName }}
+                    </h2>
+
+                    <span class="account-profile-email">
+                        {{ user.email }}
+                    </span>
+
+                </div>
+
+
+                <div class="account-profile-role-list">
+
+                    {% for role in user.roles %}
+
+                        <span class="account-role-chip">
+                            {{ role.name }}
+                        </span>
+
+                    {% else %}
+
+                        <span class="account-role-chip is-empty">
+                            Chưa có vai trò
+                        </span>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <div
+                    class="
+                        account-profile-status
+                        status-{{ user.status|lower }}
+                    "
+                >
+                    <span></span>
+
+                    {{
+                        status_labels.get(
+                            user.status,
+                            user.status
+                        )
+                    }}
+                </div>
+
+
+                <div class="account-profile-divider"></div>
+
+
+                <dl class="account-profile-mini-info">
+
+                    <div>
+                        <dt>
+                            User ID
+                        </dt>
+
+                        <dd>
+                            #{{ user.userID }}
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt>
+                            Ngày tạo
+                        </dt>
+
+                        <dd>
+                            {% if user.createdAt %}
+                                {{
+                                    user.createdAt.strftime(
+                                        "%d/%m/%Y"
+                                    )
+                                }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                </dl>
+
+            </aside>
+
+
+            <!-- =================================================
+                 RIGHT CONTENT
+                 ================================================= -->
+
+            <main class="account-detail-content">
+
+                <!-- PERSONAL -->
+
+                <section class="account-detail-card">
+
+                    <div class="account-card-heading">
+
+                        <div>
+
+                            <span class="account-card-label">
+                                Thông tin
+                            </span>
+
+                            <h2>
+                                Thông tin cá nhân
+                            </h2>
+
+                            <p>
+                                Thông tin cơ bản của người dùng
+                                trong VetMate.
+                            </p>
+
+                        </div>
+
+                        <span class="account-card-symbol">
+                            ♙
+                        </span>
+
+                    </div>
+
+
+                    <div class="account-form-grid">
+
+                        <!-- FULL NAME -->
+
+                        <div class="account-form-field">
+
+                            <label for="fullName">
+                                Họ và tên
+                                <span>*</span>
+                            </label>
+
+                            <div
+                                class="account-input-shell
+                                {% if errors.fullName %}
+                                    has-error
+                                {% endif %}"
+                            >
+
+                                <input
+                                    type="text"
+                                    id="fullName"
+                                    name="fullName"
+                                    value="{{ form_data.fullName }}"
+                                    maxlength="150"
+                                    autocomplete="name"
+                                    data-account-editable
+                                    {% if not edit_mode %}
+                                        readonly
+                                    {% endif %}
+                                >
+
+                                <span
+                                    class="account-field-lock"
+                                    data-edit-lock
+                                >
+                                    🔒
+                                </span>
+
+                            </div>
+
+                            <p
+                                class="account-field-error"
+                                id="fullNameError"
+                                {% if not errors.fullName %}
+                                    hidden
+                                {% endif %}
+                            >
+                                {{ errors.fullName or "" }}
+                            </p>
+
+                        </div>
+
+
+                        <!-- EMAIL -->
+
+                        <div class="account-form-field">
+
+                            <label for="accountEmail">
+                                Email đăng nhập
+                            </label>
+
+                            <div class="account-input-shell is-permanent-lock">
+
+                                <input
+                                    type="email"
+                                    id="accountEmail"
+                                    value="{{ user.email }}"
+                                    readonly
+                                >
+
+                                <span class="account-field-lock">
+                                    🔒
+                                </span>
+
+                            </div>
+
+                            <p class="account-field-help">
+                                Email đăng nhập chưa thể thay đổi
+                                trực tiếp tại đây.
+                            </p>
+
+                        </div>
+
+
+                        <!-- PHONE -->
+
+                        <div class="account-form-field">
+
+                            <label for="phone">
+                                Số điện thoại
+                            </label>
+
+                            <div
+                                class="account-input-shell
+                                {% if errors.phone %}
+                                    has-error
+                                {% endif %}"
+                            >
+
+                                <input
+                                    type="tel"
+                                    id="phone"
+                                    name="phone"
+                                    value="{{ form_data.phone }}"
+                                    maxlength="10"
+                                    minlength="10"
+                                    inputmode="numeric"
+                                    autocomplete="tel"
+                                    placeholder="0901234567"
+                                    data-account-editable
+                                    {% if not edit_mode %}
+                                        readonly
+                                    {% endif %}
+                                >
+
+                                <span
+                                    class="account-field-lock"
+                                    data-edit-lock
+                                >
+                                    🔒
+                                </span>
+
+                            </div>
+
+                            <p
+                                class="account-field-error"
+                                id="phoneError"
+                                {% if not errors.phone %}
+                                    hidden
+                                {% endif %}
+                            >
+                                {{ errors.phone or "" }}
+                            </p>
+
+                            <p class="account-field-help">
+                                Nếu có, số điện thoại phải gồm đúng
+                                10 chữ số.
+                            </p>
+
+                        </div>
+
+
+                        <!-- USER ID -->
+
+                        <div class="account-form-field">
+
+                            <label>
+                                Mã định danh
+                            </label>
+
+                            <div class="account-input-shell is-permanent-lock">
+
+                                <input
+                                    type="text"
+                                    value="#{{ user.userID }}"
+                                    readonly
+                                >
+
+                                <span class="account-field-lock">
+                                    🔒
+                                </span>
+
+                            </div>
+
+                            <p class="account-field-help">
+                                User ID do hệ thống quản lý
+                                và không thể thay đổi.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- ROLE + STATUS -->
+
+                <div class="account-detail-dual-grid">
+
+                    <!-- ROLE -->
+
+                    <section class="account-detail-card">
+
+                        <div class="account-card-heading">
+
+                            <div>
+
+                                <span class="account-card-label">
+                                    Phân quyền
+                                </span>
+
+                                <h2>
+                                    Vai trò
+                                </h2>
+
+                                <p>
+                                    Các vai trò hiện được gán
+                                    cho tài khoản.
+                                </p>
+
+                            </div>
+
+                            <span class="account-card-symbol">
+                                ◇
+                            </span>
+
+                        </div>
+
+
+                        <div class="account-role-list">
+
+                            {% for role in user.roles %}
+
+                                <div class="account-role-row">
+
+                                    <div class="account-role-icon">
+                                        ✓
+                                    </div>
+
+                                    <div>
+
+                                        <strong>
+                                            {{ role.name }}
+                                        </strong>
+
+                                        <span>
+                                            {{ role.roleCode }}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            {% else %}
+
+                                <div class="account-card-empty">
+                                    Chưa có vai trò nào được gán.
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% if can_assign_role %}
+                        <button
+                            type="button"
+                            class="account-outline-action"
+                            id="manageAccountRoles"
+                        >
+                            <span>＋</span>
+                            Quản lý vai trò
+                        </button>
+                    {% endif %}
+                    </section>
+
+
+                    <!-- STATUS -->
+
+                    <section class="account-detail-card">
+
+                        <div class="account-card-heading">
+
+                            <div>
+
+                                <span class="account-card-label">
+                                    Truy cập
+                                </span>
+
+                                <h2>
+                                    Trạng thái tài khoản
+                                </h2>
+
+                                <p>
+                                    Quyết định khả năng truy cập
+                                    vào hệ thống.
+                                </p>
+
+                            </div>
+
+                            <span class="account-card-symbol">
+                                ◎
+                            </span>
+
+                        </div>
+
+
+                        <div class="account-status-content">
+
+                            <div
+                                class="
+                                    account-status-display
+                                    status-{{ user.status|lower }}
+                                "
+                            >
+
+                                <span class="account-status-dot"></span>
+
+                                <div>
+
+                                    <strong>
+                                        {{
+                                            status_labels.get(
+                                                user.status,
+                                                user.status
+                                            )
+                                        }}
+                                    </strong>
+
+                                    <small>
+                                        {{ user.status }}
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            {% if
+                                user.userID
+                                == current_user.userID
+                            %}
+
+                                <div class="account-protection-message">
+
+                                    <span>🔒</span>
+
+                                    <p>
+                                        Đây là tài khoản bạn đang sử dụng.
+                                        Bạn không thể tự khóa hoặc
+                                        ngừng hoạt động tài khoản này.
+                                    </p>
+
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+                    {% if can_update_status %}
+                        <button
+                            type="button"
+                            class="account-outline-action"
+                            id="manageAccountStatus"
+                            {% if
+                                user.userID
+                                == current_user.userID
+                            %}
+                                disabled
+                            {% endif %}
+                        >
+                            Thay đổi trạng thái
+                        </button>
+                    {% endif %}
+
+                    </section>
+
+                </div>
+
+
+                <!-- SECURITY -->
+
+                <section class="account-detail-card">
+
+                    <div class="account-card-heading">
+
+                        <div>
+
+                            <span class="account-card-label">
+                                Bảo mật
+                            </span>
+
+                            <h2>
+                                Mật khẩu và truy cập
+                            </h2>
+
+                            <p>
+                                Quản lý thông tin xác thực
+                                của tài khoản.
+                            </p>
+
+                        </div>
+
+                        <span class="account-card-symbol">
+                            ◈
+                        </span>
+
+                    </div>
+
+
+                    <div class="account-security-row">
+
+                        <div class="account-security-main">
+
+                            <span class="account-security-icon">
+                                ••••
+                            </span>
+
+                            <div>
+
+                                <strong>
+                                    Mật khẩu
+                                </strong>
+
+                                <p>
+                                    Mật khẩu được lưu dưới dạng hash
+                                    và không thể xem lại.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    {% if is_system_admin %}
+                        <button
+                            type="button"
+                            class="dashboard-secondary-button"
+                            id="openPasswordManager"
+                        >
+                            {% if
+                                user.userID
+                                == current_user.userID
+                            %}
+                                Đổi mật khẩu
+                            {% else %}
+                                Đặt mật khẩu tạm thời
+                            {% endif %}
+                        </button>
+                    {% endif %}
+
+                    </div>
+
+                </section>
+
+
+                <!-- SYSTEM -->
+
+                <section class="account-detail-card">
+
+                    <div class="account-card-heading">
+
+                        <div>
+
+                            <span class="account-card-label">
+                                Hệ thống
+                            </span>
+
+                            <h2>
+                                Thông tin hệ thống
+                            </h2>
+
+                            <p>
+                                Những thông tin được VetMate
+                                quản lý tự động.
+                            </p>
+
+                        </div>
+
+                        <span class="account-card-symbol">
+                            ⌘
+                        </span>
+
+                    </div>
+
+
+                    <div class="account-system-grid">
+
+                        <div>
+
+                            <span>
+                                Ngày tạo
+                            </span>
+
+                            <strong>
+                                {% if user.createdAt %}
+                                    {{
+                                        user.createdAt.strftime(
+                                            "%d/%m/%Y %H:%M"
+                                        )
+                                    }}
+                                {% else %}
+                                    Chưa có dữ liệu
+                                {% endif %}
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Cập nhật gần nhất
+                            </span>
+
+                            <strong>
+                                {% if user.updatedAt %}
+                                    {{
+                                        user.updatedAt.strftime(
+                                            "%d/%m/%Y %H:%M"
+                                        )
+                                    }}
+                                {% else %}
+                                    Chưa có dữ liệu
+                                {% endif %}
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Đăng nhập gần nhất
+                            </span>
+
+                            <strong>
+                                {% if user.lastLoginAt %}
+                                    {{
+                                        user.lastLoginAt.strftime(
+                                            "%d/%m/%Y %H:%M"
+                                        )
+                                    }}
+                                {% else %}
+                                    Chưa đăng nhập
+                                {% endif %}
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Trạng thái dữ liệu
+                            </span>
+
+                            <strong class="account-data-ok">
+                                ● Bình thường
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </main>
+
+        </div>
+
+    </form>
+
+</section>
+
+
+<!-- =========================================================
+     DISCARD MODAL
+     ========================================================= -->
+
+<div
+    class="vm-modal"
+    id="discardAccountChangesModal"
+    hidden
+>
+
+    <div
+        class="vm-modal-backdrop"
+        data-discard-close
+    ></div>
+
+
+    <div
+        class="vm-modal-panel vm-modal-panel-small"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="discardAccountTitle"
+    >
+
+        <div class="vm-modal-warning-icon">
+            !
+        </div>
+
+
+        <h2 id="discardAccountTitle">
+            Hủy các thay đổi?
+        </h2>
+
+
+        <p>
+            Những nội dung bạn vừa chỉnh sửa
+            sẽ không được lưu lại.
+        </p>
+
+
+        <div class="vm-modal-actions">
+
+            <button
+                type="button"
+                class="dashboard-secondary-button"
+                data-discard-close
+            >
+                Tiếp tục chỉnh sửa
+            </button>
+
+            <button
+                type="button"
+                class="dashboard-danger-button"
+                id="confirmDiscardAccountChanges"
+            >
+                Hủy thay đổi
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- =========================================================
+     ROLE MANAGEMENT MODAL
+     ========================================================= -->
+
+{% if can_assign_role %}
+<div
+    class="vm-modal"
+    id="accountRoleModal"
+    hidden
+>
+
+    <div
+        class="vm-modal-backdrop"
+        data-role-modal-close
+    ></div>
+
+
+    <div
+        class="vm-modal-panel account-role-modal-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="accountRoleModalTitle"
+    >
+
+        <div class="vm-modal-header">
+
+            <div>
+
+                <span class="account-card-label">
+                    Phân quyền
+                </span>
+
+                <h2 id="accountRoleModalTitle">
+                    Quản lý vai trò
+                </h2>
+
+                <p>
+                    Thêm hoặc gỡ vai trò đang được
+                    gán cho {{ user.fullName }}.
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="vm-modal-close"
+                data-role-modal-close
+                aria-label="Đóng"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="account-role-modal-section">
+
+            <div class="account-role-modal-section-heading">
+
+                <strong>
+                    Vai trò hiện tại
+                </strong>
+
+                <span>
+                    {{ user.roles|length }} vai trò
+                </span>
+
+            </div>
+
+
+            <div class="account-role-manage-list">
+
+                {% for role in user.roles %}
+
+                    <div class="account-role-manage-item">
+
+                        <div class="account-role-manage-info">
+
+                            <span class="account-role-manage-icon">
+                                ✓
+                            </span>
+
+                            <div>
+
+                                <strong>
+                                    {{ role.name }}
+                                </strong>
+
+                                <small>
+                                    {{ role.roleCode }}
+                                </small>
+
+                            </div>
+
+                        </div>
+
+
+                        {% set protected_self_admin =
+                            user.userID
+                            == current_user.userID
+                            and role.roleCode
+                            == "SYSTEM_ADMIN"
+                        %}
+
+                        {% set last_role =
+                            user.roles|length <= 1
+                        %}
+
+
+                        {% if protected_self_admin %}
+
+                            <span class="account-role-protected">
+                                Đang sử dụng
+                            </span>
+
+                        {% elif last_role %}
+
+                            <span class="account-role-protected">
+                                Vai trò duy nhất
+                            </span>
+
+                        {% else %}
+
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'admin.update_user_roles',
+                                    user_id=user.userID
+                                ) }}"
+                                class="account-role-inline-form"
+                            >
+
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="remove"
+                                >
+
+                                <input
+                                    type="hidden"
+                                    name="roleCode"
+                                    value="{{ role.roleCode }}"
+                                >
+
+                                <button
+                                    type="submit"
+                                    class="account-role-remove-button"
+                                >
+                                    Gỡ
+                                </button>
+
+                            </form>
+
+                        {% endif %}
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+
+        <div class="account-role-modal-divider"></div>
+
+
+        <div class="account-role-modal-section">
+
+            <div class="account-role-modal-section-heading">
+
+                <strong>
+                    Thêm vai trò
+                </strong>
+
+                <span>
+                    Chỉ hiển thị vai trò chưa được gán
+                </span>
+
+            </div>
+
+
+            {% set current_role_codes =
+                user.roles
+                | map(attribute='roleCode')
+                | list
+            %}
+
+
+            <div class="account-role-available-list">
+
+                {% for role in available_roles %}
+
+                    {% if
+                        role.roleCode
+                        not in current_role_codes
+                    %}
+
+                        {% set disabled_role =
+                            role.roleCode
+                            == "SYSTEM_ADMIN"
+                            or role.roleCode
+                            == "VETERINARIAN"
+                            or (
+                                "PET_OWNER"
+                                in current_role_codes
+                                and role.roleCode
+                                in [
+                                    "RECEPTIONIST",
+                                    "CLINIC_MANAGER",
+                                    "VETERINARIAN"
+                                ]
+                            )
+                        %}
+
+
+                        <div
+                            class="
+                                account-role-available-item
+                                {% if disabled_role %}
+                                    is-disabled
+                                {% endif %}
+                            "
+                        >
+
+                            <div>
+
+                                <strong>
+                                    {{ role.name }}
+                                </strong>
+
+                                <small>
+                                    {{ role.roleCode }}
+                                </small>
+
+                                {% if
+                                    role.roleCode
+                                    == "SYSTEM_ADMIN"
+                                %}
+
+                                    <p>
+                                        Vai trò quản trị không được
+                                        cấp từ thao tác này.
+                                    </p>
+
+                                {% elif
+                                    role.roleCode
+                                    == "VETERINARIAN"
+                                %}
+
+                                    <p>
+                                        Cần có hồ sơ bác sĩ trước
+                                        khi cấp vai trò này.
+                                    </p>
+
+                                {% elif
+                                    "PET_OWNER"
+                                    in current_role_codes
+                                    and role.roleCode
+                                    in [
+                                        "RECEPTIONIST",
+                                        "CLINIC_MANAGER",
+                                        "VETERINARIAN"
+                                    ]
+                                %}
+
+                                    <p>
+                                        Chủ nuôi không thể chuyển
+                                        trực tiếp thành nhân viên.
+                                    </p>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'admin.update_user_roles',
+                                    user_id=user.userID
+                                ) }}"
+                            >
+
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="add"
+                                >
+
+                                <input
+                                    type="hidden"
+                                    name="roleCode"
+                                    value="{{ role.roleCode }}"
+                                >
+
+                                <button
+                                    type="submit"
+                                    class="account-role-add-button"
+                                    {% if disabled_role %}
+                                        disabled
+                                    {% endif %}
+                                >
+                                    Thêm
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    {% endif %}
+
+                {% else %}
+
+                    <div class="account-card-empty">
+                        Không còn vai trò nào có thể thêm.
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+
+        <div class="vm-modal-actions">
+
+            <button
+                type="button"
+                class="dashboard-secondary-button"
+                data-role-modal-close
+            >
+                Đóng
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+{% endif %}
+<!-- =========================================================
+     STATUS MANAGEMENT MODAL
+     ========================================================= -->
+
+{% if can_update_status %}
+<div
+    class="vm-modal"
+    id="accountStatusModal"
+    hidden
+>
+
+    <div
+        class="vm-modal-backdrop"
+        data-status-modal-close
+    ></div>
+
+
+    <div
+        class="vm-modal-panel account-status-modal-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="accountStatusModalTitle"
+    >
+
+        <div class="vm-modal-header">
+
+            <div>
+
+                <span class="account-card-label">
+                    Truy cập
+                </span>
+
+                <h2 id="accountStatusModalTitle">
+                    Thay đổi trạng thái
+                </h2>
+
+                <p>
+                    Chọn trạng thái mới cho tài khoản
+                    {{ user.fullName }}.
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="vm-modal-close"
+                data-status-modal-close
+                aria-label="Đóng"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <!-- CURRENT STATUS -->
+
+        <div class="account-status-current">
+
+            <span>
+                Trạng thái hiện tại
+            </span>
+
+            <div
+                class="
+                    account-status-current-value
+                    status-{{ user.status|lower }}
+                "
+            >
+                <span class="account-status-dot"></span>
+
+                <div>
+
+                    <strong>
+                        {{
+                            status_labels.get(
+                                user.status,
+                                user.status
+                            )
+                        }}
+                    </strong>
+
+                    <small>
+                        {{ user.status }}
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="account-status-modal-divider"></div>
+
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'admin.update_user_status',
+                user_id=user.userID
+            ) }}"
+            id="accountStatusForm"
+        >
+
+            <div class="account-status-options">
+
+
+                <!-- ACTIVE -->
+
+                {% if user.status != "ACTIVE" %}
+
+                    <label class="account-status-option">
+
+                        <input
+                            type="radio"
+                            name="status"
+                            value="ACTIVE"
+                        >
+
+                        <span
+                            class="
+                                account-status-option-marker
+                                status-active
+                            "
+                        >
+                            <span></span>
+                        </span>
+
+
+                        <span class="account-status-option-content">
+
+                            <strong>
+                                Đang hoạt động
+                            </strong>
+
+                            <small>
+                                Cho phép tài khoản đăng nhập
+                                và sử dụng hệ thống bình thường.
+                            </small>
+
+                        </span>
+
+                        <span class="account-status-option-code">
+                            ACTIVE
+                        </span>
+
+                    </label>
+
+                {% endif %}
+
+
+                <!-- LOCKED -->
+
+                {% if user.status != "LOCKED" %}
+
+                    <label
+                        class="
+                            account-status-option
+                            {% if
+                                user.userID
+                                == current_user.userID
+                            %}
+                                is-disabled
+                            {% endif %}
+                        "
+                    >
+
+                        <input
+                            type="radio"
+                            name="status"
+                            value="LOCKED"
+                            {% if
+                                user.userID
+                                == current_user.userID
+                            %}
+                                disabled
+                            {% endif %}
+                        >
+
+                        <span
+                            class="
+                                account-status-option-marker
+                                status-locked
+                            "
+                        >
+                            <span></span>
+                        </span>
+
+
+                        <span class="account-status-option-content">
+
+                            <strong>
+                                Khóa tài khoản
+                            </strong>
+
+                            <small>
+                                Chặn tạm thời khả năng đăng nhập
+                                cho đến khi tài khoản được mở lại.
+                            </small>
+
+                            {% if
+                                user.userID
+                                == current_user.userID
+                            %}
+
+                                <em>
+                                    Không thể tự khóa tài khoản
+                                    đang đăng nhập.
+                                </em>
+
+                            {% endif %}
+
+                        </span>
+
+                        <span class="account-status-option-code">
+                            LOCKED
+                        </span>
+
+                    </label>
+
+                {% endif %}
+
+
+                <!-- INACTIVE -->
+
+                {% if user.status != "INACTIVE" %}
+
+                    <label
+                        class="
+                            account-status-option
+                            {% if
+                                user.userID
+                                == current_user.userID
+                            %}
+                                is-disabled
+                            {% endif %}
+                        "
+                    >
+
+                        <input
+                            type="radio"
+                            name="status"
+                            value="INACTIVE"
+                            {% if
+                                user.userID
+                                == current_user.userID
+                            %}
+                                disabled
+                            {% endif %}
+                        >
+
+                        <span
+                            class="
+                                account-status-option-marker
+                                status-inactive
+                            "
+                        >
+                            <span></span>
+                        </span>
+
+
+                        <span class="account-status-option-content">
+
+                            <strong>
+                                Ngừng hoạt động
+                            </strong>
+
+                            <small>
+                                Dùng khi tài khoản không còn được
+                                sử dụng thường xuyên, ví dụ nhân viên nghỉ việc.
+                            </small>
+
+                            {% if
+                                user.userID
+                                == current_user.userID
+                            %}
+
+                                <em>
+                                    Không thể ngừng hoạt động
+                                    tài khoản đang đăng nhập.
+                                </em>
+
+                            {% endif %}
+
+                        </span>
+
+                        <span class="account-status-option-code">
+                            INACTIVE
+                        </span>
+
+                    </label>
+
+                {% endif %}
+
+            </div>
+
+
+            <div
+                class="account-status-confirm-note"
+                id="accountStatusConfirmNote"
+                hidden
+            >
+                <span>!</span>
+
+                <p id="accountStatusConfirmText">
+                </p>
+            </div>
+
+
+            <div class="vm-modal-actions account-status-modal-actions">
+
+                <button
+                    type="button"
+                    class="dashboard-secondary-button"
+                    data-status-modal-close
+                >
+                    Hủy
+                </button>
+
+                <button
+                    type="submit"
+                    class="dashboard-primary-button"
+                    id="confirmAccountStatus"
+                    disabled
+                >
+                    Xác nhận thay đổi
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+{% endif %}
+
+<!-- =========================================================
+     PASSWORD MANAGEMENT MODAL
+     ========================================================= -->
+
+{% if is_system_admin %}
+<div
+    class="vm-modal"
+    id="accountPasswordModal"
+    data-open-on-load="{{
+        'true'
+        if password_modal_open
+        else 'false'
+    }}"
+    {% if not password_modal_open %}
+        hidden
+    {% endif %}
+>
+
+    <div
+        class="vm-modal-backdrop"
+        data-password-modal-close
+    ></div>
+
+
+    <div
+        class="vm-modal-panel account-password-modal-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="accountPasswordModalTitle"
+    >
+
+        <div class="vm-modal-header">
+
+            <div>
+
+                <span class="account-card-label">
+                    Bảo mật
+                </span>
+
+                <h2 id="accountPasswordModalTitle">
+
+                    {% if
+                        user.userID
+                        == current_user.userID
+                    %}
+                        Đổi mật khẩu
+                    {% else %}
+                        Đặt mật khẩu tạm thời
+                    {% endif %}
+
+                </h2>
+
+                <p>
+
+                    {% if
+                        user.userID
+                        == current_user.userID
+                    %}
+                        Xác minh mật khẩu hiện tại trước
+                        khi đặt mật khẩu mới.
+                    {% else %}
+                        Tạo mật khẩu mới cho
+                        {{ user.fullName }}.
+                    {% endif %}
+
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="vm-modal-close"
+                data-password-modal-close
+                aria-label="Đóng"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <form
+            method="POST"
+            action="{{ url_for(
+                'admin.update_user_password',
+                user_id=user.userID
+            ) }}"
+            id="accountPasswordForm"
+            novalidate
+        >
+
+            {% if
+                user.userID
+                == current_user.userID
+            %}
+
+                <div class="password-modal-field">
+
+                    <label for="currentPassword">
+                        Mật khẩu hiện tại
+                    </label>
+
+                    <div
+                        class="password-modal-input
+                        {% if password_errors.get('currentPassword') %}
+                            has-error
+                        {% endif %}"
+                    >
+
+                        <input
+                            type="password"
+                            id="currentPassword"
+                            name="currentPassword"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="password-toggle-button"
+                            data-password-toggle="currentPassword"
+                            aria-label="Hiện hoặc ẩn mật khẩu"
+                        >
+                            👁
+                        </button>
+
+                    </div>
+                    <p
+                        class="password-modal-error"
+                        id="currentPasswordError"
+                        {% if not password_errors.get("currentPassword") %}
+                            hidden
+                        {% endif %}
+                    >
+                        {{ password_errors.get("currentPassword", "") }}
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+
+            <div class="password-modal-field">
+
+                <label for="newPassword">
+                    Mật khẩu mới
+                </label>
+
+                <div
+                    class="password-modal-input
+                    {% if password_errors.get('newPassword') %}
+                        has-error
+                    {% endif %}"
+                >
+
+                    <input
+                        type="password"
+                        id="newPassword"
+                        name="newPassword"
+                        minlength="8"
+                        autocomplete="new-password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="password-toggle-button"
+                        data-password-toggle="newPassword"
+                        aria-label="Hiện hoặc ẩn mật khẩu"
+                    >
+                        👁
+                    </button>
+
+                </div>
+
+
+                <div class="password-strength">
+
+                    <div class="password-strength-track">
+
+                        <span
+                            class="password-strength-bar"
+                            id="passwordStrengthBar"
+                        ></span>
+
+                    </div>
+
+                    <span
+                        class="password-strength-text"
+                        id="passwordStrengthText"
+                    >
+                        Chưa nhập mật khẩu
+                    </span>
+
+                </div>
+
+                <p
+                    class="password-modal-error"
+                    id="newPasswordError"
+                    {% if not password_errors.get("newPassword") %}
+                        hidden
+                    {% endif %}
+                >
+                    {{ password_errors.get("newPassword", "") }}
+                </p>
+
+            </div>
+
+
+            <div class="password-modal-field">
+
+                <label for="confirmPassword">
+                    Xác nhận mật khẩu mới
+                </label>
+
+                <div
+                    class="password-modal-input
+                    {% if password_errors.get('confirmPassword') %}
+                        has-error
+                    {% endif %}"
+                >
+
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        minlength="8"
+                        autocomplete="new-password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="password-toggle-button"
+                        data-password-toggle="confirmPassword"
+                        aria-label="Hiện hoặc ẩn mật khẩu"
+                    >
+                        👁
+                    </button>
+
+                </div>
+
+                <p
+                    class="
+                        password-match-message
+                        {% if password_errors.get("confirmPassword") %}
+                            is-error
+                        {% endif %}
+                    "
+                    id="passwordMatchMessage"
+                >
+                    {% if password_errors.get("confirmPassword") %}
+                        {{ password_errors.get("confirmPassword") }}
+                    {% else %}
+                        Nhập lại chính xác mật khẩu mới.
+                    {% endif %}
+                </p>
+
+            </div>
+
+
+            {% if
+                user.userID
+                != current_user.userID
+            %}
+
+                <div class="password-temporary-note">
+
+                    <span>i</span>
+
+                    <p>
+                        Mật khẩu cũ sẽ không còn sử dụng được
+                        sau khi thao tác này hoàn tất.
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+
+            <div class="vm-modal-actions account-password-actions">
+
+                <button
+                    type="button"
+                    class="dashboard-secondary-button"
+                    data-password-modal-close
+                >
+                    Hủy
+                </button>
+
+                <button
+                    type="submit"
+                    class="dashboard-primary-button"
+                    id="confirmPasswordUpdate"
+                    disabled
+                >
+
+                    {% if
+                        user.userID
+                        == current_user.userID
+                    %}
+                        Đổi mật khẩu
+                    {% else %}
+                        Đặt mật khẩu
+                    {% endif %}
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+{% endif %}
+
+<!-- =========================================================
+     AVATAR MANAGEMENT MODAL
+     ========================================================= -->
+
+{% if can_update_user %}
+<div
+    class="vm-modal"
+    id="accountAvatarModal"
+    hidden
+>
+
+    <div
+        class="vm-modal-backdrop"
+        data-avatar-modal-close
+    ></div>
+
+    <div
+        class="vm-modal-panel account-avatar-modal-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="accountAvatarModalTitle"
+    >
+
+        <div class="vm-modal-header">
+
+            <div>
+
+                <span class="account-card-label">
+                    Hồ sơ
+                </span>
+
+                <h2 id="accountAvatarModalTitle">
+                    Ảnh đại diện
+                </h2>
+
+                <p>
+                    Chọn ảnh có sẵn hoặc tải ảnh
+                    từ thiết bị.
+                </p>
+
+            </div>
+
+            <button
+                type="button"
+                class="vm-modal-close"
+                data-avatar-modal-close
+                aria-label="Đóng"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <form
+            method="POST"
+            enctype="multipart/form-data"
+            action="{{ url_for(
+                'admin.update_user_avatar',
+                user_id=user.userID
+            ) }}"
+            id="accountAvatarForm"
+        >
+
+            <input
+                type="hidden"
+                name="avatarSource"
+                id="avatarSource"
+                value=""
+            >
+
+            <input
+                type="hidden"
+                name="presetAvatar"
+                id="presetAvatar"
+                value=""
+            >
+
+
+            <!-- PREVIEW -->
+
+            <div class="avatar-preview-section">
+
+                <div class="avatar-preview-ring">
+
+                    <img
+                        id="avatarPreviewImage"
+                        src="{{ url_for(
+                            'static',
+                            filename=(
+                                user.avatarUrl
+                                or
+                                'images/avatars/avatar-default.webp'
+                            )
+                        ) }}"
+                        alt="Xem trước ảnh đại diện"
+                    >
+
+                </div>
+
+                <div class="avatar-preview-info">
+
+                    <strong>
+                        {{ user.fullName }}
+                    </strong>
+
+                    <span>
+                        Xem trước ảnh đại diện
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- PRESETS -->
+
+            <div class="avatar-modal-section">
+
+                <div class="avatar-modal-section-heading">
+
+                    <div>
+                        <strong>
+                            Chọn ảnh có sẵn
+                        </strong>
+
+                        <span>
+                            Sử dụng avatar của VetMate
+                        </span>
+                    </div>
+
+                </div>
+
+
+                {% set avatar_presets = [
+                    'images/avatars/avatar-default.webp',
+                    'images/avatars/avatar-cat.webp',
+                    'images/avatars/avatar-dog.webp',
+                    'images/avatars/avatar-paw.webp',
+                ] %}
+
+
+                <div class="avatar-preset-grid">
+
+                    {% for avatar in avatar_presets %}
+
+                        <button
+                            type="button"
+                            class="avatar-preset-option
+                            {% if user.avatarUrl == avatar %}
+                                is-current
+                            {% endif %}"
+                            data-avatar-preset="{{ avatar }}"
+                            aria-label="Chọn ảnh đại diện"
+                        >
+
+                            <img
+                                src="{{ url_for(
+                                    'static',
+                                    filename=avatar
+                                ) }}"
+                                alt=""
+                            >
+
+                            <span
+                                class="avatar-preset-check"
+                                aria-hidden="true"
+                            >
+                                ✓
+                            </span>
+
+                        </button>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <div class="avatar-modal-divider">
+
+                <span>hoặc</span>
+
+            </div>
+
+
+            <!-- UPLOAD -->
+
+            <div class="avatar-modal-section">
+
+                <div class="avatar-modal-section-heading">
+                    <div>
+                        <strong>
+                            Tải ảnh từ thiết bị
+                        </strong>
+                        <span>
+                            JPG, PNG hoặc WEBP · tối đa 5 MB
+                        </span>
+                    </div>
+                </div>
+
+                <label
+                    class="avatar-upload-zone"
+                    id="avatarUploadZone"
+                    for="avatarFile"
+                >
+                    <input
+                        type="file"
+                        id="avatarFile"
+                        name="avatarFile"
+                        accept="
+                            image/jpeg,
+                            image/png,
+                            image/webp
+                        "
+                        hidden
+                    >
+
+                    <span class="avatar-upload-icon">
+                        ↑
+                    </span>
+
+                    <span class="avatar-upload-copy">
+                        <strong>
+                            Chọn ảnh từ máy
+                        </strong>
+
+                        <small id="avatarUploadFileName">
+                            Chưa có ảnh được chọn
+                        </small>
+                    </span>
+
+                    <span class="avatar-upload-action">
+                        Chọn ảnh
+                    </span>
+                </label>
+
+
+                <!-- DÁN ĐOẠN MỚI Ở ĐÂY -->
+                <p class="avatar-paste-hint">
+                    Hoặc dán ảnh trực tiếp bằng
+                    <kbd>Ctrl</kbd>
+                    +
+                    <kbd>V</kbd>
+                </p>
+
+
+                <p
+                    class="password-modal-error"
+                    id="avatarUploadError"
+                    hidden
+                ></p>
+
+            </div>
+
+            <div class="vm-modal-actions account-avatar-actions">
+
+                <button
+                    type="button"
+                    class="dashboard-secondary-button"
+                    data-avatar-modal-close
+                >
+                    Hủy
+                </button>
+
+                <button
+                    type="submit"
+                    class="dashboard-primary-button"
+                    id="saveAvatarButton"
+                    disabled
+                >
+                    Lưu ảnh đại diện
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+
+{% block scripts %}
+
+{{ super() }}
+
+<script
+    src="{{ url_for(
+        'static',
+        filename='js/admin-user-detail.js'
+    ) }}"
+></script>
+
+{% endblock %}

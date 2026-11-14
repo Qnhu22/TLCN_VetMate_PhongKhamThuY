@@ -1,0 +1,178 @@
+/* =========================================================
+   VETMATE COLOR PALETTE
+   ========================================================= */
+
+:root {
+    --magenta: #894d5b;
+    --magenta-dark: #683744;
+    --magenta-deep: #4f2430;
+
+    --orchid-pink: #e1b1c1;
+    --orchid-soft: #f7e8ed;
+
+    --columbia-blue: #c4e9f8;
+    --columbia-soft: #edf9fd;
+
+    --apple-green: #88a82a;
+    --apple-green-dark: #69851d;
+
+    --dark-moss-green: #21510a;
+    --dark-moss-deep: #153606;
+
+    --cream: #fffbea;
+    --background: #f1eeec;
+    --surface: #f8f5f4;
+
+    --text-primary: #2f312c;
+    --text-secondary: #68645f;
+    --border: rgba(137, 77, 91, 0.18);
+
+    --container-width: 1500px;
+
+    --shadow-small:
+        0 6px 20px rgba(33, 81, 10, 0.08);
+
+    --shadow-medium:
+        0 16px 42px rgba(33, 81, 10, 0.15);
+
+    --shadow-dark:
+        0 18px 40px rgba(19, 28, 14, 0.28);
+}
+
+/* =========================================================
+   LIGHT THEME
+   ========================================================= */
+
+html[data-theme="light"] {
+    --background: #fffafd;
+    --surface: #ffffff;
+
+    --text-primary: #2f2630;
+    --text-secondary: #71666e;
+
+    --border: rgba(137, 77, 91, 0.14);
+
+    --orchid-soft: #fceff4;
+    --columbia-soft: #f1f9fd;
+
+    --shadow-small:
+        0 6px 20px
+        rgba(137, 77, 91, 0.07);
+
+    --shadow-medium:
+        0 16px 42px
+        rgba(137, 77, 91, 0.11);
+
+    --shadow-dark:
+        0 18px 40px
+        rgba(79, 36, 48, 0.18);
+}
+
+
+/* =========================================================
+   DARK THEME
+   ========================================================= */
+
+html[data-theme="dark"] {
+    --background: #111827;
+    --surface: #1b2537;
+
+    --text-primary: #f7f2f4;
+    --text-secondary: #c8c2c7;
+
+    --border: rgba(225, 177, 193, 0.18);
+
+    --orchid-soft: rgba(137, 77, 91, 0.16);
+    --columbia-soft: rgba(196, 233, 248, 0.07);
+
+    --cream: #fff8e7;
+
+    --shadow-small:
+        0 6px 20px
+        rgba(0, 0, 0, 0.18);
+
+    --shadow-medium:
+        0 16px 42px
+        rgba(0, 0, 0, 0.24);
+
+    --shadow-dark:
+        0 18px 40px
+        rgba(0, 0, 0, 0.34);
+}
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+
+html {
+    scroll-behavior: smooth;
+}
+
+
+body {
+    margin: 0;
+    overflow-x: hidden;
+    color: var(--text-primary);
+    background-color: var(--background);
+    font-family:
+        "Segoe UI",
+        Arial,
+        sans-serif;
+}
+
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+
+button {
+    cursor: pointer;
+}
+
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+
+.page-container {
+    width: min(
+        var(--container-width),
+        calc(100% - 48px)
+    );
+    margin: 0 auto;
+}
+
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+    .page-container {
+        width: min(
+            calc(100% - 28px),
+            var(--container-width)
+        );
+    }
+}

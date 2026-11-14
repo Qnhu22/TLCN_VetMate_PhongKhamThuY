@@ -1,0 +1,403 @@
+/* =========================================================
+   VETMATE MASCOT - SHARED
+   ========================================================= */
+
+.vetmate-mascot {
+    position: relative;
+
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    pointer-events: none;
+    user-select: none;
+}
+
+.vetmate-mascot-svg {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: visible;
+
+    filter:
+        drop-shadow(
+            0 12px 18px
+            rgba(0, 0, 0, 0.16)
+        );
+}
+
+/* =========================================================
+   BACKGROUND
+   ========================================================= */
+
+.mascot-background {
+    fill: #f7e8ed;
+}
+
+/* =========================================================
+   DECORATION
+   ========================================================= */
+
+.mascot-decoration {
+    fill: #ffffff;
+    opacity: 0.72;
+}
+
+.mascot-sparkle {
+    fill: #ffffff;
+    opacity: 0.9;
+}
+
+
+/* =========================================================
+   TAIL
+   ========================================================= */
+
+.mascot-tail {
+    fill: none;
+
+    stroke: #894d5b;
+    stroke-width: 13;
+    stroke-linecap: round;
+
+    opacity: 0.95;
+}
+
+
+/* =========================================================
+   BODY
+   ========================================================= */
+
+.mascot-body {
+    fill: #f4d7df;
+
+    stroke: #894d5b;
+    stroke-width: 3;
+}
+
+.mascot-belly {
+    fill: #fff7f8;
+    opacity: 0.92;
+}
+
+.mascot-back-paw {
+    fill: #f4d7df;
+
+    stroke: #894d5b;
+    stroke-width: 3;
+}
+
+
+/* =========================================================
+   EARS
+   ========================================================= */
+
+.mascot-ear {
+    fill: #f2c6d3;
+
+    stroke: #894d5b;
+    stroke-width: 3;
+    stroke-linejoin: round;
+}
+
+.mascot-inner-ear {
+    fill: #dc89a5;
+}
+
+
+/* =========================================================
+   HEAD
+   ========================================================= */
+
+.mascot-head-shape {
+    fill: #f8dde5;
+
+    stroke: #894d5b;
+    stroke-width: 3;
+}
+
+.mascot-head-tuft {
+    fill: none;
+
+    stroke: #894d5b;
+    stroke-width: 4;
+    stroke-linecap: round;
+}
+
+
+/* =========================================================
+   EYES
+   ========================================================= */
+
+.mascot-eye {
+    stroke: #6d3947;
+    stroke-width: 2;
+}
+
+.mascot-pupil {
+    fill: #321c25;
+
+    transition:
+        transform 120ms ease;
+}
+
+.mascot-eye-highlight {
+    fill: #ffffff;
+
+    pointer-events: none;
+}
+
+
+/* =========================================================
+   CHEEKS
+   ========================================================= */
+
+.mascot-cheek {
+    fill: #ef9bb6;
+    opacity: 0.65;
+}
+
+.mascot-cheek-lines {
+    fill: none;
+
+    stroke: #c96f8b;
+    stroke-width: 2;
+    stroke-linecap: round;
+
+    opacity: 0.8;
+}
+
+
+/* =========================================================
+   FACE
+   ========================================================= */
+
+.mascot-nose {
+    fill: #894d5b;
+}
+
+.mascot-mouth {
+    fill: none;
+
+    stroke: #894d5b;
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+
+.mascot-whisker {
+    fill: none;
+
+    stroke: #894d5b;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+
+    opacity: 0.8;
+}
+
+
+/* =========================================================
+   HEART
+   ========================================================= */
+
+.mascot-heart path:first-child {
+    stroke: #a95971;
+    stroke-width: 2;
+}
+
+.mascot-heart-highlight {
+    fill: none;
+
+    stroke: rgba(255, 255, 255, 0.82);
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+
+
+/* =========================================================
+   FRONT LEGS
+   ========================================================= */
+
+.mascot-arm-shape,
+.mascot-paw {
+    fill: #f4d7df;
+
+    stroke: #894d5b;
+    stroke-width: 3;
+}
+
+.mascot-paw-lines {
+    fill: none;
+
+    stroke: #b4687e;
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+
+/* =========================================================
+   FRAME
+   ========================================================= */
+
+.vetmate-mascot .mascot-frame {
+    fill: none !important;
+    stroke: rgba(137, 77, 91, 0.25) !important;
+    stroke-width: 3;
+}
+
+
+/* =========================================================
+   MOVEMENT BASE
+   ========================================================= */
+
+#mascotHead {
+    transform-box: fill-box;
+    transform-origin: center;
+
+    transition:
+        transform
+        0.35s
+        cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+#mascotTail {
+    transform-box: fill-box;
+    transform-origin: center;
+
+    transition:
+        transform 0.35s ease;
+}
+
+#mascotEarLeft,
+#mascotEarRight {
+    transform-box: fill-box;
+    transform-origin: center;
+
+    transition:
+        transform 0.25s ease;
+}
+
+/* =========================================================
+   MASCOT ARMS
+   ========================================================= */
+
+.mascot-arm {
+    transform-box: fill-box;
+
+    transition:
+        transform
+        0.45s
+        cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mascot-arm-left,
+.mascot-arm-right {
+    transform-origin: bottom center;
+}
+
+#mascotArmLeft,
+#mascotArmRight {
+    transform:
+        translate(0, 0)
+        rotate(0deg);
+}
+
+
+/* =========================================================
+   PASSWORD - COVER EYES
+   ========================================================= */
+
+.vetmate-mascot.is-covering #mascotArmLeft {
+    transform:
+        translate(2px, -70px)
+        rotate(-12deg);
+}
+
+.vetmate-mascot.is-covering #mascotArmRight {
+    transform:
+        translate(-2px, -70px)
+        rotate(12deg);
+}
+/* =========================================================
+   PASSWORD - PEEK
+   ========================================================= */
+
+.vetmate-mascot.is-covering.is-peeking
+#mascotArmRight {
+    transform:
+        translate(22px, -56px)
+        rotate(-28deg);
+}
+
+.vetmate-mascot.is-peeking #mascotHead {
+    transform:
+        translateX(3px)
+        rotate(2deg);
+}
+
+
+/* =========================================================
+   TYPING
+   ========================================================= */
+
+.vetmate-mascot.is-typing #mascotEarLeft {
+    transform: rotate(-4deg);
+}
+
+.vetmate-mascot.is-typing #mascotEarRight {
+    transform: rotate(4deg);
+}
+
+.vetmate-mascot.is-typing #mascotTail {
+    transform: rotate(-2deg);
+}
+
+
+/* =========================================================
+   IDLE
+   ========================================================= */
+
+@keyframes vetmateMascotFloat {
+    0%,
+    100% {
+        translate: 0 0;
+    }
+
+    50% {
+        translate: 0 -3px;
+    }
+}
+
+.vetmate-mascot:not(.is-covering)
+.vetmate-mascot-svg {
+    animation:
+        vetmateMascotFloat
+        4s
+        ease-in-out
+        infinite;
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .vetmate-mascot-svg {
+        animation: none !important;
+    }
+
+    .mascot-arm,
+    #mascotHead,
+    #mascotTail,
+    .mascot-pupil,
+    #mascotEarLeft,
+    #mascotEarRight {
+        transition: none;
+    }
+}

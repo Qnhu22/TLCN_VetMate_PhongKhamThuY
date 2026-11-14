@@ -1,0 +1,815 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Quản lý tài khoản | VetMate Admin
+{% endblock %}
+
+
+{% block content %}
+
+<section class="page-heading">
+
+    <div class="users-heading-main">
+        <a
+            href="{{ url_for('admin.dashboard') }}"
+            class="back-link"
+        >
+            <span aria-hidden="true">←</span>
+            <span>Quay lại tổng quan</span>
+        </a>
+
+        <p class="dashboard-eyebrow">
+            USER MANAGEMENT
+        </p>
+
+        <h1>
+            Quản lý tài khoản
+        </h1>
+
+        <p>
+            Theo dõi, tìm kiếm và quản lý tài khoản
+            đang sử dụng hệ thống VetMate.
+        </p>
+    </div>
+
+
+    {% if current_user.has_permission("USER_CREATE") %}
+        <div class="page-heading-actions">
+            <a
+                href="{{ url_for('admin.create_user') }}"
+                class="dashboard-primary-button"
+            >
+                <span>＋</span>
+                Tạo tài khoản nhân viên
+            </a>
+        </div>
+    {% endif %}
+
+</section>
+
+
+<section class="user-summary-grid">
+
+    <article class="user-summary-card">
+
+        <span class="user-summary-icon">
+            ♙
+        </span>
+
+        <div>
+            <strong>
+                {{ pagination.total }}
+            </strong>
+
+            <span>
+                Kết quả
+            </span>
+        </div>
+
+    </article>
+
+
+    <article class="user-summary-card">
+
+        <span class="user-summary-icon is-success">
+            ✓
+        </span>
+
+        <div>
+            <strong>
+                {{
+                    users
+                    | selectattr(
+                        "status",
+                        "equalto",
+                        "ACTIVE"
+                    )
+                    | list
+                    | length
+                }}
+            </strong>
+
+            <span>
+                Active trên trang này
+            </span>
+        </div>
+
+    </article>
+
+</section>
+
+
+<section class="users-panel">
+
+    <div class="users-toolbar">
+
+        <form
+            method="GET"
+            action="{{ url_for('admin.users') }}"
+            class="users-filter-form"
+            id="usersFilterForm"
+        >
+
+            <div class="users-search-field">
+
+                <span class="users-search-icon">
+                    ⌕
+                </span>
+
+                <input
+                    type="search"
+                    name="q"
+                    value="{{ search }}"
+                    placeholder="Tìm theo tên, email hoặc số điện thoại..."
+                    autocomplete="off"
+                >
+
+                {% if search %}
+                    <a
+                        href="{{ url_for(
+                            'admin.users',
+                            status=selected_status,
+                            role=selected_role
+                        ) }}"
+                        class="users-search-clear"
+                        title="Xóa từ khóa"
+                    >
+                        ×
+                    </a>
+                {% endif %}
+
+            </div>
+
+
+            <div class="users-filter-group">
+
+                <label>
+                    <span>Trạng thái</span>
+
+                    <select name="status">
+
+                        <option value="">
+                            Tất cả
+                        </option>
+
+                        {% for item in status_options %}
+
+                            <option
+                                value="{{ item }}"
+                                {% if selected_status == item %}
+                                    selected
+                                {% endif %}
+                            >
+                                {% if item == "ACTIVE" %}
+                                    Đang hoạt động
+                                {% elif item == "PENDING_VERIFICATION" %}
+                                    Chờ xác minh
+                                {% elif item == "LOCKED" %}
+                                    Đang bị khóa
+                                {% elif item == "INACTIVE" %}
+                                    Ngừng hoạt động
+                                {% else %}
+                                    {{ item }}
+                                {% endif %}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+                </label>
+
+
+                <label>
+                    <span>Vai trò</span>
+
+                    <select name="role">
+
+                        <option value="">
+                            Tất cả
+                        </option>
+
+                        {% for role in roles %}
+
+                            <option
+                                value="{{ role.roleCode }}"
+                                {% if selected_role == role.roleCode %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ role.name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+                </label>
+
+
+                <button
+                    type="submit"
+                    class="users-filter-submit"
+                >
+                    Lọc
+                </button>
+
+
+                {% if search or selected_status or selected_role %}
+
+                    <a
+                        href="{{ url_for('admin.users') }}"
+                        class="users-filter-reset"
+                    >
+                        Đặt lại
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <div class="users-table-wrapper">
+
+        <table class="users-table">
+
+            <thead>
+                <tr>
+                    <th>Tài khoản</th>
+                    <th>Vai trò</th>
+                    <th>Trạng thái</th>
+                    <th>Đăng nhập gần nhất</th>
+                    <th>Ngày tạo</th>
+                    <th class="table-action-heading"></th>
+                </tr>
+            </thead>
+
+
+            <tbody>
+
+                {% for user in users %}
+
+                    <tr>
+
+                        <td>
+
+                            <div class="user-cell">
+
+                                {% set avatar_path =
+                                    user.avatarUrl
+                                    or 'images/avatars/avatar-default.webp'
+                                %}
+
+                                <img
+                                    src="{{ url_for(
+                                        'static',
+                                        filename=avatar_path
+                                    ) }}"
+                                    alt="Avatar của {{ user.fullName }}"
+                                    class="user-table-avatar"
+                                >
+
+                                <div class="user-cell-info">
+
+                                    <strong>
+                                        {{ user.fullName }}
+                                    </strong>
+
+                                    <span>
+                                        {{ user.email }}
+                                    </span>
+
+                                    {% if user.phone %}
+                                        <small>
+                                            {{ user.phone }}
+                                        </small>
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+
+                        <td>
+
+                            <div class="role-chip-list">
+
+                                {% for role in user.roles %}
+
+                                    <span
+                                        class="role-chip
+                                        role-{{ role.roleCode|lower }}"
+                                    >
+                                        {{ role.name }}
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="role-chip role-empty">
+                                        Chưa gán role
+                                    </span>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </td>
+
+
+                        <td>
+
+                            {% if user.status == "ACTIVE" %}
+
+                                <span class="status-chip status-active">
+                                    <span></span>
+                                    Đang hoạt động
+                                </span>
+
+                            {% elif user.status == "PENDING_VERIFICATION" %}
+
+                                <span class="status-chip status-pending">
+                                    <span></span>
+                                    Chờ xác minh
+                                </span>
+
+                            {% elif user.status == "LOCKED" %}
+
+                                <span class="status-chip status-locked">
+                                    <span></span>
+                                    Đang bị khóa
+                                </span>
+
+                            {% else %}
+
+                                <span class="status-chip status-inactive">
+                                    <span></span>
+                                    Ngừng hoạt động
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            {% if user.lastLoginAt %}
+
+                                <span class="table-date">
+                                    {{
+                                        user.lastLoginAt.strftime(
+                                            "%d/%m/%Y %H:%M"
+                                        )
+                                    }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="table-empty">
+                                    Chưa đăng nhập
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            <span class="table-date">
+                                {{
+                                    user.createdAt.strftime(
+                                        "%d/%m/%Y"
+                                    )
+                                }}
+                            </span>
+
+                        </td>
+
+
+                        <td class="user-action-cell">
+
+                            <div class="user-action-menu">
+
+                                <button
+                                    type="button"
+                                    class="user-action-button"
+                                    aria-label="Tùy chọn tài khoản của {{ user.fullName }}"
+                                    aria-expanded="false"
+                                    aria-haspopup="menu"
+                                    data-user-menu-trigger
+                                >
+                                    ⋯
+                                </button>
+
+                                <div
+                                    class="user-action-dropdown"
+                                    role="menu"
+                                    data-user-menu
+                                    hidden
+                                >
+
+                                    <div class="user-action-dropdown-header">
+                                        <strong>
+                                            {{ user.fullName }}
+                                        </strong>
+
+                                        <span>
+                                            {{ user.email }}
+                                        </span>
+                                    </div>
+
+                                    <div class="user-action-divider"></div>
+
+                                    <a
+                                        href="{{ url_for(
+                                            'admin.user_detail',
+                                            user_id=user.userID
+                                        ) }}"
+                                        class="user-action-item"
+                                        role="menuitem"
+                                    >
+                                        <span class="user-action-item-icon">
+                                            ◉
+                                        </span>
+
+                                        <div>
+                                            <strong>
+                                                Xem chi tiết
+                                            </strong>
+
+                                            <small>
+                                                Thông tin và thiết lập tài khoản
+                                            </small>
+                                        </div>
+                                    </a>
+
+                                    <a
+                                        href="{{ url_for(
+                                            'admin.user_activity',
+                                            user_id=user.userID
+                                        ) }}"
+                                        class="user-action-item"
+                                        role="menuitem"
+                                    >
+                                        <span class="user-action-item-icon">
+                                            ◷
+                                        </span>
+
+                                        <div>
+                                            <strong>
+                                                Nhật ký hoạt động
+                                            </strong>
+
+                                            <small>
+                                                Theo dõi các thay đổi tài khoản
+                                            </small>
+                                        </div>
+                                    </a>
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% else %}
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="users-empty-cell"
+                        >
+
+                            <div class="users-empty-state">
+
+                                <div class="users-empty-icon">
+                                    ⌕
+                                </div>
+
+                                <strong>
+                                    Không tìm thấy tài khoản
+                                </strong>
+
+                                <p>
+                                    Hãy thử thay đổi từ khóa hoặc
+                                    bộ lọc đang sử dụng.
+                                </p>
+
+                                <a
+                                    href="{{ url_for('admin.users') }}"
+                                    class="dashboard-secondary-button"
+                                >
+                                    Xóa bộ lọc
+                                </a>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- MOBILE CARD VIEW -->
+
+    <div class="users-mobile-list">
+
+        {% for user in users %}
+
+            <article class="user-mobile-card">
+
+                <div class="user-mobile-header">
+
+                    <div class="user-cell">
+
+                        {% set avatar_path =
+                            user.avatarUrl
+                            or 'images/avatars/avatar-default.webp'
+                        %}
+
+                        <img
+                            src="{{ url_for(
+                                'static',
+                                filename=avatar_path
+                            ) }}"
+                            alt="Avatar của {{ user.fullName }}"
+                            class="user-table-avatar"
+                        >
+
+                        <div class="user-cell-info">
+
+                            <strong>
+                                {{ user.fullName }}
+                            </strong>
+
+                            <span>
+                                {{ user.email }}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="user-action-menu">
+
+                        <button
+                            type="button"
+                            class="user-action-button"
+                            aria-label="Tùy chọn tài khoản của {{ user.fullName }}"
+                            aria-expanded="false"
+                            aria-haspopup="menu"
+                            data-user-menu-trigger
+                        >
+                            ⋯
+                        </button>
+
+                        <div
+                            class="user-action-dropdown"
+                            role="menu"
+                            data-user-menu
+                            hidden
+                        >
+
+                            <div class="user-action-dropdown-header">
+                                <strong>
+                                    {{ user.fullName }}
+                                </strong>
+
+                                <span>
+                                    {{ user.email }}
+                                </span>
+                            </div>
+
+                            <div class="user-action-divider"></div>
+
+                            <a
+                                href="{{ url_for(
+                                    'admin.user_detail',
+                                    user_id=user.userID
+                                ) }}"
+                                class="user-action-item"
+                                role="menuitem"
+                            >
+                                <span class="user-action-item-icon">
+                                    ◉
+                                </span>
+
+                                <div>
+                                    <strong>
+                                        Xem chi tiết
+                                    </strong>
+
+                                    <small>
+                                        Thông tin và thiết lập tài khoản
+                                    </small>
+                                </div>
+                            </a>
+
+                            <a
+                                href="{{ url_for(
+                                    'admin.user_activity',
+                                    user_id=user.userID
+                                ) }}"
+                                class="user-action-item"
+                                role="menuitem"
+                            >
+                                <span class="user-action-item-icon">
+                                    ◷
+                                </span>
+
+                                <div>
+                                    <strong>
+                                        Nhật ký hoạt động
+                                    </strong>
+
+                                    <small>
+                                        Theo dõi các thay đổi tài khoản
+                                    </small>
+                                </div>
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="user-mobile-meta">
+
+                    <div>
+                        <span>Vai trò</span>
+
+                        <strong>
+                            {% if user.roles %}
+                                {{ user.roles[0].name }}
+                            {% else %}
+                                Chưa gán
+                            {% endif %}
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>Trạng thái</span>
+
+                        <strong>
+                            {% if user.status == "ACTIVE" %}
+                                Đang hoạt động
+                            {% elif user.status == "LOCKED" %}
+                                Đang bị khóa
+                            {% elif user.status == "PENDING_VERIFICATION" %}
+                                Chờ xác minh
+                            {% else %}
+                                Ngừng hoạt động
+                            {% endif %}
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>Ngày tạo</span>
+
+                        <strong>
+                            {{
+                                user.createdAt.strftime(
+                                    "%d/%m/%Y"
+                                )
+                            }}
+                        </strong>
+                    </div>
+
+                </div>
+
+            </article>
+
+        {% endfor %}
+
+    </div>
+
+
+    {% if pagination.pages > 1 %}
+
+        <div class="users-pagination">
+
+            <div class="pagination-info">
+                Trang
+                <strong>{{ pagination.page }}</strong>
+                /
+                {{ pagination.pages }}
+                ·
+                {{ pagination.total }} tài khoản
+            </div>
+
+
+            <div class="pagination-controls">
+
+                {% if pagination.has_prev %}
+
+                    <a
+                        href="{{ url_for(
+                            'admin.users',
+                            page=pagination.prev_num,
+                            q=search,
+                            status=selected_status,
+                            role=selected_role
+                        ) }}"
+                        class="pagination-button"
+                    >
+                        ←
+                    </a>
+
+                {% endif %}
+
+
+                {% for page_number in pagination.iter_pages(
+                    left_edge=1,
+                    right_edge=1,
+                    left_current=2,
+                    right_current=2
+                ) %}
+
+                    {% if page_number %}
+
+                        <a
+                            href="{{ url_for(
+                                'admin.users',
+                                page=page_number,
+                                q=search,
+                                status=selected_status,
+                                role=selected_role
+                            ) }}"
+                            class="pagination-button
+                            {% if page_number == pagination.page %}
+                                is-active
+                            {% endif %}"
+                        >
+                            {{ page_number }}
+                        </a>
+
+                    {% else %}
+
+                        <span class="pagination-gap">
+                            …
+                        </span>
+
+                    {% endif %}
+
+                {% endfor %}
+
+
+                {% if pagination.has_next %}
+
+                    <a
+                        href="{{ url_for(
+                            'admin.users',
+                            page=pagination.next_num,
+                            q=search,
+                            status=selected_status,
+                            role=selected_role
+                        ) }}"
+                        class="pagination-button"
+                    >
+                        →
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+
+{{ super() }}
+
+<script
+    src="{{ url_for(
+        'static',
+        filename='js/admin-users.js'
+    ) }}"
+></script>
+
+{% endblock %}

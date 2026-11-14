@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Đăng ký thành công | VetMate
+{% endblock %}
+
+
+{% block styles %}
+    <link
+        rel="stylesheet"
+        href="{{ url_for(
+            'static',
+            filename='css/register.css'
+        ) }}"
+    >
+{% endblock %}
+
+
+{% block body_class %}
+    register-page
+{% endblock %}
+
+
+{% block body %}
+
+<main class="verify-page">
+
+    <section class="verify-card">
+
+        <div class="success-mascot">
+            {% with mascot_id='successMascot' %}
+                {% include "components/vetmate_mascot.html" %}
+            {% endwith %}
+        </div>
+
+
+        <div
+            class="register-progress"
+            aria-label="Tiến trình đăng ký"
+        >
+
+            <div
+                class="
+                    register-progress-step
+                    is-complete
+                "
+            >
+                <span>1</span>
+                <small>Tài khoản</small>
+            </div>
+
+            <div
+                class="
+                    register-progress-line
+                    is-complete
+                "
+            ></div>
+
+
+            <div
+                class="
+                    register-progress-step
+                    is-complete
+                "
+            >
+                <span>2</span>
+                <small>Xác minh</small>
+            </div>
+
+            <div
+                class="
+                    register-progress-line
+                    is-complete
+                "
+            ></div>
+
+
+            <div
+                class="
+                    register-progress-step
+                    is-active
+                "
+            >
+                <span>3</span>
+                <small>Hoàn tất</small>
+            </div>
+
+        </div>
+
+
+        <div
+            class="
+                verify-heading
+                register-success-heading
+            "
+        >
+            <h1>
+                Đăng ký thành công!
+            </h1>
+
+            <p>
+                Chào mừng
+                <strong>
+                    {{ user.fullName }}
+                </strong>
+                đến với VetMate.
+                Tài khoản của bạn đã được
+                xác minh và sẵn sàng sử dụng.
+            </p>
+        </div>
+
+
+        <div class="register-success-icon">
+            <i
+                class="bi bi-check-lg"
+                aria-hidden="true"
+            ></i>
+        </div>
+
+
+        <div class="register-success-message">
+            <strong>
+                Tài khoản đã được kích hoạt
+            </strong>
+
+            <span>
+                Bạn có thể đăng nhập để
+                quản lý thú cưng và sử dụng
+                các dịch vụ của VetMate.
+            </span>
+        </div>
+
+
+        <a
+            href="{{ url_for('auth.login') }}"
+            class="
+                register-submit
+                register-success-button
+            "
+        >
+            Đăng nhập ngay
+
+            <span aria-hidden="true">
+                →
+            </span>
+        </a>
+
+
+        <a
+            href="{{ url_for('main.home') }}"
+            class="verify-back"
+        >
+            ← Về trang chủ
+        </a>
+
+    </section>
+
+</main>
+
+{% endblock %}

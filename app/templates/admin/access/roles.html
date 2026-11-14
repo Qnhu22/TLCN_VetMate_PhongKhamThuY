@@ -1,0 +1,532 @@
+{% extends "layouts/dashboard.html" %}
+
+{% block title %}
+Vai trò & quyền | VetMate
+{% endblock %}
+
+{% block head %}
+<link
+    rel="stylesheet"
+    href="{{ url_for(
+        'static',
+        filename='css/admin-access.css'
+    ) }}"
+>
+{% endblock %}
+
+{% block content %}
+<section class="access-page">
+
+    <header class="access-heading">
+        <div class="access-heading-main">
+            <a
+                href="{{ url_for('admin.dashboard') }}"
+                class="access-back-link"
+            >
+                <span aria-hidden="true">←</span>
+                Quay lại tổng quan
+            </a>
+
+            <div>
+                <p class="access-eyebrow">
+                    Phân quyền hệ thống
+                </p>
+
+                <h1>Quản lý vai trò & quyền hạn</h1>
+
+                <p class="access-heading-description">
+                    Theo dõi các vai trò đang được sử dụng
+                    và phạm vi quyền được gán trong VetMate.
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <nav
+        class="access-tabs"
+        aria-label="Điều hướng vai trò và quyền hạn"
+    >
+        <a
+            href="{{ url_for('admin.roles') }}"
+            class="access-tab is-active"
+            aria-current="page"
+        >
+            <span class="access-tab-icon">♙</span>
+
+            <span>
+                <strong>Vai trò</strong>
+                <small>Nhóm người dùng</small>
+            </span>
+        </a>
+
+        {% if current_user.has_permission(
+            "PERMISSION_VIEW"
+        ) %}
+            <a
+                href="{{ url_for('admin.permissions') }}"
+                class="access-tab"
+            >
+                <span class="access-tab-icon">⌘</span>
+
+                <span>
+                    <strong>Quyền hạn</strong>
+                    <small>Hành động được phép</small>
+                </span>
+            </a>
+        {% endif %}
+    </nav>
+
+    <div class="access-summary-grid">
+        <article class="access-summary-card">
+            <span class="access-summary-icon">♙</span>
+
+            <div>
+                <span>Tổng vai trò</span>
+                <strong>{{ role_summary.total }}</strong>
+                <small>
+                    Vai trò trong hệ thống
+                </small>
+            </div>
+        </article>
+
+        <article class="access-summary-card">
+            <span class="access-summary-icon is-success">
+                ✓
+            </span>
+
+            <div>
+                <span>Đang hoạt động</span>
+                <strong>{{ role_summary.active }}</strong>
+                <small>
+                    Có thể được sử dụng
+                </small>
+            </div>
+        </article>
+
+        <article class="access-summary-card">
+            <span class="access-summary-icon is-muted">
+                —
+            </span>
+
+            <div>
+                <span>Ngừng hoạt động</span>
+                <strong>{{ role_summary.inactive }}</strong>
+                <small>
+                    Không còn khả dụng
+                </small>
+            </div>
+        </article>
+
+        <article class="access-summary-card">
+            <span class="access-summary-icon is-primary">
+                ◎
+            </span>
+
+            <div>
+                <span>Lượt gán vai trò</span>
+                <strong>{{ role_summary.assignments }}</strong>
+                <small>
+                    Trên toàn bộ tài khoản
+                </small>
+            </div>
+        </article>
+    </div>
+
+    <section class="access-panel">
+        <div class="access-panel-heading">
+            <div>
+                <p class="access-panel-eyebrow">
+                    Danh mục vai trò
+                </p>
+
+                <h2>Vai trò trong hệ thống</h2>
+
+                <p>
+                    Mỗi vai trò đại diện cho một nhóm
+                    trách nhiệm và tập quyền tương ứng.
+                </p>
+            </div>
+        </div>
+
+        <form
+            method="get"
+            action="{{ url_for('admin.roles') }}"
+            class="access-filter-form"
+            id="accessFilterForm"
+        >
+            <div class="access-search-field">
+                <span
+                    class="access-search-icon"
+                    aria-hidden="true"
+                >
+                    ⌕
+                </span>
+
+                <input
+                    type="search"
+                    name="q"
+                    value="{{ search }}"
+                    placeholder="Tìm tên, mã hoặc mô tả vai trò..."
+                    aria-label="Tìm kiếm vai trò"
+                    autocomplete="off"
+                    id="accessSearchInput"
+                >
+
+                {% if search %}
+                    <a
+                        href="{{ url_for(
+                            'admin.roles',
+                            status=selected_status,
+                            per_page=per_page
+                        ) }}"
+                        class="access-clear-search"
+                        aria-label="Xóa từ khóa tìm kiếm"
+                    >
+                        ×
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="access-filter-field">
+                <label for="roleStatusFilter">
+                    Trạng thái
+                </label>
+
+                <select
+                    name="status"
+                    id="roleStatusFilter"
+                    data-auto-submit
+                >
+                    <option
+                        value=""
+                        {% if not selected_status %}
+                            selected
+                        {% endif %}
+                    >
+                        Tất cả trạng thái
+                    </option>
+
+                    <option
+                        value="ACTIVE"
+                        {% if selected_status == "ACTIVE" %}
+                            selected
+                        {% endif %}
+                    >
+                        Đang hoạt động
+                    </option>
+
+                    <option
+                        value="INACTIVE"
+                        {% if selected_status == "INACTIVE" %}
+                            selected
+                        {% endif %}
+                    >
+                        Ngừng hoạt động
+                    </option>
+                </select>
+            </div>
+
+            <div class="access-filter-field access-per-page">
+                <label for="rolePerPage">
+                    Hiển thị
+                </label>
+
+                <select
+                    name="per_page"
+                    id="rolePerPage"
+                    data-auto-submit
+                >
+                    {% for size in [12, 24, 48] %}
+                        <option
+                            value="{{ size }}"
+                            {% if per_page == size %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ size }} dòng
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button
+                type="submit"
+                class="access-search-button"
+            >
+                Tìm kiếm
+            </button>
+
+            {% if search or selected_status %}
+                <a
+                    href="{{ url_for('admin.roles') }}"
+                    class="access-reset-button"
+                >
+                    Đặt lại
+                </a>
+            {% endif %}
+        </form>
+
+        <div class="access-result-meta">
+            <p>
+                {% if pagination.total %}
+                    Tìm thấy
+                    <strong>
+                        {{ pagination.total }}
+                    </strong>
+                    vai trò.
+                {% else %}
+                    Không có vai trò phù hợp.
+                {% endif %}
+            </p>
+
+            {% if pagination.total %}
+                <span>
+                    Trang {{ pagination.page }}
+                    / {{ pagination.pages }}
+                </span>
+            {% endif %}
+        </div>
+
+        {% if role_rows %}
+            <div class="access-table-wrapper">
+                <table class="access-table">
+                    <thead>
+                        <tr>
+                            <th>Vai trò</th>
+                            <th>Trạng thái</th>
+                            <th>Người dùng</th>
+                            <th>Quyền hạn</th>
+                            <th>Mô tả</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in role_rows %}
+                            {% set role = item.role %}
+
+                            <tr>
+                                <td data-label="Vai trò">
+                                    <a
+                                        href="{{ url_for(
+                                            'admin.role_detail',
+                                            role_id=role.roleID
+                                        ) }}"
+                                        class="access-identity access-identity-link"
+                                    >
+                                        <span class="access-role-avatar">
+                                            {{
+                                                role.name[:1]
+                                                | upper
+                                            }}
+                                        </span>
+
+                                        <div>
+                                            <strong>
+                                                {{ role.name }}
+                                            </strong>
+
+                                            <code>
+                                                {{ role.roleCode }}
+                                            </code>
+                                        </div>
+
+                                        <span
+                                            class="access-row-arrow"
+                                            aria-hidden="true"
+                                        >
+                                            ›
+                                        </span>
+                                    </a>
+                                </td>
+
+                                <td data-label="Trạng thái">
+                                    {% if role.isActive %}
+                                        <span
+                                            class="access-status-badge is-active"
+                                        >
+                                            <i></i>
+                                            Đang hoạt động
+                                        </span>
+                                    {% else %}
+                                        <span
+                                            class="access-status-badge is-inactive"
+                                        >
+                                            <i></i>
+                                            Ngừng hoạt động
+                                        </span>
+                                    {% endif %}
+                                </td>
+
+                                <td data-label="Người dùng">
+                                    <span class="access-count">
+                                        <strong>
+                                            {{ item.user_count }}
+                                        </strong>
+                                        tài khoản
+                                    </span>
+                                </td>
+
+                                <td data-label="Quyền hạn">
+                                    <span class="access-count">
+                                        <strong>
+                                            {{
+                                                item.permission_count
+                                            }}
+                                        </strong>
+                                        quyền
+                                    </span>
+                                </td>
+
+                                <td
+                                    data-label="Mô tả"
+                                    class="access-description-cell"
+                                >
+                                    {{
+                                        role.description
+                                        or "Chưa có mô tả cho vai trò này."
+                                    }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if pagination.pages > 1 %}
+                <nav
+                    class="access-pagination"
+                    aria-label="Phân trang vai trò"
+                >
+                    {% if pagination.has_prev %}
+                        <a
+                            href="{{ url_for(
+                                'admin.roles',
+                                page=pagination.prev_num,
+                                q=search,
+                                status=selected_status,
+                                per_page=per_page
+                            ) }}"
+                            class="access-page-button"
+                        >
+                            ←
+                            <span>Trước</span>
+                        </a>
+                    {% else %}
+                        <span
+                            class="access-page-button is-disabled"
+                        >
+                            ←
+                            <span>Trước</span>
+                        </span>
+                    {% endif %}
+
+                    <div class="access-page-numbers">
+                        {% for page_number in
+                            pagination.iter_pages(
+                                left_edge=1,
+                                right_edge=1,
+                                left_current=1,
+                                right_current=1
+                            )
+                        %}
+                            {% if page_number %}
+                                {% if
+                                    page_number
+                                    == pagination.page
+                                %}
+                                    <span
+                                        class="access-page-number is-active"
+                                    >
+                                        {{ page_number }}
+                                    </span>
+                                {% else %}
+                                    <a
+                                        href="{{ url_for(
+                                            'admin.roles',
+                                            page=page_number,
+                                            q=search,
+                                            status=selected_status,
+                                            per_page=per_page
+                                        ) }}"
+                                        class="access-page-number"
+                                    >
+                                        {{ page_number }}
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <span
+                                    class="access-page-ellipsis"
+                                >
+                                    …
+                                </span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    {% if pagination.has_next %}
+                        <a
+                            href="{{ url_for(
+                                'admin.roles',
+                                page=pagination.next_num,
+                                q=search,
+                                status=selected_status,
+                                per_page=per_page
+                            ) }}"
+                            class="access-page-button"
+                        >
+                            <span>Sau</span>
+                            →
+                        </a>
+                    {% else %}
+                        <span
+                            class="access-page-button is-disabled"
+                        >
+                            <span>Sau</span>
+                            →
+                        </span>
+                    {% endif %}
+                </nav>
+            {% endif %}
+
+        {% else %}
+            <div class="access-empty-state">
+                <div class="access-empty-icon">
+                    ♙
+                </div>
+
+                {% if search or selected_status %}
+                    <h3>Không tìm thấy vai trò</h3>
+
+                    <p>
+                        Không có vai trò nào phù hợp với
+                        điều kiện tìm kiếm hiện tại.
+                    </p>
+
+                    <a
+                        href="{{ url_for('admin.roles') }}"
+                        class="access-empty-button"
+                    >
+                        Xóa bộ lọc
+                    </a>
+                {% else %}
+                    <h3>Chưa có vai trò</h3>
+
+                    <p>
+                        Hệ thống hiện chưa có dữ liệu
+                        vai trò để hiển thị.
+                    </p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </section>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script
+    src="{{ url_for(
+        'static',
+        filename='js/admin-access.js'
+    ) }}"
+></script>
+{% endblock %}
