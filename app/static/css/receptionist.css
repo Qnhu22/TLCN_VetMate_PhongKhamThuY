@@ -817,3 +817,93 @@
     background: #c44778;
     color: #fff;
 }
+
+
+/* =========================================
+   VETMATE - CREATE CUSTOMER THEME SUPPORT
+   Dán vào cuối receptionist.css
+   ========================================= */
+
+/* Tiêu đề và mô tả */
+.customer-create-header h1 {
+    color: var(--text-primary, #382a33);
+}
+
+.customer-create-header p,
+.customer-create-breadcrumb {
+    color: var(--text-secondary, #8a7b84);
+}
+
+/* Khung thông tin khách hàng */
+.customer-create-card {
+    background: var(--surface, #ffffff);
+    border-color: var(--border-color, #f5e0e9);
+}
+
+/* Tiêu đề trong khung */
+.customer-create-section-title {
+    border-bottom-color: var(--border-color, #f5e6ed);
+}
+
+.customer-create-section-title h2 {
+    color: var(--text-primary, #49333e);
+}
+
+/* Nhãn của các ô nhập */
+.customer-create-field label {
+    color: var(--text-primary, #51414a);
+}
+
+/* Các ô nhập thông tin */
+.customer-create-field input,
+.customer-create-field textarea {
+    background: var(--surface, #ffffff);
+    color: var(--text-primary, #44343c);
+    border-color: var(--border-color, #ead9e1);
+}
+
+/* Placeholder */
+.customer-create-field input::placeholder,
+.customer-create-field textarea::placeholder {
+    color: var(--text-secondary, #8a7b84);
+    opacity: 0.85;
+}
+
+/* Khi nhấn vào ô nhập */
+.customer-create-field input:focus,
+.customer-create-field textarea:focus {
+    border-color: #dc6c99;
+    box-shadow: 0 0 0 3px rgba(220, 108, 153, 0.15);
+}
+
+/* Nút Quay lại và Hủy */
+.customer-create-back,
+.customer-create-cancel {
+    background: var(--surface, #ffffff);
+    border-color: var(--border-color, #eadce2);
+    color: var(--text-primary, #51414a);
+}
+
+/* Thông báo xác minh email */
+.customer-create-notice {
+    background: rgba(216, 92, 141, 0.09);
+    border-color: rgba(216, 92, 141, 0.25);
+}
+
+.customer-create-notice strong {
+    color: #df77a2;
+}
+
+.customer-create-notice p {
+    color: var(--text-secondary, #806c77);
+}
+
+/* Giữ màu hồng thương hiệu */
+.customer-create-submit {
+    background: #d85c8d;
+    color: #ffffff;
+}
+
+.customer-create-submit:hover {
+    background: #c44778;
+}

@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from flask import (
     flash,
@@ -9,12 +9,15 @@ from flask import (
     url_for,
     session,
     current_app,
+    abort,
 )
 from flask_login import (
     current_user,
     login_user,
     logout_user,
 )
+
+from sqlalchemy import select
 from werkzeug.security import (
     check_password_hash,
     generate_password_hash,
@@ -42,13 +45,24 @@ from app.auth.email_service import (
     send_verification_otp,
     send_password_reset_otp,
     send_customer_activation_otp,
+    send_customer_already_active_email,
 )
+
+from app.auth.activation_service import (
+    create_activation_link,
+    hash_activation_token,
+    aware_utc,
+    utc_now,
+    consume_activation_link,
+)
+
 from app.auth import auth_bp
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models import (
     Role,
     User,
     OwnerProfile,
+    CustomerActivationLink,
 )
 from app.models.verification_token import VerificationToken
 
@@ -1494,325 +1508,504 @@ def logout():
         url_for("main.home")
     )
     
-
+    
 @auth_bp.route(
     "/customer-activation",
     methods=["GET", "POST"],
 )
+@limiter.limit(
+    "10 per minute",
+    methods=["POST"],
+)
 def customer_activation():
-    """Kích hoạt tài khoản do lễ tân tạo."""
+
 
     if current_user.is_authenticated:
-        return redirect(
-            get_default_route(current_user)
-        )
+        return redirect(get_default_route(current_user))
 
     errors = {}
 
-    form_data = {
-        "email": request.args.get(
-            "email", ""
-        ).strip().lower(),
-    }
+    raw_token = request.values.get("token", "").strip()
 
-    if request.method == "POST":
-        validate_activation_csrf()
-        email = request.form.get(
-            "email", ""
-        ).strip().lower()
+    def invalid_link():
+        return render_template(
+            "auth/customer_activation_expired.html",
+            csrf_token=get_activation_csrf_token(),
+        ), 400
 
-        otp = request.form.get(
-            "otp", ""
-        ).strip()
+    if (
+        not raw_token
+        or len(raw_token) > 128
+        or not raw_token.isascii()
+    ):
+        return invalid_link()
 
-        password = request.form.get(
-            "password", ""
+    # Không để trang kích hoạt bị cache.
+    def activation_response(user_email):
+        response = current_app.make_response(
+            render_template(
+                "auth/customer_activation.html",
+                errors=errors,
+                form_data={"email": user_email},
+                activation_token=raw_token,
+                csrf_token=get_activation_csrf_token(),
+            )
         )
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        return response
 
-        confirm_password = request.form.get(
-            "confirmPassword", ""
-        )
+    if request.method == "GET":
+        link = CustomerActivationLink.query.filter_by(
+            tokenHash=hash_activation_token(raw_token)
+        ).first()
 
-        form_data["email"] = email
+        if (
+            link is None
+            or link.usedAt is not None
+            or aware_utc(link.expiresAt) <= utc_now()
+        ):
+            return invalid_link()
 
-        if not is_valid_email(email):
-            errors["email"] = (
-                "Vui lòng nhập email hợp lệ."
-            )
+        user = db.session.get(User, link.userID)
 
-        if len(otp) != 6 or not otp.isascii() or not otp.isdigit():
-            errors["otp"] = (
-                "Mã OTP phải gồm 6 chữ số."
-            )
+        if (
+            user is None
+            or user.status != "PENDING_VERIFICATION"
+            or not user.has_role("PET_OWNER")
+        ):
+            return invalid_link()
 
-        if len(password) < 8:
-            errors["password"] = (
-                "Mật khẩu phải có ít nhất 8 ký tự."
-            )
-
-        if password != confirm_password:
-            errors["confirmPassword"] = (
-                "Mật khẩu xác nhận không khớp."
-            )
-
-        if not errors:
-            user = User.query.filter(
-                db.func.lower(User.email) == email
-            ).first()
-
-            if (
-                user is None
-                or user.status != "PENDING_VERIFICATION"
-                or not user.has_role("PET_OWNER")
-            ):
-                errors["general"] = (
-                    "Thông tin kích hoạt không hợp lệ "
-                    "hoặc tài khoản đã được kích hoạt."
-                )
-
-            else:
-                try:
-                    valid, reason, token = (
-                        verify_customer_activation_otp(
-                            user.userID,
-                            otp,
-                        )
-                    )
-
-                    if not valid:
-                        db.session.commit()
-
-                        if reason == "EXPIRED":
-                            errors["otp"] = (
-                                "OTP đã hết hạn. "
-                                "Vui lòng yêu cầu mã mới."
-                            )
-
-                        elif reason == "TOO_MANY_ATTEMPTS":
-                            errors["otp"] = (
-                                "Bạn đã nhập sai OTP 5 lần. "
-                                "Vui lòng yêu cầu mã mới."
-                            )
-
-                        else:
-                            errors["otp"] = (
-                                "OTP không chính xác "
-                                "hoặc không còn hiệu lực."
-                            )
-
-                    else:
-                        user.passwordHash = (
-                            generate_password_hash(password)
-                        )
-
-                        user.status = "ACTIVE"
-
-                        mark_token_used(token)
-
-                        db.session.commit()
-
-                        flash(
-                            "Kích hoạt tài khoản thành công. "
-                            "Bạn có thể đăng nhập.",
-                            "success",
-                        )
-
-                        return redirect(
-                            url_for("auth.login")
-                        )
-
-                except Exception:
-                    db.session.rollback()
-
-                    current_app.logger.exception(
-                        "Lỗi xác minh OTP kích hoạt."
-                    )
-
-                    errors["general"] = (
-                        "Không thể xử lý yêu cầu kích hoạt. "
-                        "Vui lòng thử lại."
-                    )
-
-                if not valid:
-                    if reason == "EXPIRED":
-                        errors["otp"] = (
-                            "OTP đã hết hạn. "
-                            "Vui lòng yêu cầu mã mới."
-                        )
-                    else:
-                        errors["otp"] = (
-                            "Mã OTP không chính xác "
-                            "hoặc không còn hiệu lực."
-                        )
-
-                else:
-                    token = get_active_token(
-                        user.userID,
-                        CUSTOMER_ACTIVATION,
-                    )
-
-                    if token is None:
-                        errors["otp"] = (
-                            "OTP không còn hiệu lực."
-                        )
-
-                    else:
-                        try:
-                            user.passwordHash = (
-                                generate_password_hash(
-                                    password
-                                )
-                            )
-
-                            user.status = "ACTIVE"
-
-                            mark_token_used(token)
-
-                            db.session.commit()
-
-                        except Exception:
-                            db.session.rollback()
-
-                            current_app.logger.exception(
-                                "Không thể kích hoạt khách hàng."
-                            )
-
-                            errors["general"] = (
-                                "Không thể kích hoạt tài khoản. "
-                                "Vui lòng thử lại."
-                            )
-
-                        else:
-                            flash(
-                                "Tài khoản đã được kích hoạt. "
-                                "Bạn có thể đăng nhập.",
-                                "success",
-                            )
-
-                            return redirect(
-                                url_for("auth.login")
-                            )
-
-    return render_template(
-        "auth/customer_activation.html",
-        errors=errors,
-        form_data=form_data,
-        csrf_token=get_activation_csrf_token(),
-    )
-
-
-
-@auth_bp.post("/customer-activation/resend")
-def resend_customer_activation():
-    """Gửi lại OTP kích hoạt khách hàng."""
+        return activation_response(user.email)
 
     validate_activation_csrf()
 
-    email = (
-        request.form.get("email", "")
-        .strip()
-        .lower()
+    otp = request.form.get("otp", "").strip()
+    password = request.form.get("password", "")
+    confirm_password = request.form.get(
+        "confirmPassword", ""
     )
 
-    redirect_url = url_for(
-        "auth.customer_activation",
-        email=email,
-    )
-
-    generic_message = (
-        "Nếu tài khoản đủ điều kiện kích hoạt, "
-        "VetMate sẽ gửi mã OTP đến email đã đăng ký."
-    )
-
-    if not is_valid_email(email):
-        flash(generic_message, "success")
-        return redirect(redirect_url)
-
-    user = User.query.filter(
-        db.func.lower(User.email) == email
-    ).first()
-
-    if (
-        user is None
-        or user.status != "PENDING_VERIFICATION"
-        or not user.has_role("PET_OWNER")
+    if not (
+        len(otp) == 6
+        and otp.isascii()
+        and otp.isdigit()
     ):
-        flash(generic_message, "success")
-        return redirect(redirect_url)
+        errors["otp"] = "Mã OTP phải gồm 6 chữ số."
 
-    # Chỉ tài khoản có lịch sử OTP kích hoạt
-    # mới được phép gửi lại qua chức năng này.
-    previous_token = (
-        VerificationToken.query
-        .filter_by(
-            userID=user.userID,
-            purpose=CUSTOMER_ACTIVATION,
+    if not 8 <= len(password) <= 128:
+        errors["password"] = (
+            "Mật khẩu phải từ 8 đến 128 ký tự."
         )
-        .first()
-    )
 
-    if previous_token is None:
-        flash(generic_message, "success")
-        return redirect(redirect_url)
-
-    allowed, reason = can_resend_customer_activation(
-        user.userID
-    )
-
-    if not allowed:
-        flash(generic_message, "success")
-        return redirect(redirect_url)
+    if password != confirm_password:
+        errors["confirmPassword"] = (
+            "Mật khẩu xác nhận không khớp."
+        )
 
     try:
-        otp, _ = create_otp_token(
-            user.userID,
-            CUSTOMER_ACTIVATION,
+        # Khóa liên kết để chống kích hoạt đồng thời.
+        link = db.session.execute(
+            select(CustomerActivationLink)
+            .where(
+                CustomerActivationLink.tokenHash
+                == hash_activation_token(raw_token)
+            )
+            .with_for_update()
+        ).scalars().first()
+
+        if (
+            link is None
+            or link.usedAt is not None
+            or aware_utc(link.expiresAt) <= utc_now()
+        ):
+            db.session.rollback()
+            return invalid_link()
+
+        user = db.session.execute(
+            select(User)
+            .where(User.userID == link.userID)
+            .with_for_update()
+        ).scalars().first()
+
+        if (
+            user is None
+            or user.status != "PENDING_VERIFICATION"
+            or not user.has_role("PET_OWNER")
+        ):
+            db.session.rollback()
+            return invalid_link()
+
+        if errors:
+            db.session.rollback()
+            return activation_response(user.email)
+
+        valid, reason, otp_token = (
+            verify_customer_activation_otp(
+                user.userID,
+                otp,
+            )
         )
+
+        if not valid:
+            # Commit để lưu số lần nhập sai OTP.
+            db.session.commit()
+
+            if reason == "EXPIRED":
+                errors["otp"] = (
+                    "OTP đã hết hạn. "
+                    "Vui lòng yêu cầu mã mới."
+                )
+            elif reason == "TOO_MANY_ATTEMPTS":
+                errors["otp"] = (
+                    "OTP đã bị khóa sau 5 lần nhập sai."
+                )
+            else:
+                errors["otp"] = (
+                    "OTP không chính xác hoặc "
+                    "không còn hiệu lực."
+                )
+
+            return activation_response(user.email)
+
+        user.passwordHash = generate_password_hash(
+            password
+        )
+        user.status = "ACTIVE"
+
+        mark_token_used(otp_token)
+        consume_activation_link(link)
 
         db.session.commit()
 
     except Exception:
         db.session.rollback()
-
         current_app.logger.exception(
-            "Không thể tạo OTP kích hoạt mới."
+            "Lỗi kích hoạt tài khoản khách hàng."
         )
 
+        errors["general"] = (
+            "Không thể kích hoạt tài khoản. "
+            "Vui lòng thử lại."
+        )
+
+        return activation_response("")
+
+    flash(
+        "Kích hoạt tài khoản thành công. "
+        "Bạn có thể đăng nhập.",
+        "success",
+    )
+
+    return redirect(url_for("auth.login"))
+
+
+
+@auth_bp.post("/customer-activation/resend")
+@limiter.limit("5 per minute")
+def resend_customer_activation():
+    validate_activation_csrf()
+
+    raw_token = request.form.get(
+        "token", ""
+    ).strip()
+
+    generic_message = (
+        "Nếu yêu cầu hợp lệ và chưa vượt giới hạn, "
+        "VetMate sẽ gửi mã OTP mới."
+    )
+
+    if (
+        not raw_token
+        or len(raw_token) > 128
+        or not raw_token.isascii()
+    ):
+        flash(generic_message, "success")
+        return redirect(
+            url_for("auth.customer_activation_expired")
+        )
+
+    try:
+        link = db.session.execute(
+            select(CustomerActivationLink)
+            .where(
+                CustomerActivationLink.tokenHash
+                == hash_activation_token(raw_token)
+            )
+            .with_for_update()
+        ).scalars().first()
+
+        if (
+            link is None
+            or link.usedAt is not None
+            or aware_utc(link.expiresAt) <= utc_now()
+        ):
+            db.session.rollback()
+            return redirect(
+                url_for("auth.customer_activation_expired")
+            )
+
+        user = db.session.execute(
+            select(User)
+            .where(User.userID == link.userID)
+            .with_for_update()
+        ).scalars().first()
+
+        if (
+            user is None
+            or user.status != "PENDING_VERIFICATION"
+            or not user.has_role("PET_OWNER")
+        ):
+            db.session.rollback()
+            return redirect(
+                url_for("auth.customer_activation_expired")
+            )
+
+        allowed, reason = can_resend_customer_activation(
+            user.userID
+        )
+
+        if not allowed:
+            db.session.rollback()
+            flash(generic_message, "success")
+            return redirect(
+                url_for(
+                    "auth.customer_activation",
+                    token=raw_token,
+                )
+            )
+
+        otp, _ = create_otp_token(
+            user.userID,
+            CUSTOMER_ACTIVATION,
+        )
+
+        recipient_email = user.email
+        full_name = user.fullName
+
+        db.session.commit()
+
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception(
+            "Lỗi tạo OTP kích hoạt mới."
+        )
         flash(
-            "Chưa thể xử lý yêu cầu lúc này.",
+            "Không thể xử lý yêu cầu lúc này.",
             "error",
         )
-
-        return redirect(redirect_url)
+        return redirect(
+            url_for("auth.customer_activation_expired")
+        )
 
     activation_url = url_for(
         "auth.customer_activation",
-        email=user.email,
+        token=raw_token,
         _external=True,
     )
 
     try:
         send_customer_activation_otp(
-            recipient_email=user.email,
-            full_name=user.fullName,
+            recipient_email=recipient_email,
+            full_name=full_name,
             otp=otp,
             activation_url=activation_url,
         )
-
     except Exception:
         current_app.logger.exception(
-            "Không thể gửi lại OTP kích hoạt."
+            "Lỗi gửi lại OTP kích hoạt."
         )
-
-        flash(
-            "Chưa thể gửi email kích hoạt. "
-            "Vui lòng thử lại sau.",
-            "error",
-        )
-
-        return redirect(redirect_url)
 
     flash(generic_message, "success")
 
-    return redirect(redirect_url)
+    return redirect(
+        url_for(
+            "auth.customer_activation",
+            token=raw_token,
+        )
+    )
+
+@auth_bp.get("/customer-activation/expired")
+def customer_activation_expired():
+    response = current_app.make_response(
+        render_template(
+            "auth/customer_activation_expired.html",
+            csrf_token=get_activation_csrf_token(),
+        )
+    )
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
+
+
+
+@auth_bp.post("/customer-activation/new-link")
+@limiter.limit("3 per hour")
+def request_new_activation_link():
+    validate_activation_csrf()
+
+    email = request.form.get(
+        "email", ""
+    ).strip().lower()[:255]
+
+    generic_message = (
+        "Yêu cầu đã được tiếp nhận. "
+        "Nếu tài khoản đang chờ kích hoạt và đủ điều kiện, "
+        "VetMate sẽ gửi liên kết mới. "
+        "Nếu đã kích hoạt, vui lòng kiểm tra email "
+        "hoặc đăng nhập."
+    )
+
+    email_action = None
+    email_data = None
+
+    try:
+        if is_valid_email(email):
+            user = db.session.execute(
+                select(User)
+                .where(db.func.lower(User.email) == email)
+                .with_for_update()
+            ).scalars().first()
+
+            if (
+                user is not None
+                and user.has_role("PET_OWNER")
+            ):
+                if user.status == "ACTIVE":
+                    # Chỉ gửi email hướng dẫn đăng nhập.
+                    # Không tạo token hay OTP.
+                    email_action = "ALREADY_ACTIVE"
+                    email_data = {
+                        "recipient_email": user.email,
+                        "full_name": user.fullName,
+                    }
+
+                elif user.status == "PENDING_VERIFICATION":
+                    previous_otp = (
+                        VerificationToken.query
+                        .filter_by(
+                            userID=user.userID,
+                            purpose=CUSTOMER_ACTIVATION,
+                        )
+                        .first()
+                    )
+
+                    if previous_otp is not None:
+                        now = utc_now()
+
+                        previous_link = (
+                            CustomerActivationLink.query
+                            .filter_by(userID=user.userID)
+                            .order_by(
+                                CustomerActivationLink.createdAt.desc(),
+                                CustomerActivationLink.activationLinkID.desc(),
+                            )
+                            .first()
+                        )
+
+                        can_issue = True
+
+                        if previous_link is not None:
+                            last_created = aware_utc(
+                                previous_link.createdAt
+                            )
+
+                            if (
+                                now - last_created
+                                < timedelta(seconds=30)
+                            ):
+                                can_issue = False
+
+                        window_start = (
+                            now - timedelta(hours=24)
+                        )
+
+                        recent_count = (
+                            db.session.query(
+                                db.func.count(
+                                    CustomerActivationLink.activationLinkID
+                                )
+                            )
+                            .filter(
+                                CustomerActivationLink.userID
+                                == user.userID,
+                                CustomerActivationLink.createdAt
+                                >= window_start,
+                            )
+                            .scalar()
+                        ) or 0
+
+                        if recent_count >= 5:
+                            can_issue = False
+
+                        otp_allowed, _ = (
+                            can_resend_customer_activation(
+                                user.userID
+                            )
+                        )
+
+                        if not otp_allowed:
+                            can_issue = False
+
+                        if can_issue:
+                            raw_token, _ = (
+                                create_activation_link(
+                                    user.userID
+                                )
+                            )
+
+                            otp, _ = create_otp_token(
+                                user.userID,
+                                CUSTOMER_ACTIVATION,
+                            )
+
+                            activation_url = url_for(
+                                "auth.customer_activation",
+                                token=raw_token,
+                                _external=True,
+                            )
+
+                            email_action = "ACTIVATION"
+                            email_data = {
+                                "recipient_email": user.email,
+                                "full_name": user.fullName,
+                                "otp": otp,
+                                "activation_url": activation_url,
+                            }
+
+            db.session.commit()
+
+    except Exception:
+        db.session.rollback()
+        email_action = None
+        email_data = None
+
+        current_app.logger.exception(
+            "Lỗi yêu cầu gửi liên kết kích hoạt."
+        )
+
+    # Gửi email sau khi transaction đã kết thúc.
+    if email_action is not None:
+        try:
+            if email_action == "ALREADY_ACTIVE":
+                send_customer_already_active_email(
+                    **email_data
+                )
+
+            elif email_action == "ACTIVATION":
+                send_customer_activation_otp(
+                    **email_data
+                )
+
+        except Exception:
+            current_app.logger.exception(
+                "Không thể gửi email phản hồi kích hoạt."
+            )
+
+    flash(generic_message, "success")
+
+    return redirect(
+        url_for("auth.customer_activation_expired"),
+        code=303,
+    )
 

@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <meta name="referrer" content="no-referrer">
+
+    <title>Liên kết hết hạn | VetMate</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #fff3f8;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 440px;
+            padding: 32px;
+            background: white;
+            border-radius: 18px;
+            text-align: center;
+            box-shadow: 0 8px 30px
+                rgba(216, 83, 130, 0.1);
+        }
+
+        h1 { color: #d84c83; font-size: 24px; }
+
+        p {
+            color: #777;
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            margin: 14px 0;
+            border: 1px solid #efc9d9;
+            border-radius: 9px;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            background: #d85c8d;
+            color: white;
+            border: none;
+            border-radius: 9px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .message {
+            padding: 12px;
+            background: #fff0f5;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .login-link {
+            display: block;
+            margin-top: 20px;
+            color: #d85c8d;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .login-link:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>🐾 VetMate</h1>
+        <h2>Liên kết không còn hiệu lực</h2>
+
+        <p>
+            Liên kết kích hoạt đã hết hạn,
+            đã được sử dụng hoặc không hợp lệ.
+            Bạn có thể yêu cầu liên kết mới
+            đến email đã đăng ký.
+        </p>
+
+        {% with messages = get_flashed_messages(
+            with_categories=true
+        ) %}
+            {% for category, message in messages %}
+                <div class="message">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        <form
+            method="POST"
+            action="{{ url_for('auth.request_new_activation_link') }}"
+        >
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token }}"
+            >
+
+            <input
+                type="email"
+                name="email"
+                maxlength="255"
+                placeholder="Nhập email đã đăng ký"
+                autocomplete="email"
+                required
+            >
+
+            <button type="submit">
+                Gửi lại liên kết kích hoạt
+            </button>
+        </form>
+
+        <a
+            href="{{ url_for('auth.login') }}"
+            class="login-link"
+        >
+            Đã có tài khoản? Đăng nhập
+        </a>
+
+    </div>
+</body>
+</html>

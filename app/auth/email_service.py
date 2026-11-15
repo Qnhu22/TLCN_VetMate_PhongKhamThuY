@@ -1,3 +1,4 @@
+from flask import url_for
 from flask_mail import Message
 
 from app.extensions import mail
@@ -124,3 +125,47 @@ VetMate
     )
 
     mail.send(message)
+    
+
+def send_customer_already_active_email(
+    recipient_email,
+    full_name,
+):
+    """Thông báo tài khoản đã được kích hoạt."""
+
+    login_url = url_for(
+        "auth.login",
+        _external=True,
+    )
+
+    subject = "VetMate - Tài khoản của bạn đã được kích hoạt"
+
+    body = f"""Xin chào {full_name},
+
+VetMate nhận được yêu cầu gửi lại liên kết kích hoạt
+cho địa chỉ email này.
+
+Tài khoản VetMate của bạn đã được kích hoạt trước đó.
+Bạn không cần xác minh email hoặc tạo mật khẩu mới.
+
+Vui lòng đăng nhập tại:
+{login_url}
+
+Nếu bạn quên mật khẩu, hãy sử dụng chức năng
+"Quên mật khẩu" tại trang đăng nhập.
+
+Nếu bạn không thực hiện yêu cầu này,
+bạn có thể bỏ qua email.
+
+Trân trọng,
+VetMate
+"""
+
+    message = Message(
+        subject=subject,
+        recipients=[recipient_email],
+        body=body,
+    )
+
+    mail.send(message)
+

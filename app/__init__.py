@@ -8,6 +8,7 @@ from app.extensions import (
     db,
     login_manager,
     mail,
+    limiter,
 )
 
 load_dotenv()
@@ -33,6 +34,14 @@ def create_app() -> Flask:
     6 * 1024 * 1024
 )
     
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+    app.config["SESSION_COOKIE_SECURE"] = (
+        os.getenv("SESSION_COOKIE_SECURE", "false").lower()
+        == "true"
+    )
+    
     @app.errorhandler(RequestEntityTooLarge)
     def handle_large_upload(error):
         if request.path.startswith("/pets/"):
@@ -51,6 +60,11 @@ def create_app() -> Flask:
 
     db.init_app(app)
     login_manager.init_app(app)
+
+    # Lưu bộ đếm giới hạn yêu cầu trong RAM khi phát triển
+    app.config["RATELIMIT_STORAGE_URI"] = "memory://"
+
+    limiter.init_app(app)
     
     app.config["MAIL_SERVER"] = os.getenv(
         "MAIL_SERVER",

@@ -5,6 +5,7 @@ from app.models.role_permission import RolePermission
 from app.models.user import User
 from app.models.user_role import UserRole
 from app.models.verification_token import VerificationToken
+from app.models.customer_activation_link import CustomerActivationLink
 
 from app.models.owner_profile import OwnerProfile
 from app.models.species import Species

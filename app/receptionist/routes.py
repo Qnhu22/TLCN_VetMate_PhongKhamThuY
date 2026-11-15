@@ -9,6 +9,11 @@ from flask import (
     request,
     url_for,
 )
+
+from app.auth.activation_service import (
+    create_activation_link,
+)
+
 from flask_login import current_user
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash
@@ -317,7 +322,10 @@ def customer_create():
                     CUSTOMER_ACTIVATION,
                 )
 
-                # Lưu dữ liệu và OTP.
+                raw_token, activation_link = create_activation_link(
+                    user.userID
+                )
+
                 db.session.commit()
 
             except IntegrityError:
@@ -337,11 +345,10 @@ def customer_create():
                 )
 
             else:
-                # URL tạm thời; route kích hoạt
-                # sẽ được bổ sung ở bước tiếp theo.
+
                 activation_url = url_for(
                     "auth.customer_activation",
-                    email=user.email,
+                    token=raw_token,
                     _external=True,
                 )
 
