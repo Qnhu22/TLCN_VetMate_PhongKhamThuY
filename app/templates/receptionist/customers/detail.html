@@ -11,10 +11,24 @@ Chi tiết khách hàng | VetMate
 
     <div class="receptionist-detail-heading">
         <div>
-            <a href="{{ url_for('receptionist.customers') }}"
-               class="receptionist-back-link">
-                ← Quay lại danh sách
-            </a>
+            
+            {% set from_pet = request.args.get('from_pet', '') | int(0) %}
+
+            {% if from_pet %}
+                <a
+                    href="{{ url_for('receptionist.pet_detail', pet_id=from_pet) }}"
+                    class="receptionist-back-link"
+                >
+                    ← Quay lại hồ sơ thú cưng
+                </a>
+            {% else %}
+                <a
+                    href="{{ url_for('receptionist.customers') }}"
+                    class="receptionist-back-link"
+                >
+                    ← Quay lại danh sách khách hàng
+                </a>
+            {% endif %}
 
             <h1>Hồ sơ khách hàng</h1>
             <p>
@@ -111,12 +125,24 @@ Chi tiết khách hàng | VetMate
     <!-- PETS -->
     <section class="receptionist-panel receptionist-detail-panel">
 
-        <div class="receptionist-panel-header">
-            <h2>Danh sách thú cưng</h2>
-            <p>
-                {{ pets | length }} hồ sơ thú cưng
-                thuộc khách hàng này.
-            </p>
+        <div class="receptionist-pets-section-header">
+
+            <div class="receptionist-pets-section-info">
+                <h2>Danh sách thú cưng</h2>
+
+                <p>
+                    {{ pets | length }} hồ sơ thú cưng
+                    thuộc khách hàng này.
+                </p>
+            </div>
+
+            <a
+                href="{{ url_for('receptionist.customer_pet_create', owner_id=owner.ownerID) }}"
+                class="receptionist-pet-create-submit"
+            >
+                + Thêm thú cưng
+            </a>
+
         </div>
 
         {% if pets %}
@@ -136,7 +162,12 @@ Chi tiết khách hàng | VetMate
                     {% for pet in pets %}
                     <tr>
                         <td>
-                            <strong>{{ pet.name }}</strong>
+                            <a
+                                href="{{ url_for('receptionist.pet_detail', pet_id=pet.petID) }}"
+                                class="receptionist-pet-view-link"
+                            >
+                                <strong>{{ pet.name }}</strong>
+                            </a>
                         </td>
 
                         <td>{{ pet.petCode }}</td>

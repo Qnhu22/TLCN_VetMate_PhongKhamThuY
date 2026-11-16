@@ -1,0 +1,188 @@
+
+{% extends "layouts/receptionist.html" %}
+
+{% block title %}Chi tiết thú cưng | VetMate{% endblock %}
+
+{% block content %}
+<div class="receptionist-customers receptionist-pets-page">
+
+    <div class="receptionist-detail-heading receptionist-pets-heading">
+        <div>
+            <a
+                href="{{ url_for('receptionist.pets') }}"
+                class="receptionist-back-link"
+            >
+                ← Quay lại danh sách thú cưng
+            </a>
+
+            <h1>Hồ sơ thú cưng</h1>
+            <p>Thông tin thú cưng và chủ nuôi tại VetMate.</p>
+        </div>
+
+        <a
+            href="{{ url_for('receptionist.pet_edit', pet_id=pet.petID) }}"
+            class="receptionist-pet-create-submit"
+        >
+            ✎ Chỉnh sửa hồ sơ
+        </a>
+    </div>
+    <section class="receptionist-panel receptionist-detail-panel">
+
+        <div class="receptionist-pet-hero">
+            {% if pet.photoUrl %}
+                <img
+                    src="{{ url_for('static', filename=pet.photoUrl) }}"
+                    alt="Ảnh {{ pet.name }}"
+                    class="receptionist-pet-photo-large"
+                >
+            {% else %}
+                <div class="receptionist-pet-photo-large receptionist-pet-photo-empty">
+                    🐾
+                </div>
+            {% endif %}
+
+            <div>
+                <h2>{{ pet.name }}</h2>
+                <p>Mã thú cưng: {{ pet.petCode }}</p>
+
+                {% if pet.status == "ACTIVE" %}
+                    <span class="receptionist-status is-active">
+                        Hoạt động
+                    </span>
+                {% else %}
+                    <span class="receptionist-status">
+                        {{ "Ngừng hoạt động" if pet.status == "INACTIVE" else pet.status }}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <h3 class="receptionist-pet-section-heading">
+            Thông tin cơ bản
+        </h3>
+
+        <div class="receptionist-detail-info-grid">
+            <div class="receptionist-detail-field">
+                <span>Loài</span>
+                <strong>
+                    {{ pet.species.name if pet.species else "Chưa xác định" }}
+                </strong>
+            </div>
+
+            <div class="receptionist-detail-field">
+                <span>Giống</span>
+                <strong>
+                    {{ pet.breed.name if pet.breed else "Chưa cập nhật" }}
+                </strong>
+            </div>
+
+            <div class="receptionist-detail-field">
+                <span>Giới tính</span>
+                <strong>
+                    {% if pet.sex == "MALE" %}
+                        Đực
+                    {% elif pet.sex == "FEMALE" %}
+                        Cái
+                    {% else %}
+                        Chưa xác định
+                    {% endif %}
+                </strong>
+            </div>
+
+            <div class="receptionist-detail-field">
+                <span>Ngày sinh</span>
+                <strong>
+                    {{ pet.dateOfBirth.strftime("%d/%m/%Y") if pet.dateOfBirth else "Chưa cập nhật" }}
+                </strong>
+            </div>
+
+            <div class="receptionist-detail-field">
+                <span>Màu lông</span>
+                <strong>{{ pet.color or "Chưa cập nhật" }}</strong>
+            </div>
+
+            <div class="receptionist-detail-field">
+                <span>Triệt sản</span>
+                <strong>
+                    {% if pet.sterilized is none %}
+                        Chưa xác định
+                    {% elif pet.sterilized %}
+                        Đã triệt sản
+                    {% else %}
+                        Chưa triệt sản
+                    {% endif %}
+                </strong>
+            </div>
+
+            <div class="receptionist-detail-field">
+                <span>Mã microchip</span>
+                <strong>{{ pet.microchipNumber or "Chưa cập nhật" }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="receptionist-panel receptionist-detail-panel">
+        <div class="receptionist-panel-header">
+            <h2>Thông tin sức khỏe</h2>
+        </div>
+
+        <div class="receptionist-pet-notes">
+            <div>
+                <strong>Dị ứng</strong>
+                <p>{{ pet.allergies or "Chưa ghi nhận" }}</p>
+            </div>
+
+            <div>
+                <strong>Bệnh mãn tính</strong>
+                <p>{{ pet.chronicConditions or "Chưa ghi nhận" }}</p>
+            </div>
+
+            <div>
+                <strong>Ghi chú</strong>
+                <p>{{ pet.note or "Chưa có ghi chú" }}</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="receptionist-panel receptionist-detail-panel">
+        <div class="receptionist-panel-header">
+            <h2>Thông tin chủ nuôi</h2>
+            
+            <a
+                href="{{ url_for(
+                    'receptionist.customer_detail',
+                    owner_id=owner.ownerID,
+                    from_pet=pet.petID
+                ) }}"
+                class="receptionist-pet-owner-link"
+            >
+                Xem hồ sơ chủ nuôi →
+            </a>
+        </div>
+
+        <div class="receptionist-detail-info-grid">
+            <div class="receptionist-detail-field">
+                <span>Họ và tên</span>
+                <strong>{{ customer.fullName }}</strong>
+            </div>
+
+            <div class="receptionist-detail-field">
+                <span>Email</span>
+                <strong>{{ customer.email }}</strong>
+            </div>
+
+            <div class="receptionist-detail-field">
+                <span>Số điện thoại</span>
+                <strong>{{ customer.phone or "Chưa cập nhật" }}</strong>
+            </div>
+
+            <div class="receptionist-detail-field">
+                <span>Địa chỉ</span>
+                <strong>{{ owner.address or "Chưa cập nhật" }}</strong>
+            </div>
+        </div>
+
+    </section>
+
+</div>
+{% endblock %}

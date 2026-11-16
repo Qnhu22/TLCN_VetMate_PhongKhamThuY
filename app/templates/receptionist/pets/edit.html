@@ -1,0 +1,333 @@
+
+{% extends "layouts/receptionist.html" %}
+
+{% block title %}Chỉnh sửa thú cưng | VetMate{% endblock %}
+
+{% block content %}
+<div class="receptionist-customers receptionist-pets-page">
+
+    <div class="receptionist-detail-heading">
+        <div>
+            <a
+                href="{{ url_for('receptionist.pet_detail', pet_id=pet.petID) }}"
+                class="receptionist-back-link"
+            >
+                ← Quay lại hồ sơ thú cưng
+            </a>
+
+            <h1>Chỉnh sửa hồ sơ thú cưng</h1>
+            <p>
+                Cập nhật thông tin cho {{ pet.name }} —
+                {{ pet.petCode }}.
+            </p>
+        </div>
+    </div>
+
+    <section class="receptionist-panel receptionist-detail-panel">
+
+        <div class="receptionist-panel-header">
+            <h2>Thông tin thú cưng</h2>
+            <p>
+                Chủ nuôi: {{ customer.fullName }} —
+                {{ customer.email }}
+            </p>
+        </div>
+
+        <form
+            method="POST"
+            action="{{ url_for('receptionist.pet_edit', pet_id=pet.petID) }}"
+            enctype="multipart/form-data"
+            class="receptionist-pet-create-form"
+        >
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token }}"
+            >
+
+            <div class="receptionist-pet-create-grid">
+
+                <div class="receptionist-pet-create-field">
+                    <label for="name">Tên thú cưng *</label>
+                    <input
+                        id="name"
+                        name="name"
+                        type="text"
+                        maxlength="150"
+                        value="{{ form_data.get('name', '') }}"
+                        required
+                    >
+                </div>
+
+                <div class="receptionist-pet-create-field">
+                    <label for="speciesID">Loài *</label>
+                    <select id="speciesID" name="speciesID" required>
+                        <option value="">-- Chọn loài --</option>
+                        {% for species in species_list %}
+                        <option
+                            value="{{ species.speciesID }}"
+                            {% if form_data.get('speciesID')|string == species.speciesID|string %}selected{% endif %}
+                        >
+                            {{ species.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="receptionist-pet-create-field">
+                    <label for="breedID">Giống</label>
+                    <select id="breedID" name="breedID">
+                        <option value="">-- Chọn giống --</option>
+                        {% for breed in breeds %}
+                        <option
+                            value="{{ breed.breedID }}"
+                            data-species="{{ breed.speciesID }}"
+                            {% if form_data.get('breedID')|string == breed.breedID|string %}selected{% endif %}
+                        >
+                            {{ breed.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="receptionist-pet-create-field">
+                    <label for="sex">Giới tính</label>
+                    {% set selected_sex = form_data.get('sex', 'UNKNOWN') %}
+                    <select id="sex" name="sex">
+                        <option value="UNKNOWN" {% if selected_sex == 'UNKNOWN' %}selected{% endif %}>Chưa xác định</option>
+                        <option value="MALE" {% if selected_sex == 'MALE' %}selected{% endif %}>Đực</option>
+                        <option value="FEMALE" {% if selected_sex == 'FEMALE' %}selected{% endif %}>Cái</option>
+                    </select>
+                </div>
+
+                <div class="receptionist-pet-create-field">
+                    <label for="dateOfBirth">Ngày sinh</label>
+                    <input
+                        id="dateOfBirth"
+                        name="dateOfBirth"
+                        type="date"
+                        value="{{ form_data.get('dateOfBirth', '') }}"
+                    >
+                </div>
+
+                <div class="receptionist-pet-create-field">
+                    <label for="color">Màu lông</label>
+                    <input
+                        id="color"
+                        name="color"
+                        type="text"
+                        maxlength="100"
+                        value="{{ form_data.get('color', '') }}"
+                    >
+                </div>
+
+                <div class="receptionist-pet-create-field">
+                    <label for="sterilized">Triệt sản</label>
+                    {% set selected_sterilized = form_data.get('sterilized', '') %}
+                    <select id="sterilized" name="sterilized">
+                        <option value="" {% if selected_sterilized == '' %}selected{% endif %}>Chưa xác định</option>
+                        <option value="true" {% if selected_sterilized == 'true' %}selected{% endif %}>Đã triệt sản</option>
+                        <option value="false" {% if selected_sterilized == 'false' %}selected{% endif %}>Chưa triệt sản</option>
+                    </select>
+                </div>
+
+                <div class="receptionist-pet-create-field">
+                    <label for="microchipNumber">Mã microchip</label>
+                    <input
+                        id="microchipNumber"
+                        name="microchipNumber"
+                        type="text"
+                        maxlength="100"
+                        value="{{ form_data.get('microchipNumber', '') }}"
+                    >
+                </div>
+
+                <div class="receptionist-pet-create-field receptionist-pet-create-full">
+                    <label for="photo">Ảnh thú cưng</label>
+
+                    <div class="receptionist-pet-upload">
+                        <div class="receptionist-pet-preview">
+                            <img
+                                id="petPhotoPreview"
+                                {% if pet.photoUrl %}
+                                src="{{ url_for('static', filename=pet.photoUrl) }}"
+                                {% else %}
+                                hidden
+                                {% endif %}
+                                alt="Ảnh thú cưng"
+                            >
+
+                            <span
+                                id="petPhotoPlaceholder"
+                                {% if pet.photoUrl %}hidden{% endif %}
+                            >🐾</span>
+                        </div>
+
+                        <div class="receptionist-pet-upload-controls">
+                            <input
+                                id="photo"
+                                name="photo"
+                                type="file"
+                                accept=".jpg,.jpeg,.png,.webp"
+                            >
+                            <small>
+                                JPG, PNG hoặc WebP, tối đa 5 MB.
+                                Không chọn ảnh mới sẽ giữ ảnh cũ.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="receptionist-pet-create-field receptionist-pet-create-full">
+                    <label for="allergies">Dị ứng</label>
+                    <textarea
+                        id="allergies"
+                        name="allergies"
+                        rows="3"
+                        maxlength="2000"
+                    >{{ form_data.get('allergies', '') }}</textarea>
+                </div>
+
+                <div class="receptionist-pet-create-field receptionist-pet-create-full">
+                    <label for="chronicConditions">Bệnh mãn tính</label>
+                    <textarea
+                        id="chronicConditions"
+                        name="chronicConditions"
+                        rows="3"
+                        maxlength="2000"
+                    >{{ form_data.get('chronicConditions', '') }}</textarea>
+                </div>
+
+                <div class="receptionist-pet-create-field receptionist-pet-create-full">
+                    <label for="note">Ghi chú</label>
+                    <textarea
+                        id="note"
+                        name="note"
+                        rows="3"
+                        maxlength="2000"
+                    >{{ form_data.get('note', '') }}</textarea>
+                </div>
+
+            </div>
+
+            <div class="receptionist-pet-create-actions">
+                <a
+                    href="{{ url_for('receptionist.pet_detail', pet_id=pet.petID) }}"
+                    class="receptionist-pet-create-cancel"
+                >
+                    Hủy
+                </a>
+
+                <button
+                    type="submit"
+                    class="receptionist-pet-create-submit"
+                >
+                    Lưu thay đổi
+                </button>
+            </div>
+        </form>
+    </section>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const speciesSelect = document.getElementById("speciesID");
+    const breedSelect = document.getElementById("breedID");
+    const breedOptions = Array.from(breedSelect.options);
+
+    function updateBreeds() {
+        const selectedSpecies = speciesSelect.value;
+
+        breedOptions.forEach(function (option) {
+            if (!option.value) return;
+
+            const matches =
+                option.dataset.species === selectedSpecies;
+
+            option.hidden = !matches;
+            option.disabled = !matches;
+        });
+
+        const selectedOption = breedSelect.selectedOptions[0];
+
+        if (
+            selectedOption &&
+            selectedOption.value &&
+            selectedOption.disabled
+        ) {
+            breedSelect.value = "";
+        }
+    }
+
+    speciesSelect.addEventListener("change", updateBreeds);
+    updateBreeds();
+
+    const photoInput = document.getElementById("photo");
+    const photoPreview = document.getElementById("petPhotoPreview");
+    const photoPlaceholder = document.getElementById("petPhotoPlaceholder");
+
+    const originalSrc = photoPreview.getAttribute("src");
+    let previewUrl = null;
+
+    function resetPreview() {
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            previewUrl = null;
+        }
+
+        if (originalSrc) {
+            photoPreview.src = originalSrc;
+            photoPreview.hidden = false;
+            photoPlaceholder.hidden = true;
+        } else {
+            photoPreview.removeAttribute("src");
+            photoPreview.hidden = true;
+            photoPlaceholder.hidden = false;
+        }
+    }
+
+    photoInput.addEventListener("change", function () {
+        resetPreview();
+
+        const file = this.files[0];
+        if (!file) return;
+
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        ];
+
+        if (
+            !allowedTypes.includes(file.type) ||
+            file.size > 5 * 1024 * 1024
+        ) {
+            alert("Chỉ chấp nhận ảnh JPG, PNG hoặc WebP tối đa 5 MB.");
+            this.value = "";
+            return;
+        }
+
+        previewUrl = URL.createObjectURL(file);
+
+        photoPreview.onload = function () {
+            photoPreview.hidden = false;
+            photoPlaceholder.hidden = true;
+        };
+
+        photoPreview.onerror = function () {
+            photoInput.value = "";
+            resetPreview();
+            alert("Không thể xem trước ảnh đã chọn.");
+        };
+
+        photoPreview.src = previewUrl;
+    });
+
+    window.addEventListener("pagehide", function () {
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+        }
+    });
+});
+</script>
+{% endblock %}

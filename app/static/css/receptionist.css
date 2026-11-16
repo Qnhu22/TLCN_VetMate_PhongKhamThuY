@@ -907,3 +907,515 @@
 .customer-create-submit:hover {
     background: #c44778;
 }
+
+
+/* ==========================================
+   RECEPTIONIST - PET MANAGEMENT
+   ========================================== */
+
+.receptionist-pets-page {
+    width: 100%;
+}
+
+.receptionist-pet-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 14px;
+    margin: 24px 0;
+}
+
+.receptionist-pet-search {
+    flex: 2 1 260px;
+}
+
+.receptionist-pet-status-filter {
+    flex: 1 1 170px;
+}
+
+.receptionist-pet-search label,
+.receptionist-pet-status-filter label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-primary, #49333e);
+}
+
+.receptionist-pet-search input,
+.receptionist-pet-status-filter select {
+    width: 100%;
+    min-height: 44px;
+    padding: 11px 13px;
+    border: 1px solid var(--border-color, #ead9e1);
+    border-radius: 10px;
+    background: var(--surface, #fff);
+    color: var(--text-primary, #49333e);
+    font: inherit;
+}
+
+.receptionist-pet-search input:focus,
+.receptionist-pet-status-filter select:focus {
+    outline: none;
+    border-color: #dc6c99;
+    box-shadow: 0 0 0 3px rgba(220, 108, 153, .14);
+}
+
+.receptionist-pet-filter-btn,
+.receptionist-pet-reset-btn {
+    min-height: 44px;
+    padding: 11px 18px;
+    border-radius: 10px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.receptionist-pet-filter-btn {
+    background: #d85c8d;
+    color: #fff;
+    border: 1px solid #d85c8d;
+}
+
+.receptionist-pet-filter-btn:hover {
+    background: #c44778;
+}
+
+.receptionist-pet-reset-btn {
+    background: var(--surface, #fff);
+    color: var(--text-primary, #49333e);
+    border: 1px solid var(--border-color, #ead9e1);
+}
+
+.receptionist-pet-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.receptionist-pet-avatar,
+.receptionist-pet-avatar-placeholder {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.receptionist-pet-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(216, 92, 141, .12);
+    font-size: 23px;
+}
+
+.receptionist-pet-muted {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--text-secondary, #8a7b84);
+    overflow-wrap: anywhere;
+}
+
+.receptionist-pet-view-link,
+.receptionist-pet-owner-link {
+    color: #df6293;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.receptionist-pet-view-link:hover,
+.receptionist-pet-owner-link:hover {
+    text-decoration: underline;
+}
+
+.receptionist-pet-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 24px;
+    color: var(--text-primary, #49333e);
+}
+
+.receptionist-pet-pagination a {
+    color: #df6293;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.receptionist-pet-hero {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 28px;
+}
+
+.receptionist-pet-hero h2 {
+    margin: 0 0 8px;
+    color: var(--text-primary, #49333e);
+}
+
+.receptionist-pet-hero p {
+    color: var(--text-secondary, #8a7b84);
+}
+
+.receptionist-pet-photo-large {
+    width: 130px;
+    height: 130px;
+    border-radius: 20px;
+    object-fit: cover;
+}
+
+.receptionist-pet-photo-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(216, 92, 141, .12);
+    font-size: 50px;
+}
+
+.receptionist-pet-section-heading {
+    margin: 20px 0;
+    color: var(--text-primary, #49333e);
+}
+
+.receptionist-pet-notes {
+    display: grid;
+    gap: 16px;
+}
+
+.receptionist-pet-notes > div {
+    padding: 18px;
+    border-radius: 12px;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border-color, #ead9e1);
+}
+
+.receptionist-pet-notes strong {
+    color: var(--text-primary, #49333e);
+}
+
+.receptionist-pet-notes p {
+    color: var(--text-secondary, #8a7b84);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    line-height: 1.6;
+}
+
+.receptionist-pet-owner-link {
+    display: inline-block;
+    margin-top: 22px;
+}
+
+@media (max-width: 768px) {
+    .receptionist-pet-search,
+    .receptionist-pet-status-filter {
+        flex-basis: 100%;
+    }
+
+    .receptionist-pet-filter-btn,
+    .receptionist-pet-reset-btn {
+        flex: 1;
+    }
+
+    .receptionist-pet-photo-large {
+        width: 100px;
+        height: 100px;
+    }
+}
+
+
+/* Nút xem hồ sơ chủ nuôi nằm gần tiêu đề */
+.receptionist-pets-page
+.receptionist-panel-header
+.receptionist-pet-owner-link {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    color: #df6293;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.receptionist-pets-page
+.receptionist-panel-header
+.receptionist-pet-owner-link:hover {
+    text-decoration: underline;
+}
+
+
+/* ===== Receptionist - Create Pet ===== */
+
+.receptionist-pet-create-form {
+    margin-top: 24px;
+}
+
+.receptionist-pet-create-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.receptionist-pet-create-field {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-width: 0;
+}
+
+.receptionist-pet-create-full {
+    grid-column: 1 / -1;
+}
+
+.receptionist-pet-create-field label {
+    color: var(--text-primary, #33273a);
+    font-weight: 600;
+}
+
+.receptionist-pet-create-field input,
+.receptionist-pet-create-field select,
+.receptionist-pet-create-field textarea {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1px solid #e9c9d8;
+    border-radius: 12px;
+    background: #fff;
+    color: #33273a;
+    font: inherit;
+    box-sizing: border-box;
+}
+
+.receptionist-pet-create-field textarea {
+    resize: vertical;
+}
+
+.receptionist-pet-create-field small {
+    color: #8c7b89;
+}
+
+.receptionist-pet-create-field :is(input, select, textarea):focus {
+    outline: 2px solid #df6b9c;
+    outline-offset: 1px;
+}
+
+.receptionist-pet-create-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 14px;
+    margin-top: 30px;
+}
+
+.receptionist-pet-create-cancel,
+.receptionist-pet-create-submit {
+    padding: 13px 22px;
+    border-radius: 12px;
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.receptionist-pet-create-cancel {
+    border: 1px solid #e9c9d8;
+    color: #d94c8c;
+}
+
+.receptionist-pet-create-submit {
+    border: 0;
+    background: #d65791;
+    color: #fff;
+}
+
+/* Chế độ tối: bổ sung các selector theo theme của layout. */
+[data-theme="dark"] .receptionist-pet-create-field label {
+    color: #f4eaf0;
+}
+
+[data-theme="dark"] .receptionist-pet-create-field input,
+[data-theme="dark"] .receptionist-pet-create-field select,
+[data-theme="dark"] .receptionist-pet-create-field textarea {
+    background: #202b3e;
+    border-color: #46536a;
+    color: #f7f1f5;
+    color-scheme: dark;
+}
+
+[data-theme="dark"] .receptionist-pet-create-field small {
+    color: #c0b8c7;
+}
+
+@media (max-width: 700px) {
+    .receptionist-pet-create-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .receptionist-pet-create-actions {
+        flex-wrap: wrap;
+    }
+}
+
+/* ===== XEM TRƯỚC ẢNH THÚ CƯNG ===== */
+
+.receptionist-pet-upload {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.receptionist-pet-preview {
+    width: 130px;
+    height: 130px;
+    flex-shrink: 0;
+    border: 2px dashed #d98eae;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: rgba(218, 90, 145, 0.07);
+}
+
+.receptionist-pet-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.receptionist-pet-preview img[hidden],
+.receptionist-pet-preview span[hidden] {
+    display: none;
+}
+
+.receptionist-pet-preview span {
+    font-size: 38px;
+    opacity: 0.65;
+}
+
+.receptionist-pet-upload-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    min-width: 200px;
+}
+
+@media (max-width: 600px) {
+    .receptionist-pet-upload {
+        align-items: flex-start;
+    }
+}
+
+/* ===== NÚT THÊM THÚ CƯNG ===== */
+
+.receptionist-pets-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.receptionist-add-pet-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 13px 22px;
+    border-radius: 12px;
+
+    background: #d85b91;
+    color: #ffffff !important;
+
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+
+    white-space: nowrap;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.receptionist-add-pet-btn:hover {
+    background: #c3477c;
+    color: #ffffff !important;
+    transform: translateY(-2px);
+}
+
+.receptionist-add-pet-btn:focus-visible {
+    outline: 3px solid #f5a6c8;
+    outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+    .receptionist-pets-heading {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .receptionist-add-pet-btn {
+        width: 100%;
+    }
+}
+
+/* =========================================
+   CUSTOMER DETAIL - PET SECTION HEADER
+   ========================================= */
+
+.receptionist-pets-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.receptionist-pets-section-info {
+    min-width: 0;
+}
+
+.receptionist-pets-section-info h2 {
+    margin: 0 0 8px;
+}
+
+.receptionist-pets-section-info p {
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Nút thêm thú cưng */
+.receptionist-pets-section-header
+.receptionist-pet-create-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: auto;
+    margin: 0;
+    padding: 12px 20px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+/* Responsive cho màn hình nhỏ */
+@media (max-width: 600px) {
+    .receptionist-pets-section-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .receptionist-pets-section-header
+    .receptionist-pet-create-submit {
+        width: 100%;
+    }
+}

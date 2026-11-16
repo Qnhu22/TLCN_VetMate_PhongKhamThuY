@@ -1,0 +1,155 @@
+
+{% extends "layouts/receptionist.html" %}
+
+{% block title %}Chọn chủ nuôi | VetMate{% endblock %}
+
+{% block content %}
+<div class="receptionist-customers receptionist-pets-page">
+
+    <div class="receptionist-detail-heading">
+        <div>
+            <a
+                href="{{ url_for('receptionist.pets') }}"
+                class="receptionist-back-link"
+            >
+                ← Quay lại danh sách thú cưng
+            </a>
+
+            <h1>Chọn chủ nuôi</h1>
+            <p>
+                Tìm khách hàng để thêm thú cưng vào
+                hồ sơ của họ.
+            </p>
+        </div>
+    </div>
+
+    <section class="receptionist-panel receptionist-detail-panel">
+
+        <div class="receptionist-panel-header">
+            <h2>Danh sách khách hàng</h2>
+            <p>
+                Chọn một chủ nuôi trước khi tạo hồ sơ thú cưng.
+            </p>
+        </div>
+
+        <form
+            method="GET"
+            action="{{ url_for('receptionist.pet_create_select_owner') }}"
+            class="receptionist-pet-filters"
+        >
+            <div class="receptionist-pet-search">
+                <label for="owner-search">Tìm khách hàng</label>
+                <input
+                    id="owner-search"
+                    type="search"
+                    name="q"
+                    maxlength="100"
+                    value="{{ keyword }}"
+                    placeholder="Tên, email hoặc số điện thoại..."
+                >
+            </div>
+
+            <button
+                type="submit"
+                class="receptionist-pet-filter-btn"
+            >
+                Tìm kiếm
+            </button>
+
+            <a
+                href="{{ url_for('receptionist.pet_create_select_owner') }}"
+                class="receptionist-pet-reset-btn"
+            >
+                Xóa lọc
+            </a>
+        </form>
+
+        {% if customers %}
+        <div class="receptionist-table-wrap">
+            <table class="receptionist-customer-table">
+                <thead>
+                    <tr>
+                        <th>Chủ nuôi</th>
+                        <th>Email</th>
+                        <th>Số điện thoại</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for owner, customer in customers %}
+                    <tr>
+                        <td>
+                            <strong>{{ customer.fullName }}</strong>
+                        </td>
+
+                        <td>{{ customer.email }}</td>
+
+                        <td>
+                            {{ customer.phone or "Chưa cập nhật" }}
+                        </td>
+
+                        <td>
+                            <a
+                                href="{{ url_for(
+                                    'receptionist.customer_pet_create',
+                                    owner_id=owner.ownerID,
+                                    from_pets=1
+                                ) }}"
+                                class="receptionist-pet-view-link"
+                            >
+                                Chọn chủ nuôi →
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if pagination.pages > 1 %}
+        <nav
+            class="receptionist-pet-pagination"
+            aria-label="Phân trang chủ nuôi"
+        >
+            {% if pagination.has_prev %}
+            <a href="{{ url_for(
+                'receptionist.pet_create_select_owner',
+                page=pagination.prev_num,
+                q=keyword
+            ) }}">
+                ← Trước
+            </a>
+            {% endif %}
+
+            <span>
+                Trang {{ pagination.page }} /
+                {{ pagination.pages }}
+            </span>
+
+            {% if pagination.has_next %}
+            <a href="{{ url_for(
+                'receptionist.pet_create_select_owner',
+                page=pagination.next_num,
+                q=keyword
+            ) }}">
+                Tiếp →
+            </a>
+            {% endif %}
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="receptionist-empty-state">
+            <span>🐾</span>
+            <strong>Không tìm thấy chủ nuôi</strong>
+            <p>
+                Hãy thử tìm bằng tên, email
+                hoặc số điện thoại khác.
+            </p>
+        </div>
+        {% endif %}
+
+    </section>
+</div>
+{% endblock %}

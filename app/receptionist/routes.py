@@ -34,11 +34,25 @@ from app.receptionist.csrf import (
 
 from app.auth.decorators import role_required
 from app.extensions import db
-from app.models import OwnerProfile, Pet, User, Role
+from app.models import OwnerProfile, Pet, User, Role, Species, Breed
 from app.receptionist import receptionist_bp
 
 from sqlalchemy import func, or_
+from app.pets.validation import (
+    PetValidationError,
+    validate_pet_form,
+)
 
+from app.pets.image_utils import (
+    PetImageError,
+    save_pet_image,
+    delete_pet_image,
+)
+
+from app.pets.csrf import (
+    pet_csrf_token,
+    validate_pet_csrf,
+)
 
 
 @receptionist_bp.get("/")
@@ -390,4 +404,421 @@ def customer_create():
         errors=errors,
         form_data=form_data,
         csrf_token=get_customer_csrf_token(),
+    )
+
+
+@receptionist_bp.get("/pets")
+@role_required("RECEPTIONIST")
+def pets():
+    """Danh sách thú cưng dành cho lễ tân."""
+
+    if current_user.status != "ACTIVE":
+        abort(403)
+
+    keyword = request.args.get(
+        "q", ""
+    ).strip()[:100]
+
+    status = request.args.get(
+        "status", ""
+    ).strip().upper()
+
+    if status not in {"", "ACTIVE", "INACTIVE"}:
+        status = ""
+
+    page = request.args.get(
+        "page", 1, type=int
+    )
+
+    page = max(page or 1, 1)
+
+    query = (
+        db.session.query(Pet)
+        .join(
+            OwnerProfile,
+            Pet.ownerID == OwnerProfile.ownerID,
+        )
+        .join(
+            User,
+            OwnerProfile.userID == User.userID,
+        )
+        .filter(
+            User.roles.any(
+                Role.roleCode == "PET_OWNER"
+            )
+        )
+    )
+
+    if keyword:
+        term = f"%{keyword}%"
+
+        query = query.filter(
+            or_(
+                Pet.name.ilike(term),
+                Pet.petCode.ilike(term),
+                User.fullName.ilike(term),
+                User.email.ilike(term),
+            )
+        )
+
+    if status:
+        query = query.filter(
+            Pet.status == status
+        )
+
+    pagination = query.order_by(
+        Pet.createdAt.desc(),
+        Pet.petID.desc(),
+    ).paginate(
+        page=page,
+        per_page=10,
+        error_out=False,
+    )
+
+    return render_template(
+        "receptionist/pets/index.html",
+        pets=pagination.items,
+        pagination=pagination,
+        keyword=keyword,
+        selected_status=status,
+    )
+
+
+@receptionist_bp.get("/pets/<int:pet_id>")
+@role_required("RECEPTIONIST")
+def pet_detail(pet_id):
+    """Xem chi tiết thú cưng."""
+
+    if current_user.status != "ACTIVE":
+        abort(403)
+
+    pet = db.session.get(Pet, pet_id)
+
+    if pet is None:
+        abort(404)
+
+    if (
+        pet.owner is None
+        or pet.owner.user is None
+        or not pet.owner.user.has_role("PET_OWNER")
+    ):
+        abort(404)
+
+    return render_template(
+        "receptionist/pets/detail.html",
+        pet=pet,
+        owner=pet.owner,
+        customer=pet.owner.user,
+    )
+
+
+@receptionist_bp.get("/pets/create")
+@role_required("RECEPTIONIST")
+def pet_create_select_owner():
+    """Chọn chủ nuôi trước khi tạo hồ sơ thú cưng."""
+
+    if current_user.status != "ACTIVE":
+        abort(403)
+
+    keyword = request.args.get("q", "").strip()[:100]
+    page = max(request.args.get("page", 1, type=int) or 1, 1)
+
+    query = (
+        db.session.query(OwnerProfile, User)
+        .join(
+            User,
+            OwnerProfile.userID == User.userID,
+        )
+        .filter(
+            User.roles.any(
+                Role.roleCode == "PET_OWNER"
+            )
+        )
+    )
+
+    if keyword:
+        term = f"%{keyword}%"
+
+        query = query.filter(
+            or_(
+                User.fullName.ilike(term),
+                User.email.ilike(term),
+                User.phone.ilike(term),
+            )
+        )
+
+    pagination = query.order_by(
+        User.fullName.asc(),
+        OwnerProfile.ownerID.asc(),
+    ).paginate(
+        page=page,
+        per_page=10,
+        error_out=False,
+    )
+
+    return render_template(
+        "receptionist/pets/select_owner.html",
+        customers=pagination.items,
+        pagination=pagination,
+        keyword=keyword,
+    )
+
+
+@receptionist_bp.route(
+    "/customers/<int:owner_id>/pets/create",
+    methods=["GET", "POST"],
+)
+@role_required("RECEPTIONIST")
+def customer_pet_create(owner_id):
+    """Lễ tân thêm thú cưng cho khách hàng."""
+
+    if current_user.status != "ACTIVE":
+        abort(403)
+
+    # Chỉ cho phép tạo thú cưng cho chủ nuôi hợp lệ.
+    customer_record = (
+        db.session.query(OwnerProfile, User)
+        .join(User, OwnerProfile.userID == User.userID)
+        .filter(
+            OwnerProfile.ownerID == owner_id,
+            User.roles.any(
+                Role.roleCode == "PET_OWNER"
+            ),
+        )
+        .first()
+    )
+
+    if customer_record is None:
+        abort(404)
+
+    owner, customer = customer_record
+
+    species_list = (
+        Species.query
+        .filter_by(isActive=True)
+        .order_by(Species.name)
+        .all()
+    )
+
+    breeds = (
+        Breed.query
+        .filter_by(isActive=True)
+        .order_by(Breed.name)
+        .all()
+    )
+
+    if request.method == "POST":
+        validate_pet_csrf()
+
+        new_photo = None
+
+        try:
+            data = validate_pet_form(request.form)
+
+            photo_file = request.files.get("photo")
+
+            if photo_file and photo_file.filename:
+                new_photo = save_pet_image(photo_file)
+
+            pet = Pet(
+                ownerID=owner.ownerID,
+                **data,
+                photoUrl=new_photo,
+            )
+
+            db.session.add(pet)
+            db.session.commit()
+
+        except (PetValidationError, PetImageError) as exc:
+            db.session.rollback()
+            flash(str(exc), "error")
+
+        except IntegrityError:
+            db.session.rollback()
+            current_app.logger.exception(
+                "Lỗi ràng buộc khi thêm thú cưng."
+            )
+            flash(
+                "Dữ liệu thú cưng bị trùng hoặc không hợp lệ.",
+                "error",
+            )
+
+        except Exception:
+            db.session.rollback()
+            current_app.logger.exception(
+                "Không thể thêm thú cưng cho khách hàng."
+            )
+            flash(
+                "Không thể thêm thú cưng. Vui lòng thử lại.",
+                "error",
+            )
+
+        else:
+            flash(
+                "Đã thêm thú cưng cho khách hàng thành công!",
+                "success",
+            )
+
+            return redirect(
+                url_for(
+                    "receptionist.pet_detail",
+                    pet_id=pet.petID,
+                )
+            )
+
+        if new_photo:
+            delete_pet_image(new_photo)
+
+    return render_template(
+        "receptionist/pets/create.html",
+        owner=owner,
+        customer=customer,
+        species_list=species_list,
+        breeds=breeds,
+        form_data=(
+            request.form
+            if request.method == "POST"
+            else {}
+        ),
+        csrf_token=pet_csrf_token(),
+    )
+
+
+@receptionist_bp.route(
+    "/pets/<int:pet_id>/edit",
+    methods=["GET", "POST"],
+)
+@role_required("RECEPTIONIST")
+def pet_edit(pet_id):
+    """Chỉnh sửa hồ sơ thú cưng dành cho lễ tân."""
+
+    if current_user.status != "ACTIVE":
+        abort(403)
+
+    pet = db.session.get(Pet, pet_id)
+
+    if (
+        pet is None
+        or pet.owner is None
+        or pet.owner.user is None
+        or not pet.owner.user.has_role("PET_OWNER")
+    ):
+        abort(404)
+
+    species_list = (
+        Species.query
+        .filter_by(isActive=True)
+        .order_by(Species.name)
+        .all()
+    )
+
+    breeds = (
+        Breed.query
+        .filter_by(isActive=True)
+        .order_by(Breed.name)
+        .all()
+    )
+
+    if request.method == "GET":
+        form_data = {
+            "name": pet.name,
+            "speciesID": str(pet.speciesID),
+            "breedID": str(pet.breedID or ""),
+            "sex": pet.sex or "UNKNOWN",
+            "dateOfBirth": (
+                pet.dateOfBirth.isoformat()
+                if pet.dateOfBirth else ""
+            ),
+            "color": pet.color or "",
+            "sterilized": (
+                "" if pet.sterilized is None
+                else "true" if pet.sterilized else "false"
+            ),
+            "microchipNumber": pet.microchipNumber or "",
+            "allergies": pet.allergies or "",
+            "chronicConditions": pet.chronicConditions or "",
+            "note": pet.note or "",
+        }
+
+    else:
+        validate_pet_csrf()
+        form_data = request.form
+        new_photo = None
+        old_photo = pet.photoUrl
+
+        try:
+            data = validate_pet_form(
+                request.form,
+                current_pet=pet,
+            )
+
+            photo_file = request.files.get("photo")
+
+            if photo_file and photo_file.filename:
+                new_photo = save_pet_image(photo_file)
+
+            for field, value in data.items():
+                setattr(pet, field, value)
+
+            if new_photo:
+                pet.photoUrl = new_photo
+
+            db.session.commit()
+
+        except (PetValidationError, PetImageError) as exc:
+            db.session.rollback()
+            if new_photo:
+                delete_pet_image(new_photo)
+            flash(str(exc), "error")
+
+        except IntegrityError:
+            db.session.rollback()
+            if new_photo:
+                delete_pet_image(new_photo)
+            current_app.logger.exception(
+                "Dữ liệu thú cưng không hợp lệ."
+            )
+            flash(
+                "Dữ liệu không hợp lệ hoặc mã microchip bị trùng.",
+                "error",
+            )
+
+        except Exception:
+            db.session.rollback()
+            if new_photo:
+                delete_pet_image(new_photo)
+            current_app.logger.exception(
+                "Không thể cập nhật thú cưng %s.",
+                pet_id,
+            )
+            flash(
+                "Không thể cập nhật hồ sơ. Vui lòng thử lại.",
+                "error",
+            )
+
+        else:
+            if new_photo and old_photo:
+                delete_pet_image(old_photo)
+
+            flash(
+                "Đã cập nhật hồ sơ thú cưng thành công!",
+                "success",
+            )
+
+            return redirect(
+                url_for(
+                    "receptionist.pet_detail",
+                    pet_id=pet.petID,
+                )
+            )
+
+    return render_template(
+        "receptionist/pets/edit.html",
+        pet=pet,
+        owner=pet.owner,
+        customer=pet.owner.user,
+        species_list=species_list,
+        breeds=breeds,
+        form_data=form_data,
+        csrf_token=pet_csrf_token(),
     )
