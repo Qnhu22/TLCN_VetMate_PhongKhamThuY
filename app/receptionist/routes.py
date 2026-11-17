@@ -1,4 +1,5 @@
 import re
+import uuid
 import secrets
 from flask import (
     abort,
@@ -10,13 +11,18 @@ from flask import (
     url_for,
 )
 
+from datetime import date, datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
+
 from app.auth.activation_service import (
     create_activation_link,
 )
 
 from flask_login import current_user
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from werkzeug.security import generate_password_hash
+
+from app.booking.scheduling import SERVICES_SQL, VETS_SQL, available_slots
 
 from app.auth.otp_service import (
     CUSTOMER_ACTIVATION,
@@ -34,10 +40,10 @@ from app.receptionist.csrf import (
 
 from app.auth.decorators import role_required
 from app.extensions import db
-from app.models import OwnerProfile, Pet, User, Role, Species, Breed
+from app.models import OwnerProfile, Pet, User, Role, Species, Breed, Appointment
 from app.receptionist import receptionist_bp
 
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, text
 from app.pets.validation import (
     PetValidationError,
     validate_pet_form,
@@ -821,4 +827,367 @@ def pet_edit(pet_id):
         breeds=breeds,
         form_data=form_data,
         csrf_token=pet_csrf_token(),
+    )
+
+@receptionist_bp.get("/appointments")
+@role_required("RECEPTIONIST")
+def appointments():
+    """Danh sách lịch hẹn: chỉ xem, không thay đổi trạng thái."""
+    if current_user.status != "ACTIVE":
+        abort(403)
+
+    keyword = request.args.get("q", "").strip()[:100]
+    selected_status = request.args.get("status", "").strip().upper()
+    allowed_statuses = {
+        "PENDING", "CONFIRMED", "CHECKED_IN", "IN_PROGRESS",
+        "COMPLETED", "CANCELLED", "NO_SHOW",
+    }
+    if selected_status not in allowed_statuses:
+        selected_status = ""
+
+    selected_type = request.args.get("type", "").strip().upper()
+    if selected_type not in {"SCHEDULED", "WALK_IN", "EMERGENCY"}:
+        selected_type = ""
+
+    date_text = request.args.get("date", "").strip()
+    from datetime import date as date_type
+    try:
+        selected_date = date_type.fromisoformat(date_text) if date_text else None
+    except ValueError:
+        selected_date = None
+        date_text = ""
+
+    page = max(request.args.get("page", 1, type=int) or 1, 1)
+
+    query = (
+        db.session.query(Appointment)
+        .join(Pet, Appointment.petID == Pet.petID)
+        .join(OwnerProfile, Pet.ownerID == OwnerProfile.ownerID)
+        .join(User, OwnerProfile.userID == User.userID)
+    )
+
+    if keyword:
+        term = f"%{keyword}%"
+        query = query.filter(or_(
+            Appointment.appointmentCode.ilike(term),
+            Pet.name.ilike(term),
+            Pet.petCode.ilike(term),
+            User.fullName.ilike(term),
+            User.phone.ilike(term),
+        ))
+    if selected_status:
+        query = query.filter(Appointment.status == selected_status)
+    if selected_type:
+        query = query.filter(Appointment.appointmentType == selected_type)
+    if selected_date:
+        query = query.filter(Appointment.scheduledDate == selected_date)
+
+    pagination = query.order_by(
+        Appointment.scheduledDate.desc(),
+        Appointment.startTime.desc(),
+        Appointment.appointmentID.desc(),
+    ).paginate(page=page, per_page=10, error_out=False)
+
+    return render_template(
+        "receptionist/appointments/index.html",
+        appointments=pagination.items,
+        pagination=pagination,
+        keyword=keyword,
+        selected_status=selected_status,
+        selected_type=selected_type,
+        selected_date=date_text,
+    )
+    
+@receptionist_bp.get('/appointments/create')
+@role_required('RECEPTIONIST')
+def appointment_create_select_owner():
+    if current_user.status != 'ACTIVE':
+        abort(403)
+
+    keyword = request.args.get('q', '').strip()[:100]
+    page = max(request.args.get('page', 1, type=int) or 1, 1)
+    query = (
+        db.session.query(OwnerProfile, User)
+        .join(User, OwnerProfile.userID == User.userID)
+        .filter(User.roles.any(Role.roleCode == 'PET_OWNER'))
+    )
+    if keyword:
+        term = f'%{keyword}%'
+        query = query.filter(or_(
+            User.fullName.ilike(term),
+            User.email.ilike(term),
+            User.phone.ilike(term),
+        ))
+    pagination = query.order_by(User.fullName.asc(), OwnerProfile.ownerID.asc()).paginate(
+        page=page, per_page=10, error_out=False
+    )
+    return render_template(
+        'receptionist/appointments/select_owner.html',
+        customers=pagination.items, pagination=pagination, keyword=keyword,
+    )
+
+
+@receptionist_bp.get('/appointments/create/owners/<int:owner_id>/pets')
+@role_required('RECEPTIONIST')
+def appointment_create_select_pet(owner_id):
+    if current_user.status != 'ACTIVE':
+        abort(403)
+
+    owner = (
+        OwnerProfile.query.join(User, OwnerProfile.userID == User.userID)
+        .filter(OwnerProfile.ownerID == owner_id)
+        .filter(User.roles.any(Role.roleCode == 'PET_OWNER'))
+        .first()
+    )
+    if owner is None:
+        abort(404)
+
+    pets = (
+        Pet.query.filter_by(ownerID=owner.ownerID, status='ACTIVE')
+        .order_by(Pet.name.asc(), Pet.petID.asc()).all()
+    )
+    return render_template(
+        'receptionist/appointments/select_pet.html', owner=owner,
+        customer=owner.user, pets=pets,
+    )
+    
+@receptionist_bp.route('/appointments/create/pets/<int:pet_id>', methods=['GET', 'POST'])
+@role_required('RECEPTIONIST')
+
+def appointment_create_form(pet_id):
+    if current_user.status != "ACTIVE":
+        abort(403)
+
+    pet = Pet.query.filter_by(
+        petID=pet_id,
+        status="ACTIVE"
+    ).first_or_404()
+
+    services = db.session.execute(
+        SERVICES_SQL
+    ).mappings().all()
+
+    data = request.form if request.method == "POST" else request.args
+
+    service_id = data.get("serviceID", type=int)
+    vet_id = data.get("veterinarianID", type=int)
+    day_str = data.get("scheduledDate", "").strip()
+
+    try:
+        day = date.fromisoformat(day_str) if day_str else None
+    except ValueError:
+        day = None
+
+    vets = (
+        db.session.execute(
+            VETS_SQL,
+            {"day": day, "service_id": service_id}
+        ).mappings().all()
+        if day and service_id
+        else []
+    )
+
+    slots = (
+        available_slots(service_id, day, pet_id, vet_id)
+        if day and service_id and vet_id
+        else []
+    )
+
+    error = None
+
+    if request.method == "POST":
+        validate_customer_csrf()
+
+        start = request.form.get("startTime", "")
+        reason = request.form.get("reason", "").strip()
+        source = request.form.get("bookingSource", "")
+
+        selected = next(
+            (
+                s for s in services
+                if s["serviceID"] == service_id
+            ),
+            None,
+        )
+
+        if source not in ("RECEPTION", "PHONE"):
+            error = "Nguồn đặt lịch không hợp lệ."
+
+        elif selected is None:
+            error = (
+                "Dịch vụ không tồn tại hoặc "
+                "không còn cho phép đặt lịch."
+            )
+
+        elif (
+            not day
+            or day < datetime.now(
+                ZoneInfo("Asia/Ho_Chi_Minh")
+            ).date()
+            or not vet_id
+            or not reason
+            or len(reason) > 2000
+        ):
+            error = "Vui lòng nhập đầy đủ thông tin lịch khám hợp lệ."
+
+        elif start not in slots:
+            error = "Khung giờ không còn trống. Vui lòng chọn lại."
+
+        else:
+            try:
+                # Khóa giao dịch theo ngày để tránh đặt trùng.
+                db.session.execute(
+                    text(
+                        "SELECT pg_advisory_xact_lock(:key)"
+                    ),
+                    {
+                        "key": int(day.strftime("%Y%m%d"))
+                    }
+                )
+
+                # Kiểm tra lại giờ trống sau khi lấy khóa.
+                slots = available_slots(
+                    service_id, day, pet_id, vet_id
+                )
+
+                if start not in slots:
+                    error = (
+                        "Khung giờ vừa được đặt. "
+                        "Vui lòng chọn giờ khác."
+                    )
+
+                else:
+                    start_time = datetime.strptime(
+                        start, "%H:%M"
+                    )
+
+                    end_time = start_time + timedelta(
+                        minutes=selected["defaultDurationMinutes"]
+                    )
+
+                    staff_id = db.session.execute(
+                        text("""
+                            SELECT "staffID"
+                            FROM clinic."clinicStaff"
+                            WHERE "userID" = :uid
+                              AND "status" = 'ACTIVE'
+                              AND "staffType" = 'RECEPTIONIST'
+                        """),
+                        {"uid": current_user.userID}
+                    ).scalar()
+
+                    if not staff_id:
+                        abort(403)
+
+                    code = (
+                        "VM"
+                        + uuid.uuid4().hex[:16].upper()
+                    )
+
+                    appointment = Appointment(
+                        appointmentCode=code,
+                        petID=pet.petID,
+                        serviceID=service_id,
+                        veterinarianID=vet_id,
+                        appointmentType="SCHEDULED",
+                        bookingSource=source,
+                        priority="NORMAL",
+                        scheduledDate=day,
+                        startTime=start_time.time(),
+                        endTime=end_time.time(),
+                        reason=reason,
+                        status="CONFIRMED",
+                        confirmedByStaffID=staff_id,
+                        confirmedAt=datetime.now(timezone.utc),
+                        createdByUserID=current_user.userID,
+                    )
+
+                    db.session.add(appointment)
+                    db.session.commit()
+
+                    flash(
+                        "Đã tạo và xác nhận lịch hẹn thành công.",
+                        "success"
+                    )
+
+                    return redirect(
+                        url_for("receptionist.appointments")
+                    )
+
+                # Không lưu lịch: kết thúc transaction,
+                # giải phóng advisory lock.
+                db.session.rollback()
+
+            except SQLAlchemyError:
+                db.session.rollback()
+
+                current_app.logger.exception(
+                    "Failed to create appointment"
+                )
+
+                error = (
+                    "Không thể lưu lịch hẹn. "
+                    "Vui lòng thử lại."
+                )
+
+    return render_template(
+        "receptionist/appointments/create.html",
+        pet=pet,
+        services=services,
+        vets=vets,
+        slots=slots,
+        selected_service=service_id,
+        selected_vet=vet_id,
+        selected_date=day_str,
+        selected_time=data.get("startTime", ""),
+        selected_source=data.get(
+            "bookingSource", "RECEPTION"
+        ),
+        reason=data.get("reason", ""),
+        error=error,
+        csrf_token=get_customer_csrf_token(),
+    )
+
+
+@receptionist_bp.get("/appointments/<int:appointment_id>")
+@role_required("RECEPTIONIST")
+def appointment_detail(appointment_id):
+    if current_user.status != "ACTIVE":
+        abort(403)
+
+    appointment = db.session.get(
+        Appointment, appointment_id
+    )
+
+    if appointment is None:
+        abort(404)
+
+    service = db.session.execute(
+        text("""
+            SELECT "name", "price", "defaultDurationMinutes"
+            FROM clinic."services"
+            WHERE "serviceID" = :service_id
+        """),
+        {"service_id": appointment.serviceID}
+    ).mappings().first()
+
+    veterinarian = db.session.execute(
+        text("""
+            SELECT u."fullName"
+            FROM clinic."veterinarians" v
+            JOIN clinic."clinicStaff" st
+              ON st."staffID" = v."staffID"
+            JOIN auth."users" u
+              ON u."userID" = st."userID"
+            WHERE v."veterinarianID" = :vet_id
+        """),
+        {"vet_id": appointment.veterinarianID}
+    ).mappings().first() if appointment.veterinarianID else None
+
+    return render_template(
+        "receptionist/appointments/detail.html",
+        appointment=appointment,
+        service=service,
+        veterinarian=veterinarian,
+        queue_entry=appointment.queueEntry,
     )

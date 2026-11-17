@@ -1,0 +1,25 @@
+{% extends "layouts/receptionist.html" %}
+{% block title %}Chọn thú cưng đặt lịch | VetMate{% endblock %}
+{% block content %}
+<div class="receptionist-customers receptionist-pets-page">
+  <div class="receptionist-detail-heading receptionist-pets-heading">
+    <div><h1>Tạo lịch hẹn</h1><p>Bước 2/3 · Chọn thú cưng của {{ customer.fullName }}.</p></div>
+    <a class="receptionist-pet-view-link" href="{{ url_for('receptionist.appointment_create_select_owner') }}">← Đổi chủ nuôi</a>
+  </div>
+  <section class="receptionist-panel receptionist-detail-panel">
+    <div class="receptionist-panel-header"><h2>Thú cưng của {{ customer.fullName }}</h2><p>Chỉ hiển thị thú cưng đang hoạt động.</p></div>
+    {% if pets %}
+    <div class="receptionist-table-wrap"><table class="receptionist-customer-table">
+      <thead><tr><th>Thú cưng</th><th>Mã thú cưng</th><th>Loài / Giống</th><th>Thao tác</th></tr></thead>
+      <tbody>{% for pet in pets %}<tr>
+        <td><div class="receptionist-pet-identity"><strong>{{ pet.name }}</strong></div></td>
+        <td>{{ pet.petCode }}</td>
+        <td>{{ pet.species.name if pet.species else 'Chưa xác định' }} / {{ pet.breed.name if pet.breed else 'Chưa xác định' }}</td>
+        <td><a class="receptionist-pet-view-link" href="{{ url_for('receptionist.appointment_create_form', pet_id=pet.petID) }}">Chọn thú cưng →</a></td>
+      </tr>{% endfor %}</tbody>
+    </table></div>
+    {% else %}<div class="receptionist-empty-state"><span>🐾</span><strong>Chưa có thú cưng đang hoạt động</strong><p>Thêm hồ sơ thú cưng trước khi đặt lịch.</p></div>{% endif %}
+    <p><a class="receptionist-pet-view-link" href="{{ url_for('receptionist.customer_pet_create', owner_id=owner.ownerID) }}">+ Thêm thú cưng cho khách</a></p>
+  </section>
+</div>
+{% endblock %}

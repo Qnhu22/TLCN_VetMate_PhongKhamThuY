@@ -1,0 +1,141 @@
+{% extends "layouts/receptionist.html" %}
+
+{% block title %}Quản lý lịch hẹn | VetMate{% endblock %}
+
+{% block content %}
+<div class="receptionist-customers receptionist-appointments-page">
+    <div class="receptionist-detail-heading receptionist-appointments-heading">
+        <div>
+            <span class="receptionist-appointments-eyebrow">VETMATE · LỄ TÂN</span>
+            <h1>Quản lý lịch hẹn</h1>
+            <p>Theo dõi lịch khám, tiếp nhận thú cưng và quản lý yêu cầu đặt lịch tại phòng khám.</p>
+        </div>
+        <a
+          href="{{ url_for('receptionist.appointment_create_select_owner') }}"
+          class="receptionist-add-pet-btn"
+      >
+          + Tạo lịch hẹn
+      </a>
+    </div>
+
+    <section class="receptionist-panel receptionist-detail-panel receptionist-appointments-panel">
+        <div class="receptionist-panel-header receptionist-appointments-panel-header">
+            <div>
+                <h2>Danh sách lịch hẹn</h2>
+                <p>Có {{ pagination.total }} lịch hẹn phù hợp với điều kiện tìm kiếm.</p>
+            </div>
+            <span class="receptionist-appointments-count">{{ pagination.total }} lịch hẹn</span>
+        </div>
+
+        <form method="GET" action="{{ url_for('receptionist.appointments') }}" class="receptionist-appointment-filters">
+            <div class="receptionist-appointment-filter receptionist-appointment-search">
+                <label for="appointment-search">Tìm kiếm lịch hẹn</label>
+                <input id="appointment-search" type="search" name="q" maxlength="100"
+                       value="{{ keyword or '' }}" placeholder="Mã lịch, thú cưng, chủ nuôi, SĐT...">
+            </div>
+            <div class="receptionist-appointment-filter">
+                <label for="appointment-date">Ngày khám</label>
+                <input id="appointment-date" type="date" name="date" value="{{ selected_date or '' }}">
+            </div>
+            <div class="receptionist-appointment-filter">
+                <label for="appointment-status">Trạng thái</label>
+                <select id="appointment-status" name="status">
+                    <option value="">Tất cả trạng thái</option>
+                    {% for value, label in [('PENDING','Chờ xác nhận'), ('CONFIRMED','Đã xác nhận'), ('CHECKED_IN','Đã check-in'), ('IN_PROGRESS','Đang khám'), ('COMPLETED','Hoàn thành'), ('CANCELLED','Đã hủy'), ('NO_SHOW','Không đến')] %}
+                    <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="receptionist-appointment-filter">
+                <label for="appointment-type">Loại lịch</label>
+                <select id="appointment-type" name="type">
+                    <option value="">Tất cả loại lịch</option>
+                    <option value="SCHEDULED" {% if selected_type == 'SCHEDULED' %}selected{% endif %}>Đặt trước</option>
+                    <option value="WALK_IN" {% if selected_type == 'WALK_IN' %}selected{% endif %}>Đến trực tiếp</option>
+                    <option value="EMERGENCY" {% if selected_type == 'EMERGENCY' %}selected{% endif %}>Cấp cứu</option>
+                </select>
+            </div>
+            <div class="receptionist-appointment-filter-actions">
+                <button type="submit" class="receptionist-pet-filter-btn">Tìm kiếm</button>
+                <a href="{{ url_for('receptionist.appointments') }}" class="receptionist-pet-reset-btn">Xóa lọc</a>
+            </div>
+        </form>
+
+        {% if appointments %}
+        <div class="receptionist-table-wrap">
+            <table class="receptionist-customer-table receptionist-appointment-table">
+                <thead>
+                    <tr>
+                        <th>Mã lịch</th><th>Thú cưng</th><th>Chủ nuôi</th>
+                        <th>Ngày khám</th><th>Giờ</th><th>Loại lịch</th><th>Nguồn đặt</th><th>Trạng thái</th><th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in appointments %}
+                    <tr>
+                        <td><strong class="receptionist-appointment-code">{{ a.appointmentCode }}</strong></td>
+                        <td>
+                            <div class="receptionist-appointment-pet">
+                                <span class="receptionist-appointment-pet-icon" aria-hidden="true">🐾</span>
+                                <strong>{{ a.pet.name if a.pet else 'Chưa xác định' }}</strong>
+                            </div>
+                        </td>
+                        <td>{{ a.pet.owner.user.fullName if a.pet and a.pet.owner and a.pet.owner.user else '—' }}</td>
+                        <td>{{ a.scheduledDate.strftime('%d/%m/%Y') if a.scheduledDate else '—' }}</td>
+                        <td>{{ a.startTime.strftime('%H:%M') if a.startTime else '—' }}</td>
+                        <td>
+                            {% if a.appointmentType == 'EMERGENCY' %}
+                                <span class="receptionist-appointment-tag is-emergency">Cấp cứu</span>
+                            {% elif a.appointmentType == 'WALK_IN' %}
+                                <span class="receptionist-appointment-tag is-walkin">Đến trực tiếp</span>
+                            {% else %}
+                                <span class="receptionist-appointment-tag">Đặt trước</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if a.bookingSource == 'ONLINE' %}Trực tuyến
+                            {% elif a.bookingSource == 'RECEPTION' %}Tại quầy
+                            {% elif a.bookingSource == 'PHONE' %}Điện thoại
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>
+                            {% set status_labels = {'PENDING':'Chờ xác nhận','CONFIRMED':'Đã xác nhận','CHECKED_IN':'Đã check-in','IN_PROGRESS':'Đang khám','COMPLETED':'Hoàn thành','CANCELLED':'Đã hủy','NO_SHOW':'Không đến'} %}
+                            <span class="receptionist-appointment-status status-{{ a.status|lower|replace('_','-') }}">
+                                {{ status_labels.get(a.status, a.status) }}
+                            </span>
+                        </td>
+                        <td>
+                            <a
+                                href="{{ url_for('receptionist.appointment_detail', appointment_id=a.appointmentID) }}"
+                                class="receptionist-pet-view-link"
+                            >
+                                Xem chi tiết
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if pagination.pages > 1 %}
+        <nav class="receptionist-pet-pagination" aria-label="Phân trang lịch hẹn">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('receptionist.appointments', page=pagination.prev_num, q=keyword, date=selected_date, status=selected_status, type=selected_type) }}">← Trước</a>
+            {% endif %}
+            <span>Trang {{ pagination.page }} / {{ pagination.pages }}</span>
+            {% if pagination.has_next %}
+            <a href="{{ url_for('receptionist.appointments', page=pagination.next_num, q=keyword, date=selected_date, status=selected_status, type=selected_type) }}">Tiếp →</a>
+            {% endif %}
+        </nav>
+        {% endif %}
+        {% else %}
+        <div class="receptionist-empty-state receptionist-appointment-empty">
+            <span aria-hidden="true">📆</span>
+            <strong>Chưa tìm thấy lịch hẹn</strong>
+            <p>Hiện chưa có lịch hẹn phù hợp. Hãy thử thay đổi ngày khám hoặc điều kiện tìm kiếm.</p>
+            <a href="{{ url_for('receptionist.appointments') }}" class="receptionist-pet-reset-btn">Xem tất cả lịch hẹn</a>
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

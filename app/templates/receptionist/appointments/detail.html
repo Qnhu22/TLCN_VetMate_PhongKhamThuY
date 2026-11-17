@@ -1,0 +1,161 @@
+
+{% extends "layouts/receptionist.html" %}
+
+{% block title %}Chi tiết lịch hẹn | VetMate{% endblock %}
+
+{% block content %}
+<div class="receptionist-customers receptionist-appointments-page">
+
+    <div class="receptionist-detail-heading receptionist-appointments-heading">
+        <div>
+            <span class="receptionist-appointments-eyebrow">
+                VETMATE · LỄ TÂN
+            </span>
+            <h1>Chi tiết lịch hẹn</h1>
+            <p>Mã lịch: {{ appointment.appointmentCode }}</p>
+        </div>
+
+        <a href="{{ url_for('receptionist.appointments') }}"
+           class="receptionist-pet-reset-btn">
+            ← Quay lại danh sách
+        </a>
+    </div>
+
+    <section class="receptionist-panel receptionist-detail-panel"
+             style="padding:28px;">
+
+        {% set status_labels = {
+            'PENDING': 'Chờ xác nhận',
+            'CONFIRMED': 'Đã xác nhận',
+            'CHECKED_IN': 'Đã check-in',
+            'IN_PROGRESS': 'Đang khám',
+            'COMPLETED': 'Hoàn thành',
+            'CANCELLED': 'Đã hủy',
+            'NO_SHOW': 'Không đến'
+        } %}
+
+        <div class="receptionist-panel-header">
+            <div>
+                <h2>Thông tin lịch khám</h2>
+                <p>Thông tin đặt lịch và tiếp nhận tại phòng khám.</p>
+            </div>
+
+            <span class="receptionist-appointment-status status-{{ appointment.status|lower|replace('_', '-') }}">
+                {{ status_labels.get(appointment.status, appointment.status) }}
+            </span>
+        </div>
+
+        <div class="vetmate-appointment-detail-grid">
+
+            <div>
+                <span>Mã lịch hẹn</span>
+                <strong>{{ appointment.appointmentCode }}</strong>
+            </div>
+
+            <div>
+                <span>Ngày khám</span>
+                <strong>{{ appointment.scheduledDate.strftime('%d/%m/%Y') }}</strong>
+            </div>
+
+            <div>
+                <span>Giờ khám</span>
+                <strong>
+                    {{ appointment.startTime.strftime('%H:%M') }}
+                    {% if appointment.endTime %}
+                    – {{ appointment.endTime.strftime('%H:%M') }}
+                    {% endif %}
+                </strong>
+            </div>
+
+            <div>
+                <span>Thú cưng</span>
+                <strong>{{ appointment.pet.name }}</strong>
+            </div>
+
+            <div>
+                <span>Chủ nuôi</span>
+                <strong>{{ appointment.pet.owner.user.fullName }}</strong>
+            </div>
+
+            <div>
+                <span>Số điện thoại</span>
+                <strong>{{ appointment.pet.owner.user.phone or '—' }}</strong>
+            </div>
+
+            <div>
+                <span>Dịch vụ khám</span>
+                <strong>{{ service.name if service else '—' }}</strong>
+            </div>
+
+            <div>
+                <span>Bác sĩ phụ trách</span>
+                <strong>
+                    {{ veterinarian.fullName if veterinarian else 'Chưa phân công' }}
+                </strong>
+            </div>
+
+            <div>
+                <span>Loại lịch</span>
+                <strong>
+                    {% if appointment.appointmentType == 'EMERGENCY' %}
+                        Cấp cứu
+                    {% elif appointment.appointmentType == 'WALK_IN' %}
+                        Đến trực tiếp
+                    {% else %}
+                        Đặt trước
+                    {% endif %}
+                </strong>
+            </div>
+
+            <div>
+                <span>Nguồn đặt</span>
+                <strong>
+                    {% if appointment.bookingSource == 'ONLINE' %}
+                        Trực tuyến
+                    {% elif appointment.bookingSource == 'RECEPTION' %}
+                        Tại quầy
+                    {% elif appointment.bookingSource == 'PHONE' %}
+                        Điện thoại
+                    {% else %}
+                        —
+                    {% endif %}
+                </strong>
+            </div>
+
+            <div>
+                <span>Số thứ tự tiếp nhận</span>
+                <strong>
+                    {{ queue_entry.queueNumber if queue_entry else 'Chưa check-in' }}
+                </strong>
+            </div>
+
+            <div>
+                <span>Trạng thái hàng đợi</span>
+                <strong>
+                    {{ queue_entry.status if queue_entry else '—' }}
+                </strong>
+            </div>
+        </div>
+
+        <div class="vetmate-appointment-detail-note">
+            <h3>Lý do khám</h3>
+            <p>{{ appointment.reason }}</p>
+        </div>
+
+        {% if appointment.ownerNote %}
+        <div class="vetmate-appointment-detail-note">
+            <h3>Ghi chú của chủ nuôi</h3>
+            <p>{{ appointment.ownerNote }}</p>
+        </div>
+        {% endif %}
+
+        {% if appointment.cancelReason %}
+        <div class="vetmate-appointment-detail-note">
+            <h3>Lý do hủy</h3>
+            <p>{{ appointment.cancelReason }}</p>
+        </div>
+        {% endif %}
+
+    </section>
+</div>
+{% endblock %}
