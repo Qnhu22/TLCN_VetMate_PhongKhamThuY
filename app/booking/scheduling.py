@@ -25,6 +25,7 @@ VETS_SQL = text('''SELECT v."veterinarianID" AS id, u."fullName" AS name,
  WHERE ss."serviceID"=:service_id AND vs."veterinarianID"=v."veterinarianID")
  ORDER BY u."fullName",v."veterinarianID"''')
 
+
 BUSY_SQL = text("""
     SELECT "startTime", "endTime"
     FROM booking."appointments"
@@ -39,13 +40,24 @@ BUSY_SQL = text("""
           "veterinarianID" = :vet_id
           OR "petID" = :pet_id
       )
+      AND (
+          :exclude_appointment_id IS NULL
+          OR "appointmentID" <> :exclude_appointment_id
+      )
 """)
+
 
 LEAVE_SQL = text('''SELECT 1 FROM clinic."staffLeaves" WHERE "staffID"=:staff_id
  AND "status"='APPROVED' AND "startAt" < :end_at AND "endAt" > :start_at LIMIT 1''')
 
 
-def available_slots(service_id, day, pet_id, vet_id):
+def available_slots(
+    service_id,
+    day,
+    pet_id,
+    vet_id,
+    exclude_appointment_id=None
+):
     service = db.session.execute(SERVICES_SQL).mappings().all()
     item = next((s for s in service if s['serviceID'] == service_id), None)
     if not item or day < datetime.now(LOCAL_TZ).date():
@@ -55,7 +67,17 @@ def available_slots(service_id, day, pet_id, vet_id):
     if not vet:
         return []
     duration = timedelta(minutes=item['defaultDurationMinutes'])
-    busy = db.session.execute(BUSY_SQL, {'day':day,'vet_id':vet_id,'pet_id':pet_id}).mappings().all()
+    
+    busy = db.session.execute(
+        BUSY_SQL,
+        {
+            "day": day,
+            "vet_id": vet_id,
+            "pet_id": pet_id,
+            "exclude_appointment_id": exclude_appointment_id
+        }
+    ).mappings().all()
+
     slots = []
     for begin, finish in ((vet['morning_start'],vet['morning_end']),
                           (vet['afternoon_start'],vet['afternoon_end'])):

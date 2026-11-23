@@ -1544,3 +1544,525 @@
         grid-template-columns: 1fr;
     }
 }
+
+
+/* Booking form: asynchronous loading */
+.vm-booking-create [hidden] {
+    display: none !important;
+}
+
+.vm-booking-create select:disabled,
+.vm-booking-create input:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.vm-booking-create #vet-help,
+.vm-booking-create #slot-help {
+    display: block;
+    margin-top: 7px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    opacity: 0.8;
+}
+
+.vm-booking-create .vm-booking-submit:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+
+/* ===== VETMATE - APPOINTMENT CHECK-IN ===== */
+
+.vm-checkin-section {
+    margin-top: 26px;
+    padding: 22px;
+    border: 1px solid var(--border-color, #ead9e1);
+    border-radius: 16px;
+    background: rgba(216, 92, 141, 0.055);
+}
+
+.vm-checkin-info h3 {
+    margin: 0 0 9px;
+    font-size: 17px;
+    color: var(--text-primary, #283044);
+}
+
+.vm-checkin-info p {
+    margin: 0 0 18px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-secondary, #7c8290);
+}
+
+.vm-checkin-button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 46px;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 12px;
+    background: #d65691;
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .2s;
+}
+
+.vm-checkin-button:hover:not(:disabled) {
+    background: #bd417c;
+}
+
+.vm-checkin-button:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+.vm-checkin-notice {
+    margin: 12px 0 0;
+    font-size: 13px;
+    color: var(--text-secondary, #7c8290);
+}
+
+.vm-checkin-success {
+    margin-top: 26px;
+    padding: 22px;
+    border-radius: 16px;
+    background: rgba(45, 170, 115, .09);
+    border: 1px solid rgba(45, 170, 115, .25);
+    color: var(--text-primary, #283044);
+}
+
+.vm-checkin-success > strong {
+    color: #27885d;
+    font-size: 16px;
+}
+
+.vm-checkin-success p {
+    margin: 10px 0 0;
+    font-size: 14px;
+}
+
+@media (max-width: 600px) {
+    .vm-checkin-button {
+        width: 100%;
+    }
+}
+
+
+/* ===== VETMATE - RECEPTIONIST QUEUE ===== */
+
+.vm-queue-page {
+    max-width: 1500px;
+}
+
+.vm-queue-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.vm-queue-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 23px;
+    border-radius: 18px;
+    border: 1px solid var(--border-color, #ead9e1);
+    background: var(--surface, #fff);
+}
+
+.vm-queue-stat span {
+    font-size: 13px;
+    color: var(--text-secondary, #7c8290);
+    font-weight: 600;
+}
+
+.vm-queue-stat strong {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text-primary, #283044);
+}
+
+.vm-queue-stat small {
+    font-size: 12px;
+    color: var(--text-secondary, #7c8290);
+}
+
+.vm-queue-panel {
+    padding: 28px;
+}
+
+.vm-queue-filters {
+    display: grid;
+    grid-template-columns: minmax(170px, 1fr)
+                           minmax(180px, 1fr) auto;
+    align-items: end;
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.vm-queue-filter-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.vm-queue-table {
+    min-width: 880px;
+}
+
+.vm-queue-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    min-height: 40px;
+    padding: 7px 12px;
+    border-radius: 12px;
+    background: rgba(216, 92, 141, .12);
+    color: #df6293;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.vm-queue-pet {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.vm-queue-pet strong {
+    color: var(--text-primary, #283044);
+}
+
+.vm-queue-pet small {
+    font-size: 11px;
+    color: var(--text-secondary, #7c8290);
+}
+
+.vm-queue-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 11px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    background: rgba(145, 145, 145, .12);
+    color: var(--text-primary, #283044);
+}
+
+.vm-queue-status-waiting {
+    background: rgba(231, 157, 42, .15);
+    color: #d49a37;
+}
+
+.vm-queue-status-called {
+    background: rgba(57, 137, 215, .13);
+    color: #599ce0;
+}
+
+.vm-queue-status-in-progress {
+    background: rgba(216, 92, 141, .13);
+    color: #e35b9c;
+}
+
+.vm-queue-status-completed {
+    background: rgba(45, 170, 115, .13);
+    color: #3eaf80;
+}
+
+.vm-queue-empty {
+    min-height: 230px;
+}
+
+@media (max-width: 900px) {
+    .vm-queue-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .vm-queue-filter-actions {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 650px) {
+    .vm-queue-stats,
+    .vm-queue-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .vm-queue-filter-actions {
+        grid-column: auto;
+        flex-wrap: wrap;
+    }
+
+    .vm-queue-filter-actions > * {
+        flex: 1;
+    }
+
+    .vm-queue-panel {
+        padding: 18px;
+    }
+}
+
+
+/* ===== VETMATE - ONLINE APPOINTMENT APPROVAL ===== */
+
+.vm-approval-section {
+    margin-top: 26px;
+    padding: 24px;
+    border: 1px solid rgba(216, 92, 141, .3);
+    border-radius: 16px;
+    background: rgba(216, 92, 141, .055);
+}
+
+.vm-approval-section h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+}
+
+.vm-approval-section > p {
+    margin: 0 0 20px;
+    line-height: 1.6;
+    color: #aeb8c9;
+}
+
+.vm-approval-confirm,
+.vm-approval-reject {
+    padding: 12px 22px;
+    border-radius: 11px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.vm-approval-confirm {
+    border: 0;
+    background: #d65691;
+    color: #fff;
+}
+
+.vm-approval-confirm:hover {
+    background: #bd417c;
+}
+
+.vm-approval-reject-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.vm-approval-reject-form label {
+    font-weight: 600;
+}
+
+.vm-approval-reject-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px;
+    border: 1px solid #667085;
+    border-radius: 11px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    resize: vertical;
+}
+
+.vm-approval-reject {
+    border: 1px solid #e06b79;
+    background: transparent;
+    color: #e06b79;
+}
+
+.vm-approval-reject:hover {
+    background: rgba(224, 107, 121, .1);
+}
+
+
+/* ==========================================
+   VETMATE - RECEPTIONIST THEME FIX
+   Default / Light / Dark
+   ========================================== */
+
+/* Đồng bộ biến màu với theme.css */
+
+.receptionist-body {
+    --border-color: var(--border);
+    --card-bg: var(--surface);
+
+    background: var(--background);
+    color: var(--text-primary);
+}
+
+/* Tiêu đề và nội dung */
+
+.receptionist-body .receptionist-page-header h1,
+.receptionist-body .receptionist-detail-heading h1,
+.receptionist-body .customer-create-header h1,
+.receptionist-body .receptionist-customers-toolbar h2,
+.receptionist-body .vm-booking-section-title h2,
+.receptionist-body .vm-approval-section h3 {
+    color: var(--text-primary);
+}
+
+.receptionist-body .receptionist-page-header p,
+.receptionist-body .receptionist-detail-heading p,
+.receptionist-body .customer-create-header p,
+.receptionist-body .vm-booking-section-title p,
+.receptionist-body .vm-approval-section > p {
+    color: var(--text-secondary);
+    opacity: 1;
+}
+
+/* Khung nội dung */
+
+.receptionist-body .receptionist-stat-card,
+.receptionist-body .receptionist-panel,
+.receptionist-body .customer-create-card,
+.receptionist-body .vm-queue-stat {
+    background: var(--surface);
+    color: var(--text-primary);
+    border-color: var(--border);
+}
+
+/* Form thêm thú cưng */
+
+.receptionist-body .receptionist-pet-create-field input,
+.receptionist-body .receptionist-pet-create-field select,
+.receptionist-body .receptionist-pet-create-field textarea {
+    background: var(--surface);
+    color: var(--text-primary);
+    border-color: var(--border);
+    color-scheme: light;
+}
+
+html[data-theme="dark"]
+.receptionist-body .receptionist-pet-create-field input,
+
+html[data-theme="dark"]
+.receptionist-body .receptionist-pet-create-field select,
+
+html[data-theme="dark"]
+.receptionist-body .receptionist-pet-create-field textarea {
+    color-scheme: dark;
+}
+
+/* Form tạo lịch hẹn */
+
+.receptionist-body .vm-booking-field input,
+.receptionist-body .vm-booking-field select,
+.receptionist-body .vm-booking-field textarea {
+    background: var(--surface);
+    color: var(--text-primary);
+    border-color: var(--border);
+}
+
+.receptionist-body .vm-booking-field label,
+.receptionist-body .vm-booking-field small {
+    color: var(--text-primary);
+}
+
+/* Form lọc lịch hẹn */
+
+.receptionist-body .receptionist-appointment-filter input,
+.receptionist-body .receptionist-appointment-filter select {
+    background: var(--surface);
+    color: var(--text-primary);
+    border-color: var(--border);
+}
+
+/* Duyệt / từ chối lịch online */
+
+.receptionist-body .vm-approval-section {
+    border-color: var(--border);
+    background: rgba(216, 92, 141, 0.055);
+    color: var(--text-primary);
+}
+
+.receptionist-body .vm-approval-section > p {
+    color: var(--text-secondary);
+}
+
+.receptionist-body .vm-approval-reject-form textarea {
+    background: var(--surface);
+    color: var(--text-primary);
+    border-color: var(--border);
+}
+
+/* Bảng danh sách */
+
+.receptionist-body .receptionist-customer-table {
+    color: var(--text-primary);
+}
+
+.receptionist-body .receptionist-customer-table th,
+.receptionist-body .receptionist-customer-table td {
+    border-bottom-color: var(--border);
+}
+
+.receptionist-body .receptionist-customer-table th {
+    color: var(--text-secondary);
+    opacity: 1;
+}
+
+/* Thẻ trạng thái */
+
+html[data-theme="dark"]
+.receptionist-body .receptionist-appointment-status.status-pending {
+    color: #f5c779;
+}
+
+html[data-theme="dark"]
+.receptionist-body .receptionist-appointment-status.status-confirmed {
+    color: #8bbcff;
+}
+
+html[data-theme="dark"]
+.receptionist-body .receptionist-appointment-status.status-completed {
+    color: #75dcb0;
+}
+
+html[data-theme="dark"]
+.receptionist-body .receptionist-appointment-status.status-checked-in {
+    color: #c2a6ff;
+}
+
+/* Responsive bổ sung */
+
+@media (max-width: 767px) {
+
+    .receptionist-body .receptionist-appointments-heading,
+    .receptionist-body .receptionist-page-header {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .receptionist-body .receptionist-appointment-filters,
+    .receptionist-body .vm-queue-filters {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .receptionist-body .receptionist-appointment-filter-actions {
+        justify-content: stretch;
+    }
+
+    .receptionist-body .receptionist-appointment-filter-actions > * {
+        flex: 1 1 130px;
+    }
+
+    .receptionist-body .vm-booking-grid,
+    .receptionist-body .vetmate-appointment-detail-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .receptionist-body .vm-booking-wide {
+        grid-column: auto;
+    }
+}

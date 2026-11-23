@@ -11,9 +11,12 @@ from app.models.breed import Breed
 from app.models.pet import Pet
 from app.models.appointment import Appointment
 from app.models.queue_entry import QueueEntry
+from app.models.clinic_staff import ClinicStaff
+from app.models.veterinarian import Veterinarian
+from app.models.service import Service
 
 __all__ = [
     "User", "Role", "Permission", "UserRole", "RolePermission",
     "VerificationToken", "CustomerActivationLink", "OwnerProfile",
-    "Species", "Breed", "Pet", "Appointment", "QueueEntry",
+    "Species", "Breed", "Pet", "Appointment", "QueueEntry", "ClinicStaff", "Veterinarian", "Service",
 ]

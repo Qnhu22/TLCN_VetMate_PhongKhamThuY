@@ -1,85 +1,384 @@
+
 {% extends "layouts/receptionist.html" %}
 {% block title %}Tạo lịch hẹn | VetMate{% endblock %}
+
 {% block content %}
 <div class="receptionist-customers receptionist-pets-page vm-booking-create">
   <div class="receptionist-detail-heading receptionist-pets-heading">
     <div>
       <p class="vm-booking-eyebrow">VETMATE · LỄ TÂN · BƯỚC 3/3</p>
       <h1>Tạo lịch hẹn</h1>
-      <p>Đặt lịch khám cho <strong>{{ pet.name }}</strong> · Chủ nuôi: <strong>{{ pet.owner.user.fullName }}</strong></p>
+      <p>
+        Đặt lịch khám cho <strong>{{ pet.name }}</strong>
+        · Chủ nuôi: <strong>{{ pet.owner.user.fullName }}</strong>
+      </p>
     </div>
   </div>
 
   <section class="receptionist-panel receptionist-detail-panel vm-booking-panel">
-    {% if error %}<div class="vm-booking-alert" role="alert">{{ error }}</div>{% endif %}
+    <div id="booking-message" class="vm-booking-alert"
+         role="status" aria-live="polite"
+         {% if not error %}hidden{% endif %}>
+      {{ error or '' }}
+    </div>
 
     <div class="vm-booking-section-title">
       <span class="vm-booking-step">01</span>
-      <div><h2>Chọn lịch khám</h2><p>Chọn dịch vụ và ngày trước, sau đó chọn bác sĩ phù hợp.</p></div>
+      <div>
+        <h2>Chọn lịch khám</h2>
+        <p>Chọn dịch vụ, ngày khám và bác sĩ phù hợp.</p>
+      </div>
     </div>
 
-    <form method="GET" id="selection" action="{{ url_for('receptionist.appointment_create_form', pet_id=pet.petID) }}" class="vm-booking-grid">
+    <div class="vm-booking-grid">
       <div class="vm-booking-field">
-        <label for="service">Dịch vụ khám <span aria-hidden="true">*</span></label>
-        <select id="service" name="serviceID" required onchange="document.getElementById('selection').submit()">
+        <label for="service">
+          Dịch vụ khám <span aria-hidden="true">*</span>
+        </label>
+        <select id="service" required>
           <option value="">— Chọn dịch vụ —</option>
           {% for s in services %}
-          <option value="{{ s.serviceID }}" {% if selected_service == s.serviceID %}selected{% endif %}>{{ s.name }} ({{ s.defaultDurationMinutes }} phút)</option>
+          <option value="{{ s.serviceID }}"
+            {% if selected_service == s.serviceID %}selected{% endif %}>
+            {{ s.name }} ({{ s.defaultDurationMinutes }} phút)
+          </option>
           {% endfor %}
         </select>
-        {% if not services %}<small>Chưa có dịch vụ cho phép đặt lịch. Cần thêm dữ liệu dịch vụ.</small>{% endif %}
       </div>
+
       <div class="vm-booking-field">
-        <label for="day">Ngày khám <span aria-hidden="true">*</span></label>
-        <input id="day" type="date" name="scheduledDate" value="{{ selected_date or '' }}" required onchange="document.getElementById('selection').submit()">
+        <label for="day">
+          Ngày khám <span aria-hidden="true">*</span>
+        </label>
+        <input id="day" type="date" required
+               value="{{ selected_date or '' }}">
+        <small>Cho phép đặt lịch hôm nay nếu còn giờ trống.</small>
       </div>
+
       <div class="vm-booking-field vm-booking-wide">
-        <label for="vet">Bác sĩ phụ trách</label>
-        <select id="vet" name="veterinarianID" onchange="document.getElementById('selection').submit()">
-          <option value="">— Chọn bác sĩ —</option>
-          {% for v in vets %}
-          <option value="{{ v.id }}" {% if selected_vet == v.id %}selected{% endif %}>{{ v.name }}</option>
-          {% endfor %}
+        <label for="vet">Bác sĩ phụ trách *</label>
+        <select id="vet" required disabled>
+          <option value="">— Chọn dịch vụ và ngày trước —</option>
         </select>
-        {% if selected_service and selected_date and not vets %}<small>Chưa có bác sĩ phù hợp với ngày và dịch vụ đã chọn.</small>{% endif %}
+        <small id="vet-help" aria-live="polite"></small>
       </div>
-      <div class="vm-booking-wide vm-booking-actions"><button type="submit" class="vm-booking-refresh">Cập nhật lựa chọn</button></div>
-    </form>
+    </div>
 
     <div class="vm-booking-divider"></div>
+
     <div class="vm-booking-section-title">
       <span class="vm-booking-step">02</span>
-      <div><h2>Hoàn tất thông tin</h2><p>Chọn khung giờ và ghi rõ nhu cầu khám.</p></div>
+      <div>
+        <h2>Hoàn tất thông tin</h2>
+        <p>Chọn khung giờ và ghi rõ nhu cầu khám.</p>
+      </div>
     </div>
-    <form method="POST" action="{{ url_for('receptionist.appointment_create_form', pet_id=pet.petID) }}" class="vm-booking-grid vm-booking-post">
+
+    <form method="POST"
+          id="booking-form"
+          action="{{ url_for('receptionist.appointment_create_form', pet_id=pet.petID) }}"
+          class="vm-booking-grid vm-booking-post">
+
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-      <input type="hidden" name="serviceID" value="{{ selected_service or '' }}">
-      <input type="hidden" name="scheduledDate" value="{{ selected_date or '' }}">
-      <input type="hidden" name="veterinarianID" value="{{ selected_vet or '' }}">
+      <input type="hidden" name="serviceID" id="post-service">
+      <input type="hidden" name="scheduledDate" id="post-day">
+      <input type="hidden" name="veterinarianID" id="post-vet">
+
       <div class="vm-booking-field">
-        <label for="slot">Khung giờ trống <span aria-hidden="true">*</span></label>
-        <select id="slot" name="startTime" required>
-          <option value="">— Chọn giờ khám —</option>
-          {% for slot in slots %}<option value="{{ slot }}" {% if selected_time == slot %}selected{% endif %}>{{ slot }}</option>{% endfor %}
+        <label for="slot">
+          Khung giờ trống <span aria-hidden="true">*</span>
+        </label>
+        <select id="slot" name="startTime" required disabled>
+          <option value="">— Chọn bác sĩ trước —</option>
         </select>
-        {% if selected_vet and not slots %}<small>Không có giờ trống phù hợp trong ngày này.</small>{% endif %}
+        <small id="slot-help" aria-live="polite"></small>
       </div>
+
       <div class="vm-booking-field">
-        <label for="source">Nguồn đặt lịch <span aria-hidden="true">*</span></label>
+        <label for="source">
+          Nguồn đặt lịch <span aria-hidden="true">*</span>
+        </label>
         <select id="source" name="bookingSource" required>
-          <option value="RECEPTION" {% if selected_source == 'RECEPTION' %}selected{% endif %}>Tại quầy</option>
-          <option value="PHONE" {% if selected_source == 'PHONE' %}selected{% endif %}>Qua điện thoại</option>
+          <option value="RECEPTION"
+            {% if selected_source != 'PHONE' %}selected{% endif %}>
+            Tại quầy
+          </option>
+          <option value="PHONE"
+            {% if selected_source == 'PHONE' %}selected{% endif %}>
+            Qua điện thoại
+          </option>
         </select>
       </div>
+
       <div class="vm-booking-field vm-booking-wide">
-        <label for="reason">Lý do khám <span aria-hidden="true">*</span></label>
-        <textarea id="reason" name="reason" rows="5" maxlength="2000" required placeholder="Ví dụ: Thú cưng bỏ ăn, mệt mỏi từ hôm qua...">{{ reason or '' }}</textarea>
+        <label for="reason">
+          Lý do khám <span aria-hidden="true">*</span>
+        </label>
+        <textarea id="reason" name="reason" rows="5"
+                  maxlength="2000" required
+                  placeholder="Ví dụ: Thú cưng bỏ ăn, mệt mỏi từ hôm qua...">{{ reason or '' }}</textarea>
       </div>
+
       <div class="vm-booking-wide">
-        <button type="submit" class="vm-booking-submit" {% if not slots %}disabled{% endif %}>Xác nhận tạo lịch hẹn</button>
+        <button type="submit" id="booking-submit"
+                class="vm-booking-submit" disabled>
+          Xác nhận tạo lịch hẹn
+        </button>
       </div>
     </form>
-    <div class="vm-booking-footer"><a href="{{ url_for('receptionist.appointment_create_select_pet', owner_id=pet.ownerID) }}">← Chọn thú cưng khác</a></div>
+
+    <div class="vm-booking-footer">
+      <a href="{{ url_for('receptionist.appointment_create_select_pet', owner_id=pet.ownerID) }}">
+        ← Chọn thú cưng khác
+      </a>
+    </div>
   </section>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const service = document.getElementById("service");
+  const day = document.getElementById("day");
+  const vet = document.getElementById("vet");
+  const slot = document.getElementById("slot");
+  const form = document.getElementById("booking-form");
+  const submit = document.getElementById("booking-submit");
+  const message = document.getElementById("booking-message");
+  const vetHelp = document.getElementById("vet-help");
+  const slotHelp = document.getElementById("slot-help");
+
+  const postService = document.getElementById("post-service");
+  const postDay = document.getElementById("post-day");
+  const postVet = document.getElementById("post-vet");
+
+  const apiUrl = {{ url_for(
+    'receptionist.appointment_create_availability',
+    pet_id=pet.petID
+  ) | tojson }};
+
+  const initialVet = {{ (selected_vet|string if selected_vet else '') | tojson }};
+  const initialSlot = {{ (selected_time or '') | tojson }};
+
+  let requestNumber = 0;
+  let controller = null;
+  let loading = false;
+  let ready = false;
+  let submitting = false;
+
+  function todayVietnam() {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Ho_Chi_Minh",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).formatToParts(new Date());
+
+    const values = {};
+    parts.forEach(part => {
+      if (part.type !== "literal") values[part.type] = part.value;
+    });
+
+    return `${values.year}-${values.month}-${values.day}`;
+  }
+
+  function validDay() {
+    const value = day.value;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+
+    const parsed = new Date(`${value}T12:00:00Z`);
+    if (Number.isNaN(parsed.getTime())) return false;
+
+    return parsed.toISOString().slice(0, 10) === value
+      && value >= todayVietnam();
+  }
+
+  function showMessage(text) {
+    message.textContent = text;
+    message.hidden = !text;
+  }
+
+  function resetSelect(element, placeholder) {
+    element.replaceChildren(new Option(placeholder, ""));
+    element.disabled = true;
+  }
+
+  function updateSubmit() {
+    submit.disabled = loading || !ready || submitting
+      || !service.value || !validDay()
+      || !vet.value || !slot.value;
+  }
+
+  function syncHidden() {
+    postService.value = service.value;
+    postDay.value = day.value;
+    postVet.value = vet.value;
+  }
+
+  function invalidateRequests() {
+    requestNumber++;
+    if (controller) controller.abort();
+    controller = null;
+    loading = false;
+    ready = false;
+    updateSubmit();
+  }
+
+  async function loadAvailability(keepVet = "", keepSlot = "") {
+    invalidateRequests();
+    showMessage("");
+    vetHelp.textContent = "";
+    slotHelp.textContent = "";
+
+    resetSelect(vet, "— Chọn bác sĩ —");
+    resetSelect(slot, "— Chọn giờ khám —");
+    syncHidden();
+
+    if (!service.value || !day.value) {
+      vetHelp.textContent = "Vui lòng chọn dịch vụ và ngày khám.";
+      return;
+    }
+
+    if (!validDay()) {
+      vetHelp.textContent = "Ngày khám phải từ hôm nay trở đi.";
+      return;
+    }
+
+    const currentRequest = ++requestNumber;
+    controller = new AbortController();
+    loading = true;
+    updateSubmit();
+
+    vetHelp.textContent = "Đang tải danh sách bác sĩ...";
+
+    const params = new URLSearchParams({
+      serviceID: service.value,
+      scheduledDate: day.value
+    });
+
+    if (keepVet) params.set("veterinarianID", keepVet);
+
+    try {
+      const response = await fetch(`${apiUrl}?${params}`, {
+        method: "GET",
+        credentials: "same-origin",
+        headers: { "Accept": "application/json" },
+        signal: controller.signal
+      });
+
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          throw new Error("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
+        }
+        const problem = await response.json().catch(() => ({}));
+        throw new Error(problem.error || "Không thể tải lịch khám.");
+      }
+
+      const data = await response.json();
+
+      if (currentRequest !== requestNumber) return;
+
+      const vets = data.vets || [];
+      vets.forEach(item => {
+        vet.add(new Option(item.name, String(item.id)));
+      });
+
+      vet.disabled = vets.length === 0;
+      vetHelp.textContent = vets.length
+        ? `Có ${vets.length} bác sĩ phù hợp.`
+        : "Không có bác sĩ phù hợp với dịch vụ và ngày đã chọn.";
+
+      if (keepVet && vets.some(item => String(item.id) === keepVet)) {
+        vet.value = keepVet;
+      }
+
+      const slots = data.slots || [];
+      if (vet.value) {
+        slots.forEach(time => {
+          slot.add(new Option(time, time));
+        });
+
+        slot.disabled = slots.length === 0;
+        slotHelp.textContent = slots.length
+          ? `Có ${slots.length} khung giờ còn trống.`
+          : "Bác sĩ không còn giờ trống trong ngày này.";
+
+        if (keepSlot && slots.includes(keepSlot)) {
+          slot.value = keepSlot;
+        }
+      }
+
+      ready = true;
+    } catch (error) {
+      if (error.name === "AbortError") return;
+      if (currentRequest !== requestNumber) return;
+
+      vetHelp.textContent = "";
+      showMessage(error.message || "Có lỗi khi tải dữ liệu.");
+    } finally {
+      if (currentRequest === requestNumber) {
+        loading = false;
+        syncHidden();
+        updateSubmit();
+      }
+    }
+  }
+
+  day.min = todayVietnam();
+
+  service.addEventListener("change", () => {
+    loadAvailability();
+  });
+
+  // Không gửi request khi người dùng mới nhập một phần ngày.
+  day.addEventListener("input", () => {
+    invalidateRequests();
+    resetSelect(vet, "— Chọn bác sĩ —");
+    resetSelect(slot, "— Chọn giờ khám —");
+    vetHelp.textContent = "";
+    slotHelp.textContent = "";
+    syncHidden();
+  });
+
+  day.addEventListener("change", () => {
+    if (validDay()) {
+      loadAvailability();
+    } else {
+      showMessage(day.value
+        ? "Vui lòng chọn ngày khám hợp lệ từ hôm nay trở đi."
+        : "");
+    }
+  });
+
+  vet.addEventListener("change", () => {
+    loadAvailability(vet.value);
+  });
+
+  slot.addEventListener("change", updateSubmit);
+
+  form.addEventListener("submit", event => {
+    syncHidden();
+
+    if (submitting || loading || !ready
+        || !service.value || !validDay()
+        || !vet.value || !slot.value
+        || !form.checkValidity()) {
+      event.preventDefault();
+      showMessage("Vui lòng kiểm tra đầy đủ thông tin lịch khám.");
+      return;
+    }
+
+    submitting = true;
+    submit.disabled = true;
+    submit.textContent = "Đang lưu lịch hẹn...";
+  });
+
+  // Khôi phục lựa chọn nếu Flask trả về lỗi khi lưu.
+  if (service.value && validDay()) {
+    loadAvailability(initialVet, initialSlot);
+  } else {
+    syncHidden();
+    updateSubmit();
+  }
+});
+</script>
 {% endblock %}

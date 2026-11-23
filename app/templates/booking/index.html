@@ -1,0 +1,547 @@
+
+{% extends "layouts/public.html" %}
+
+{% block title %}Lịch hẹn của tôi | VetMate{% endblock %}
+
+{% block page_styles %}
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/booking.css') }}">
+{% endblock %}
+
+{% block content %}
+
+{% set status_labels = {
+    'PENDING': 'Chờ xác nhận',
+    'CONFIRMED': 'Đã xác nhận',
+    'CHECKED_IN': 'Đã check-in',
+    'IN_PROGRESS': 'Đang khám',
+    'COMPLETED': 'Hoàn thành',
+    'CANCELLED': 'Đã hủy',
+    'NO_SHOW': 'Không đến'
+} %}
+
+{% set source_labels = {
+    'ONLINE': 'Trực tuyến',
+    'PHONE': 'Điện thoại',
+    'RECEPTION': 'Tại quầy'
+} %}
+
+{% set keyword = keyword|default('', true) %}
+{% set selected_status = selected_status|default('', true) %}
+{% set selected_source = selected_source|default('', true) %}
+{% set selected_date = selected_date|default('', true) %}
+{% set selected_sort = selected_sort|default('newest', true) %}
+
+
+{% set counts = stats|default({}, true) %}
+
+{% set total_count = total|default(appointments|length) %}
+
+{% set pending_count = counts.get('PENDING', 0) %}
+
+{% set confirmed_count = counts.get('CONFIRMED', 0) %}
+
+{% set checked_count = counts.get('CHECKED_IN', 0) %}
+
+
+{% set today_value = today|default(none) %}
+
+<section class="vm-booking-page">
+    <div class="page-container">
+
+        <!-- PAGE HEADING -->
+        <div class="vm-booking-heading">
+            <div>
+                <span class="vm-booking-eyebrow">
+                    VETMATE · CHỦ NUÔI
+                </span>
+
+                <h1>Lịch hẹn của tôi</h1>
+
+                <p>
+                    Theo dõi lịch khám, thời gian hẹn,
+                    trạng thái xác nhận và quá trình
+                    tiếp nhận thú cưng của bạn.
+                </p>
+            </div>
+
+            <div class="vm-booking-heading-actions">
+                <a href="{{ url_for('booking.create_appointment') }}"
+                class="vm-booking-filter-submit">
+                    <i class="bi bi-calendar2-plus"></i>
+                    Đặt lịch khám
+                </a>
+            </div>
+
+        </div>
+
+        <!-- STATISTICS -->
+        <div class="vm-booking-stats">
+
+            <div class="vm-booking-stat">
+                <div class="vm-booking-stat-icon">
+                    <i class="bi bi-calendar2-check"></i>
+                </div>
+
+                <strong>{{ total_count }}</strong>
+                <span>Tổng lịch hẹn</span>
+            </div>
+
+            <div class="vm-booking-stat">
+                <div class="vm-booking-stat-icon is-pending">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+
+                <strong>{{ pending_count }}</strong>
+                <span>Chờ xác nhận</span>
+            </div>
+
+            <div class="vm-booking-stat">
+                <div class="vm-booking-stat-icon is-confirmed">
+                    <i class="bi bi-patch-check"></i>
+                </div>
+
+                <strong>{{ confirmed_count }}</strong>
+                <span>Đã xác nhận</span>
+            </div>
+
+            <div class="vm-booking-stat">
+                <div class="vm-booking-stat-icon is-checked">
+                    <i class="bi bi-clipboard2-pulse"></i>
+                </div>
+
+                <strong>{{ checked_count }}</strong>
+                <span>Đã check-in</span>
+            </div>
+
+        </div>
+
+        <!-- MAIN PANEL -->
+        <div class="vm-booking-panel">
+
+            <div class="vm-booking-panel-heading">
+                <div>
+                    <h2>Danh sách lịch hẹn</h2>
+
+                    <p>
+                        Tìm kiếm và theo dõi lịch khám
+                        của các thú cưng.
+                    </p>
+                </div>
+
+                <span class="vm-booking-count">
+                    {{ appointments|length }} kết quả
+                </span>
+            </div>
+
+            <!-- SEARCH AND FILTER -->
+            <form class="vm-booking-filters"
+                  method="GET"
+                  action="{{ url_for('booking.my_appointments') }}">
+
+                <div class="vm-booking-filter vm-booking-search">
+                    <label for="bookingKeyword">
+                        Tìm kiếm lịch hẹn
+                    </label>
+
+                    <input
+                        type="search"
+                        id="bookingKeyword"
+                        name="q"
+                        maxlength="100"
+                        value="{{ keyword }}"
+                        placeholder="Mã lịch hoặc tên thú cưng">
+                </div>
+
+                <div class="vm-booking-filter">
+                    <label for="bookingStatus">
+                        Trạng thái
+                    </label>
+
+                    <select id="bookingStatus" name="status">
+                        <option value="">
+                            Tất cả trạng thái
+                        </option>
+
+                        {% for value, label in status_labels.items() %}
+                        <option value="{{ value }}"
+                            {% if selected_status == value %}
+                                selected
+                            {% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="vm-booking-filter">
+                    <label for="bookingSource">
+                        Nguồn đặt
+                    </label>
+
+                    <select id="bookingSource" name="source">
+                        <option value="">
+                            Tất cả nguồn đặt
+                        </option>
+
+                        {% for value, label in source_labels.items() %}
+                        <option value="{{ value }}"
+                            {% if selected_source == value %}
+                                selected
+                            {% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="vm-booking-filter">
+                    <label for="bookingDate">
+                        Ngày khám
+                    </label>
+
+                    <input
+                        type="date"
+                        id="bookingDate"
+                        name="date"
+                        value="{{ selected_date }}">
+                </div>
+
+                <div class="vm-booking-filter">
+                    <label for="bookingSort">
+                        Sắp xếp
+                    </label>
+
+                    <select id="bookingSort" name="sort">
+                        <option value="newest"
+                            {% if selected_sort == 'newest' %}
+                                selected
+                            {% endif %}>
+                            Ngày khám mới nhất
+                        </option>
+
+                        <option value="oldest"
+                            {% if selected_sort == 'oldest' %}
+                                selected
+                            {% endif %}>
+                            Ngày khám cũ nhất
+                        </option>
+
+                        <option value="created"
+                            {% if selected_sort == 'created' %}
+                                selected
+                            {% endif %}>
+                            Mới tạo gần đây
+                        </option>
+                    </select>
+                </div>
+
+                <div class="vm-booking-filter-actions">
+                    <button type="submit"
+                            class="vm-booking-filter-submit">
+                        <i class="bi bi-funnel"></i>
+                        Áp dụng
+                    </button>
+
+                    <a href="{{ url_for('booking.my_appointments') }}"
+                       class="vm-booking-filter-reset">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        Xóa lọc
+                    </a>
+                </div>
+
+            </form>
+
+            {% if appointments %}
+
+                <!-- GROUP APPOINTMENTS -->
+                {% set ns = namespace(upcoming=[], history=[]) %}
+
+                {% for a in appointments %}
+                    {% set is_history_status = a.status in [
+                        'COMPLETED', 'CANCELLED', 'NO_SHOW'
+                    ] %}
+
+                    {% set is_past_date = (
+                        today_value is not none
+                        and a.scheduledDate is not none
+                        and a.scheduledDate < today_value
+                    ) %}
+
+                    {% if is_history_status or is_past_date %}
+                        {% set ns.history = ns.history + [a] %}
+                    {% else %}
+                        {% set ns.upcoming = ns.upcoming + [a] %}
+                    {% endif %}
+                {% endfor %}
+
+                {% for group_name, group_items in [
+                    ('upcoming', ns.upcoming),
+                    ('history', ns.history)
+                ] %}
+
+                    {% if group_items %}
+
+                    <div class="vm-booking-group">
+
+                        <div class="vm-booking-group-heading">
+                            <div>
+                                {% if group_name == 'upcoming' %}
+                                    <h3>
+                                        <i class="bi bi-calendar-event"></i>
+                                        Lịch sắp tới / đang xử lý
+                                    </h3>
+                                    <p>
+                                        Các lịch chưa kết thúc hoặc
+                                        đang trong quá trình tiếp nhận.
+                                    </p>
+                                {% else %}
+                                    <h3>
+                                        <i class="bi bi-clock-history"></i>
+                                        Lịch sử lịch hẹn
+                                    </h3>
+                                    <p>
+                                        Các lịch đã kết thúc, đã hủy
+                                        hoặc có ngày khám đã qua.
+                                    </p>
+                                {% endif %}
+                            </div>
+
+                            <span class="vm-booking-group-count">
+                                {{ group_items|length }} lịch
+                            </span>
+                        </div>
+
+                        <!-- DESKTOP / TABLET TABLE -->
+                        <div class="vm-booking-table-wrap">
+                            <table class="vm-booking-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã lịch</th>
+                                        <th>Thú cưng</th>
+                                        <th>Ngày khám</th>
+                                        <th>Khung giờ</th>
+                                        <th>Dịch vụ</th>
+                                        <th>Nguồn đặt</th>
+                                        <th>Ngày tạo</th>
+                                        <th>Trạng thái</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {% for a in group_items %}
+                                    <tr>
+                                        <td>
+                                            <strong class="vm-booking-code">
+                                                {{ a.appointmentCode }}
+                                            </strong>
+                                        </td>
+
+                                        <td>
+                                            <div class="vm-booking-pet">
+                                                <span class="vm-booking-pet-icon">
+                                                    <i class="bi bi-heart-pulse"></i>
+                                                </span>
+
+                                                <strong>
+                                                    {{ a.pet.name if a.pet else '—' }}
+                                                </strong>
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            {% if a.scheduledDate %}
+                                                {{ a.scheduledDate.strftime('%d/%m/%Y') }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {% if a.startTime %}
+                                                {{ a.startTime.strftime('%H:%M') }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+
+                                            {% if a.endTime %}
+                                                –
+                                                {{ a.endTime.strftime('%H:%M') }}
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {% if a.service is defined and a.service %}
+                                                {{ a.service.name|default(
+                                                    a.service.serviceName|default('—')
+                                                ) }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {{ source_labels.get(a.bookingSource, '—') }}
+                                        </td>
+
+                                        <td>
+                                            {% if a.createdAt %}
+                                                {{ a.createdAt.strftime('%d/%m/%Y %H:%M') }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            <span class="vm-booking-status status-{{ a.status|lower|replace('_', '-') }}">
+                                                {{ status_labels.get(a.status, a.status) }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- MOBILE CARDS -->
+                        <div class="vm-booking-mobile-list">
+
+                            {% for a in group_items %}
+                            <article class="vm-booking-mobile-card">
+
+                                <div class="vm-booking-mobile-top">
+                                    <strong class="vm-booking-code">
+                                        {{ a.appointmentCode }}
+                                    </strong>
+
+                                    <span class="vm-booking-status status-{{ a.status|lower|replace('_', '-') }}">
+                                        {{ status_labels.get(a.status, a.status) }}
+                                    </span>
+                                </div>
+
+                                <div class="vm-booking-mobile-pet">
+                                    <span class="vm-booking-pet-icon">
+                                        <i class="bi bi-heart-pulse"></i>
+                                    </span>
+
+                                    <div>
+                                        <small>Thú cưng</small>
+                                        <strong>
+                                            {{ a.pet.name if a.pet else '—' }}
+                                        </strong>
+                                    </div>
+                                </div>
+
+                                <div class="vm-booking-mobile-details">
+
+                                    <div>
+                                        <span>Ngày khám</span>
+                                        <strong>
+                                            {% if a.scheduledDate %}
+                                                {{ a.scheduledDate.strftime('%d/%m/%Y') }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </strong>
+                                    </div>
+
+                                    <div>
+                                        <span>Giờ khám</span>
+                                        <strong>
+                                            {% if a.startTime %}
+                                                {{ a.startTime.strftime('%H:%M') }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+
+                                            {% if a.endTime %}
+                                                –
+                                                {{ a.endTime.strftime('%H:%M') }}
+                                            {% endif %}
+                                        </strong>
+                                    </div>
+
+                                    <div>
+                                        <span>Dịch vụ</span>
+                                        <strong>
+                                            {% if a.service is defined and a.service %}
+                                                {{ a.service.name|default(
+                                                    a.service.serviceName|default('—')
+                                                ) }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </strong>
+                                    </div>
+
+                                    <div>
+                                        <span>Nguồn đặt</span>
+                                        <strong>
+                                            {{ source_labels.get(a.bookingSource, '—') }}
+                                        </strong>
+                                    </div>
+
+                                    <div class="vm-booking-mobile-full">
+                                        <span>Thời gian tạo lịch</span>
+                                        <strong>
+                                            {% if a.createdAt %}
+                                                {{ a.createdAt.strftime('%d/%m/%Y %H:%M') }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </strong>
+                                    </div>
+
+                                </div>
+                            </article>
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+                    {% endif %}
+
+                {% endfor %}
+
+            {% else %}
+
+                <!-- EMPTY STATE -->
+                <div class="vm-booking-empty">
+
+                    <div class="vm-booking-empty-icon">
+                        <i class="bi bi-calendar2-x"></i>
+                    </div>
+
+                    {% if keyword or selected_status or selected_source or selected_date %}
+                        <h3>Không tìm thấy lịch hẹn</h3>
+
+                        <p>
+                            Không có lịch hẹn nào phù hợp
+                            với điều kiện tìm kiếm.
+                            Bạn hãy thử thay đổi bộ lọc.
+                        </p>
+
+                        <a href="{{ url_for('booking.my_appointments') }}"
+                           class="vm-booking-filter-reset">
+                            Xóa bộ lọc
+                        </a>
+                    {% else %}
+                        <h3>Chưa có lịch hẹn</h3>
+
+                        <p>
+                            Bạn chưa có lịch khám nào cho thú cưng.
+                            Các lịch hẹn sẽ xuất hiện tại đây
+                            khi được ghi nhận trên hệ thống VetMate.
+                        </p>
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

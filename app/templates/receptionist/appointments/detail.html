@@ -156,6 +156,133 @@
         </div>
         {% endif %}
 
+        {% if appointment.status == 'PENDING'
+            and appointment.bookingSource == 'ONLINE'
+            and appointment.appointmentType == 'SCHEDULED' %}
+
+        <div class="vm-approval-section">
+            <h3>Duyệt yêu cầu đặt lịch online</h3>
+            <p>
+                Chủ nuôi đã gửi yêu cầu đặt lịch.
+                Vui lòng kiểm tra thông tin trước khi xác nhận.
+            </p>
+
+            <form method="POST"
+                action="{{ url_for('receptionist.appointment_confirm',
+                                    appointment_id=appointment.appointmentID) }}">
+                <input type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token }}">
+
+                <button type="submit" class="vm-approval-confirm"
+                        onclick="return confirm('Xác nhận lịch hẹn này?')">
+                    ✓ Xác nhận lịch
+                </button>
+            </form>
+
+            <form method="POST"
+                action="{{ url_for('receptionist.appointment_reject',
+                                    appointment_id=appointment.appointmentID) }}"
+                class="vm-approval-reject-form">
+
+                <input type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token }}">
+
+                <label for="cancelReason">Lý do từ chối</label>
+
+                <textarea id="cancelReason"
+                        name="cancelReason"
+                        maxlength="2000"
+                        rows="3"
+                        required
+                        placeholder="Ví dụ: Bác sĩ không thể tiếp nhận vào thời gian đã chọn..."></textarea>
+
+                <button type="submit"
+                        class="vm-approval-reject"
+                        onclick="return confirm('Bạn chắc chắn muốn từ chối lịch hẹn này?')">
+                    Từ chối lịch
+                </button>
+            </form>
+        </div>
+
+        {% endif %}
+
+
+        <!-- Tiếp nhận thú cưng -->
+        {% if appointment.status == 'CONFIRMED' %}
+        <div class="vm-checkin-section">
+            <div class="vm-checkin-info">
+                <h3>Tiếp nhận thú cưng</h3>
+                <p>
+                    Xác nhận chủ nuôi đã đưa thú cưng đến phòng khám.
+                    Hệ thống sẽ tự động cấp số thứ tự khám.
+                </p>
+            </div>
+
+            {% if appointment.scheduledDate == today %}
+            <form
+                method="POST"
+                action="{{ url_for('receptionist.appointment_check_in',
+                                   appointment_id=appointment.appointmentID) }}"
+                id="checkin-form">
+
+                <input type="hidden"
+                       name="csrf_token"
+                       value="{{ csrf_token }}">
+
+                <button type="submit"
+                        class="vm-checkin-button"
+                        id="checkin-button">
+                    ✓ Xác nhận Check-in
+                </button>
+            </form>
+            {% else %}
+            <p class="vm-checkin-notice">
+                Chỉ có thể Check-in vào đúng ngày khám
+                ({{ appointment.scheduledDate.strftime('%d/%m/%Y') }}).
+            </p>
+            {% endif %}
+        </div>
+        {% elif appointment.status == 'CHECKED_IN' %}
+        <div class="vm-checkin-success">
+            <strong>✓ Đã tiếp nhận thành công</strong>
+            <p>
+                Số thứ tự:
+                <strong>
+                    {{ '%03d'|format(queue_entry.queueNumber) if queue_entry else '—' }}
+                </strong>
+            </p>
+            <p>Thú cưng đang chờ đến lượt khám.</p>
+        </div>
+        {% endif %}
     </section>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("checkin-form");
+    const button = document.getElementById("checkin-button");
+    if (!form || !button) return;
+    let submitting = false;
+
+    form.addEventListener("submit", function (event) {
+        if (submitting) {
+            event.preventDefault();
+            return;
+        }
+        const confirmed = window.confirm(
+            "Xác nhận thú cưng đã đến phòng khám và thực hiện Check-in?"
+        );
+
+        if (!confirmed) {
+            event.preventDefault();
+            return;
+        }
+        submitting = true;
+        button.disabled = true;
+        button.textContent = "Đang tiếp nhận...";
+    });
+});
+</script>
 {% endblock %}

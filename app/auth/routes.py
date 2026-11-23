@@ -66,11 +66,18 @@ from app.models import (
 )
 from app.models.verification_token import VerificationToken
 
+
 def get_default_route(user):
+    """Điều hướng người dùng theo vai trò sau đăng nhập."""
+
     if user.has_role("SYSTEM_ADMIN"):
         return url_for("admin.dashboard")
 
+    if user.has_role("RECEPTIONIST"):
+        return url_for("receptionist.dashboard")
+
     return url_for("main.home")
+
 
 def get_password_reset_user():
     """Lấy user đang thực hiện quy trình reset mật khẩu."""
