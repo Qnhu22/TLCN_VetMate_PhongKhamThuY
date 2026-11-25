@@ -1,0 +1,3 @@
+{% extends 'layouts/veterinarian.html' %}
+{% block title %}Không thể xử lý bệnh án | VetMate{% endblock %}
+{% block content %}<section class="receptionist-panel"><h1>Chưa thể xử lý bệnh án</h1><p role="alert">{{ message }}</p><p>Kiểm tra lại dữ liệu hiện tại trước khi tiếp tục. Không gửi lại thông tin từ cửa sổ cũ nếu bệnh án đã thay đổi.</p><div class="vet-actions">{% if current_user.has_permission('VISIT_VIEW_ASSIGNED') %}<a class="dashboard-primary-button" href="{{ url_for('veterinarian.visits') }}">Mở danh sách ca khám</a>{% endif %}<a class="dashboard-secondary-button" href="{{ url_for('main.home') }}">Trang VetMate</a></div></section>{% endblock %}

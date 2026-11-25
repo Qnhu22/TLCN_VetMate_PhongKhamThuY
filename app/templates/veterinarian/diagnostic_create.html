@@ -1,0 +1,10 @@
+{% extends 'layouts/veterinarian.html' %}
+{% block title %}Tạo chỉ định | VetMate{% endblock %}
+{% block content %}<div class="receptionist-page-header"><div><span class="receptionist-eyebrow">CA {{ visit.visitCode }}</span><h1>Tạo chỉ định dịch vụ</h1><p>{{ visit.pet.name }} · Mỗi chỉ định gắn với một dịch vụ và người thực hiện.</p></div></div>
+<section class="receptionist-panel vet-form-panel">{% if errors %}<div class="vet-errors" role="alert"><ul>{% for message in errors.values() %}<li>{{ message }}</li>{% endfor %}</ul></div>{% endif %}
+{% if not services or not performers %}<p role="alert">Chưa có dịch vụ phù hợp hoặc bác sĩ tham gia đủ quyền nhập kết quả. Cần hoàn tất phân công trước khi tạo chỉ định.</p>{% endif %}
+<form method="post" class="vet-form"><input type="hidden" name="csrf_token" value="{{ vet_csrf_token() }}"><input type="hidden" name="revision" value="{{ revision }}">
+<label for="serviceID">Dịch vụ</label><select id="serviceID" name="serviceID" required><option value="">Chọn dịch vụ</option>{% for row in services %}<option value="{{ row.serviceID }}" {{ 'selected' if form_data.get('serviceID') == row.serviceID|string else '' }}>{{ row.name }}</option>{% endfor %}</select>
+<label for="performedByStaffID">Bác sĩ thực hiện</label><select id="performedByStaffID" name="performedByStaffID" required><option value="">Chọn người thực hiện</option>{% for staff,user in performers %}<option value="{{ staff.staffID }}" {{ 'selected' if form_data.get('performedByStaffID') == staff.staffID|string else '' }}>{{ user.fullName }} · {{ staff.staffCode }}</option>{% endfor %}</select>
+<label for="note">Ghi chú / yêu cầu chuyên môn</label><textarea id="note" name="note" maxlength="2000" rows="4">{{ form_data.get('note','') }}</textarea>
+<div class="vet-actions"><button class="dashboard-primary-button" {{ 'disabled' if not services or not performers else '' }}>Tạo chỉ định</button>{% if current_user.has_permission('DIAGNOSTIC_ORDER_VIEW') %}<a class="dashboard-secondary-button" href="{{ url_for('veterinarian.diagnostic_orders',visit_id=visit.visitID) }}">Danh sách chỉ định</a>{% endif %}</div></form></section>{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'layouts/veterinarian.html' %}
+{% block title %}Tổng quan bác sĩ | VetMate{% endblock %}
+{% block content %}
+<div class="receptionist-page-header"><div><span class="receptionist-eyebrow">VETMATE VETERINARY DESK</span><h1>Tổng quan bác sĩ</h1><p>Xin chào {{ current_user.fullName }} · {{ day.strftime('%d/%m/%Y') }}</p></div><div class="receptionist-header-icon">🐾</div></div>
+<div class="receptionist-stats-grid">
+{% for key, label in [('total','Lịch hẹn hôm nay'), ('waiting','Đã đến, chờ khám'), ('in_progress','Đang khám'), ('completed','Đã hoàn tất')] %}
+<section class="receptionist-stat-card"><span>{{ label }}</span><strong>{{ stats[key] }}</strong><small>Lượt được phân công cho bạn hôm nay</small></section>
+{% endfor %}</div>
+<section class="receptionist-panel"><h2>Lịch làm việc hôm nay</h2>
+<p>Chuyên môn: {% for name, primary in specialties %}{{ name }}{{ ' (chính)' if primary else '' }}{{ ', ' if not loop.last else '' }}{% else %}Chưa được thiết lập{% endfor %}</p>
+{% include 'veterinarian/_schedule_table.html' %}</section>
+{% endblock %}

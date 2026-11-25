@@ -1,0 +1,9 @@
+{% extends 'layouts/veterinarian.html' %}
+{% block title %}Lịch làm việc | VetMate{% endblock %}
+{% block content %}
+<div class="receptionist-page-header"><div><span class="receptionist-eyebrow">LỊCH PHÂN CÔNG</span><h1>Lịch làm việc của tôi</h1><p>{{ first.strftime('%d/%m/%Y') }} – {{ last.strftime('%d/%m/%Y') }}</p></div></div>
+<section class="receptionist-panel">
+<form method="get" class="vet-filter"><label>Ngày <input type="date" name="date" value="{{ selected_date }}" required></label><label>Hiển thị <select name="view"><option value="week" {{ 'selected' if view == 'week' else '' }}>Theo tuần</option><option value="day" {{ 'selected' if view == 'day' else '' }}>Theo ngày</option></select></label><button class="dashboard-primary-button" type="submit">Xem lịch</button></form>
+<p>Chuyên môn: {% for name, primary in specialties %}{{ name }}{{ ' (chính)' if primary else '' }}{{ ', ' if not loop.last else '' }}{% else %}Chưa được thiết lập{% endfor %}</p>
+{% include 'veterinarian/_schedule_table.html' %}</section>
+{% endblock %}

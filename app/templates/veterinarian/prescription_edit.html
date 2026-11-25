@@ -1,0 +1,21 @@
+{% extends 'layouts/veterinarian.html' %}
+{% block title %}{{ 'Sửa đơn thuốc' if rx else 'Kê đơn thuốc' }} | VetMate{% endblock %}
+{% block content %}<div class="receptionist-page-header"><div><span class="receptionist-eyebrow">CA {{ visit.visitCode }}</span><h1>{{ 'Sửa đơn ' ~ rx.prescriptionNumber if rx else 'Kê đơn thuốc' }}</h1><p>{{ visit.pet.name }} · Bác sĩ nhập liều và hướng dẫn theo chuyên môn.</p></div></div>
+{% set pet = visit.pet %}{% include 'veterinarian/_pet_information.html' %}
+<section class="receptionist-panel"><form method="get" class="vet-filter"><label>Tìm thuốc theo tên / mã<input name="q" value="{{ keyword }}" maxlength="100"></label><button class="dashboard-secondary-button">Tìm thuốc</button></form><p class="vet-muted">Tìm danh mục trước khi nhập đơn; tìm lại sẽ tải lại biểu mẫu. Hiển thị tối đa 100 thuốc phù hợp và các thuốc đã chọn.</p></section>
+<section class="receptionist-panel vet-form-panel">{% if errors %}<div class="vet-errors" role="alert"><ul>{% for message in errors.values() %}<li>{{ message }}</li>{% endfor %}</ul></div>{% endif %}
+{% if not medicines %}<p role="alert">Không có thuốc đang hoạt động có hồ sơ thuốc phù hợp.</p>{% endif %}
+<form method="post" class="vet-form" id="prescription-form"><input type="hidden" name="csrf_token" value="{{ vet_csrf_token() }}"><input type="hidden" name="revision" value="{{ revision }}">
+<div id="prescription-rows">{% for row in rows %}<fieldset class="receptionist-panel rx-row"><legend>Thuốc {{ loop.index }}</legend>
+<label>Thuốc<select name="rx_productID" required><option value="">Chọn thuốc</option>{% for medicine in medicines %}<option value="{{ medicine.productID }}" {{ 'selected' if row.productID == medicine.productID|string else '' }}>{{ medicine.productCode }} · {{ medicine.name }} ({{ medicine.unit }})</option>{% endfor %}</select></label>
+<label>Số lượng theo đơn vị thuốc<input name="rx_quantity" value="{{ row.quantity }}" type="number" min="0.001" max="999999999.999" step="0.001" required></label>
+<label>Liều dùng<input name="rx_dose" value="{{ row.dose }}" maxlength="150" required></label>
+<label>Tần suất<input name="rx_frequency" value="{{ row.frequency }}" maxlength="150" required></label>
+<label>Số ngày<input name="rx_durationDays" value="{{ row.durationDays }}" type="number" min="1" max="2147483647" step="1" required></label>
+<label>Đường dùng<input name="rx_route" value="{{ row.route }}" maxlength="100" required></label>
+<label>Hướng dẫn riêng<textarea name="rx_instruction" maxlength="2000" rows="2">{{ row.instruction }}</textarea></label>
+<button type="button" class="dashboard-secondary-button vet-button-danger" data-remove-rx>Xóa dòng thuốc</button></fieldset>{% endfor %}</div>
+<button type="button" id="add-prescription-row" class="dashboard-secondary-button">Thêm thuốc</button>
+<label for="generalInstruction">Hướng dẫn chung</label><textarea id="generalInstruction" name="generalInstruction" maxlength="10000" rows="4">{{ form_data.get('generalInstruction','') }}</textarea>
+<div class="vet-actions"><button class="dashboard-primary-button" {{ 'disabled' if not medicines else '' }}>Lưu đơn thuốc</button>{% if current_user.has_permission('PRESCRIPTION_VIEW') %}<a class="dashboard-secondary-button" href="{{ url_for('veterinarian.prescription_list',visit_id=visit.visitID) }}">Danh sách đơn</a>{% endif %}</div></form></section>
+<script src="{{ url_for('static',filename='js/veterinarian-prescriptions.js') }}" defer></script>{% endblock %}

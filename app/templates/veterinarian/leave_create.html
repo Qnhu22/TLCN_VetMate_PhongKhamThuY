@@ -1,0 +1,14 @@
+{% extends 'layouts/veterinarian.html' %}
+{% block title %}Gửi yêu cầu nghỉ | VetMate{% endblock %}
+{% block content %}
+<div class="receptionist-page-header"><div><span class="receptionist-eyebrow">YÊU CẦU NGHỈ</span><h1>Gửi yêu cầu nghỉ</h1><p>Chọn khoảng ngày nghỉ nguyên ngày. Yêu cầu chỉ có hiệu lực sau khi quản lý xét duyệt.</p></div></div>
+<section class="receptionist-panel vet-form-panel">
+{% if errors %}<div class="vet-errors" role="alert"><ul>{% for message in errors.values() %}<li>{{ message }}</li>{% endfor %}</ul></div>{% endif %}
+<form method="post" class="vet-form">
+<input type="hidden" name="csrf_token" value="{{ vet_csrf_token() }}">
+<label for="startDate">Từ ngày</label><input id="startDate" name="startDate" type="date" min="{{ today.isoformat() }}" value="{{ form_data.get('startDate','') }}" required>
+<label for="endDate">Đến hết ngày</label><input id="endDate" name="endDate" type="date" min="{{ today.isoformat() }}" value="{{ form_data.get('endDate','') }}" required>
+<label for="reason">Lý do nghỉ</label><textarea id="reason" name="reason" maxlength="2000" rows="5" required>{{ form_data.get('reason','') }}</textarea>
+<p class="vet-muted">Giờ làm: 07:30–11:30 và 13:00–17:00. Gửi yêu cầu không tự hủy lịch hẹn hoặc thay đổi lịch phân công.</p>
+<div class="vet-actions"><button class="dashboard-primary-button" type="submit">Gửi yêu cầu</button>{% if current_user.has_permission('VET_LEAVE_VIEW_SELF') %}<a class="dashboard-secondary-button" href="{{ url_for('veterinarian.leaves') }}">Quay lại</a>{% endif %}</div>
+</form></section>{% endblock %}

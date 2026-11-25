@@ -211,6 +211,18 @@
                                     <span>Hồ sơ của tôi</span>
                                 </a>
 
+                            {% if current_user.has_role('VETERINARIAN') %}
+                            {% for permission, endpoint, label in [
+                                ('VET_DASHBOARD_VIEW', 'veterinarian.dashboard', 'Tổng quan bác sĩ'),
+                                ('VET_SCHEDULE_VIEW_SELF', 'veterinarian.working_schedules', 'Lịch làm việc'),
+                                ('VET_LEAVE_VIEW_SELF', 'veterinarian.leaves', 'Yêu cầu nghỉ')
+                            ] %}
+                            {% if current_user.has_permission(permission) %}
+                            <a href="{{ url_for(endpoint) }}" class="account-menu-item"><i class="bi bi-clipboard2-pulse"></i><span>{{ label }}</span></a>
+                            {% endif %}
+                            {% endfor %}
+                            {% endif %}
+
 
                                 <!-- MENU DÀNH CHO QUẢN TRỊ VIÊN -->
                                 {% if current_user.has_role('SYSTEM_ADMIN') %}

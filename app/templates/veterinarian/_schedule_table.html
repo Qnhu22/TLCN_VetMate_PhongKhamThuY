@@ -1,0 +1,13 @@
+<div class="receptionist-table-wrap">
+<table class="receptionist-customer-table">
+    <caption class="vet-caption">Lịch làm việc đã được quản lý phân công</caption>
+    <thead><tr><th>Ngày</th><th>Buổi sáng</th><th>Buổi chiều</th><th>Trạng thái</th><th>Ưu tiên cấp cứu</th><th>Ghi chú</th></tr></thead>
+    <tbody>{% for row in schedules %}<tr>
+        <td>{{ row.workDate.strftime('%d/%m/%Y') }}</td>
+        <td>{{ row.morningStartTime.strftime('%H:%M') }}–{{ row.morningEndTime.strftime('%H:%M') }}</td>
+        <td>{{ row.afternoonStartTime.strftime('%H:%M') }}–{{ row.afternoonEndTime.strftime('%H:%M') }}</td>
+        <td>{{ 'Được phân công' if row.status == 'AVAILABLE' else 'Không khả dụng' }}</td>
+        <td>{{ 'Có' if row.isEmergencyLead else 'Không' }}</td><td>{{ row.note or '—' }}</td>
+    </tr>{% else %}<tr><td colspan="6">Chưa có lịch phân công trong khoảng ngày này.</td></tr>{% endfor %}</tbody>
+</table></div>
+<p class="vet-muted">Lịch phân công và nghỉ phép được quản lý xét duyệt riêng. Bác sĩ không tự thay đổi ca làm.</p>

@@ -1,0 +1,11 @@
+{% extends 'layouts/veterinarian.html' %}
+{% block title %}Lịch khám của tôi | VetMate{% endblock %}
+{% block content %}
+<div class="receptionist-page-header"><div><span class="receptionist-eyebrow">LỊCH KHÁM ĐƯỢC GIAO</span><h1>Lịch khám của tôi</h1><p>Chuẩn bị thông tin trước khám và nhận lượt sau khi lễ tân check-in.</p></div></div>
+<section class="receptionist-panel"><form method="get" class="vet-filter">
+<label>Tìm kiếm<input name="q" maxlength="100" value="{{ keyword }}" placeholder="Pet, mã pet hoặc mã lịch hẹn"></label>
+<label>Ngày<input type="date" name="date" value="{{ day.isoformat() if day else '' }}"></label>
+{% include 'veterinarian/_type_filter.html' %}
+<label>Trạng thái<select name="status"><option value="">Tất cả</option>{% for code, label in appointment_statuses.items() %}<option value="{{ code }}" {{ 'selected' if selected_status == code else '' }}>{{ label }}</option>{% endfor %}</select></label>
+<button class="dashboard-primary-button">Lọc lịch</button><a class="dashboard-secondary-button" href="{{ url_for('veterinarian.appointments') }}">Xóa bộ lọc</a></form>
+{% include 'veterinarian/_appointment_table.html' %}</section>{% endblock %}

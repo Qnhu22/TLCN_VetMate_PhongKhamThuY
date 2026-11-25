@@ -1,0 +1,3 @@
+{% extends 'layouts/veterinarian.html' %}
+{% block title %}Chuẩn bị tiêm phòng / tái khám | VetMate{% endblock %}
+{% block content %}<section class="receptionist-panel"><h1>Chưa đủ bảng tiêm phòng và tái khám</h1><p>Cần người phụ trách database chạy <strong>12_medical_vaccinations_followups.sql</strong>, sau đó <strong>22_seed_veterinarian_phase6_permissions.sql</strong>. Ứng dụng không tự tạo bảng hoặc chạy SQL.</p><p>Danh mục vaccine phải được nhập đúng thông tin chuyên môn trước khi ghi tiêm. Không cần bảng kho để dùng riêng giai đoạn 6.</p></section>{% endblock %}

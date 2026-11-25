@@ -73,6 +73,15 @@ def get_default_route(user):
     if user.has_role("SYSTEM_ADMIN"):
         return url_for("admin.dashboard")
 
+    if user.has_role("VETERINARIAN"):
+        for permission, endpoint in (
+            ("VET_DASHBOARD_VIEW", "veterinarian.dashboard"),
+            ("VET_SCHEDULE_VIEW_SELF", "veterinarian.working_schedules"),
+            ("VET_LEAVE_VIEW_SELF", "veterinarian.leaves"),
+            ("VET_LEAVE_CREATE_SELF", "veterinarian.leave_create"),
+        ):
+            if user.has_permission(permission):
+                return url_for(endpoint)
     if user.has_role("RECEPTIONIST"):
         return url_for("receptionist.dashboard")
 

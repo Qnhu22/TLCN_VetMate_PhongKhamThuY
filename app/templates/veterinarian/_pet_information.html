@@ -1,0 +1,8 @@
+<section class="receptionist-panel"><h2>Thông tin trước khám</h2><div class="vet-info-grid">
+<div><strong>Thú cưng</strong><p>{{ pet.name }} · {{ pet.petCode }}</p></div>
+<div><strong>Chủ nuôi</strong><p>{{ pet.owner.user.fullName }}<br>{{ pet.owner.user.phone or 'Chưa cập nhật điện thoại' }}</p></div>
+<div><strong>Loài / Giống</strong><p>{{ pet.species.name }} / {{ pet.breed.name if pet.breed else 'Chưa xác định' }}</p></div>
+<div><strong>Ngày sinh</strong><p>{{ pet.dateOfBirth.strftime('%d/%m/%Y') if pet.dateOfBirth else 'Chưa cập nhật' }}</p></div>
+<div><strong>Dị ứng</strong><p class="vet-wrap">{{ pet.allergies or 'Chưa có thông tin ghi nhận' }}</p></div>
+<div><strong>Bệnh nền</strong><p class="vet-wrap">{{ pet.chronicConditions or 'Chưa có thông tin ghi nhận' }}</p></div>
+</div></section>

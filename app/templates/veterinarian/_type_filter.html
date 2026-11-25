@@ -1,0 +1,1 @@
+<label>Loại lượt<select name="type"><option value="">Tất cả</option>{% for code,label in appointment_types.items() %}<option value="{{ code }}" {{ 'selected' if selected_type == code else '' }}>{{ label }}</option>{% endfor %}</select></label>

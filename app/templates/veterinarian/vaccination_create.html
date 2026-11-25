@@ -1,0 +1,15 @@
+{% extends 'layouts/veterinarian.html' %}
+{% block title %}Ghi nhận tiêm phòng | VetMate{% endblock %}
+{% block content %}<div class="receptionist-page-header"><div><span class="receptionist-eyebrow">CA {{ visit.visitCode }}</span><h1>Ghi nhận tiêm phòng</h1><p>Người ghi là bác sĩ thực hiện. Chỉ ghi mũi đã tiêm trong ngày ca khám.</p></div></div>
+{% set pet = visit.pet %}{% include 'veterinarian/_pet_information.html' %}
+<section class="receptionist-panel vet-form-panel">{% if errors %}<div class="vet-errors" role="alert"><ul>{% for message in errors.values() %}<li>{{ message }}</li>{% endfor %}</ul></div>{% endif %}
+{% if not vaccines %}<p role="alert">Chưa có vaccine đang hoạt động. Cần người phụ trách danh mục cung cấp dữ liệu trước khi ghi tiêm.</p>{% endif %}
+<form method="post" class="vet-form"><input type="hidden" name="csrf_token" value="{{ vet_csrf_token() }}"><input type="hidden" name="revision" value="{{ revision }}">
+<label for="vaccineID">Vaccine</label><select id="vaccineID" name="vaccineID" required><option value="">Chọn vaccine</option>{% for row in vaccines %}<option value="{{ row.vaccineID }}" {{ 'selected' if form_data.get('vaccineID') == row.vaccineID|string else '' }}>{{ row.name }} · {{ row.manufacturer or 'Chưa ghi nhà sản xuất' }}</option>{% endfor %}</select>
+<label for="vaccinationDate">Ngày đã tiêm</label><input id="vaccinationDate" name="vaccinationDate" type="date" value="{{ form_data.get('vaccinationDate','') }}" required>
+<label for="dose">Liều thực tế</label><input id="dose" name="dose" maxlength="150" value="{{ form_data.get('dose','') }}" required>
+<label for="lotNumber">Số lô</label><input id="lotNumber" name="lotNumber" maxlength="100" value="{{ form_data.get('lotNumber','') }}">
+<label for="nextDueDate">Ngày nhắc tiếp theo (nếu có)</label><input id="nextDueDate" name="nextDueDate" type="date" value="{{ form_data.get('nextDueDate','') }}"><p class="vet-muted">Bác sĩ tự xác định ngày nhắc; hệ thống không tự đặt lịch hoặc gửi thông báo.</p>
+<label for="reaction">Phản ứng sau tiêm</label><textarea id="reaction" name="reaction" maxlength="2000" rows="3">{{ form_data.get('reaction','') }}</textarea>
+<label for="note">Ghi chú nội bộ</label><textarea id="note" name="note" maxlength="2000" rows="3">{{ form_data.get('note','') }}</textarea>
+<div class="vet-actions"><button class="dashboard-primary-button" {{ 'disabled' if not vaccines else '' }}>Lưu bản ghi tiêm</button>{% if current_user.has_permission('VACCINATION_RECORD_VIEW') %}<a class="dashboard-secondary-button" href="{{ url_for('veterinarian.vaccinations',visit_id=visit.visitID) }}">Danh sách tiêm</a>{% endif %}</div></form></section>{% endblock %}

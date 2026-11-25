@@ -16,3 +16,18 @@ __pycache__/
 # IDE
 .vscode/
 .idea/
+
+# Flask instance data and private clinical attachments
+instance/
+
+# Tài liệu và kiểm thử chỉ giữ ở máy
+/report/
+/tests/
+
+# Dữ liệu phát sinh khi chạy
+/app/static/uploads/
+*.log
+
+# Dữ liệu mô phỏng kiểm thử
+/database/18_seed_veterinarian_phase3_test_data.sql
+/database/23_seed_veterinarian_all_phases_test_data.sql

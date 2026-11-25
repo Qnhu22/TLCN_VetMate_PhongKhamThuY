@@ -1,0 +1,16 @@
+{% extends 'layouts/veterinarian.html' %}
+{% block title %}Chi tiết lịch khám | VetMate{% endblock %}
+{% block content %}
+<div class="receptionist-page-header"><div><span class="receptionist-eyebrow">LỊCH KHÁM</span><h1>{{ appointment.appointmentCode }}</h1><p>{{ appointment_statuses.get(appointment.status, appointment.status) }} · {{ appointment_types.get(appointment.appointmentType, appointment.appointmentType) }}</p></div></div>
+<section class="receptionist-panel"><h2>Thông tin lịch hẹn</h2><p>{{ appointment.scheduledDate.strftime('%d/%m/%Y') }} · {{ appointment.startTime.strftime('%H:%M') }} · {{ service.name if service else 'Dịch vụ chưa xác định' }}</p>
+<p class="vet-wrap"><strong>Lý do khám:</strong> {{ appointment.reason }}</p><p class="vet-wrap"><strong>Ghi chú chủ nuôi:</strong> {{ appointment.ownerNote or '—' }}</p>
+{% if appointment.priority == 'URGENT' %}<p class="vet-urgent">Lượt ưu tiên khẩn cấp</p>{% endif %}
+{% if appointment.appointmentType == 'EMERGENCY' %}<p class="vet-muted">Cấp cứu tiếp nhận trực tiếp trong giờ làm. Bác sĩ phải có chuyên môn phù hợp và đúng phân công; vai trò ưu tiên cấp cứu không cho phép tự nhận lượt của người khác.</p>{% if emergency_issue %}<p class="vet-errors" role="alert">{{ emergency_issue }}</p>{% endif %}{% endif %}
+{% if appointment.queueEntry %}<p>Số thứ tự {{ appointment.queueEntry.queueNumber }} · Check-in: {{ appointment.queueEntry.checkedInAt|vet_local }}</p>{% endif %}
+<div class="vet-actions">
+{% if can_start %}<form method="post" action="{{ url_for('veterinarian.appointment_start', appointment_id=appointment.appointmentID) }}"><input type="hidden" name="csrf_token" value="{{ vet_csrf_token() }}"><button class="dashboard-primary-button">Bắt đầu khám</button></form>{% endif %}
+{% if visit and current_user.has_permission('VISIT_VIEW_ASSIGNED') %}<a class="dashboard-primary-button" href="{{ url_for('veterinarian.visit_detail', visit_id=visit.visitID) }}">Xem ca khám</a>{% endif %}
+<a class="dashboard-secondary-button" href="{{ url_for('veterinarian.appointments') }}">Quay lại</a></div>
+{% if appointment.status in ['PENDING', 'CONFIRMED'] %}<p class="vet-muted">Chờ lễ tân xác nhận thú cưng đã đến phòng khám trước khi bắt đầu.</p>{% endif %}</section>
+{% set pet = appointment.pet %}{% include 'veterinarian/_pet_information.html' %}
+{% endblock %}

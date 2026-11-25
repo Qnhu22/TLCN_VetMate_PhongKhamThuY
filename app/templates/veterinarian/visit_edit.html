@@ -1,0 +1,21 @@
+{% extends 'layouts/veterinarian.html' %}
+{% block title %}Cập nhật bệnh án {{ visit.visitCode }} | VetMate{% endblock %}
+{% block content %}
+<div class="receptionist-page-header"><div><span class="receptionist-eyebrow">BỆNH ÁN ĐANG KHÁM</span><h1>{{ visit.visitCode }}</h1><p>{{ visit.pet.name }} · {{ visit.pet.petCode }} · Bác sĩ chính</p></div></div>
+{% set pet = visit.pet %}{% include 'veterinarian/_pet_information.html' %}
+<section class="receptionist-panel">
+{% if errors %}<div class="vet-errors" role="alert"><p>Chưa lưu bệnh án. Vui lòng kiểm tra:</p><ul>{% for message in errors.values() %}<li>{{ message }}</li>{% endfor %}</ul></div>{% endif %}
+<form method="post" action="{{ url_for('veterinarian.visit_edit', visit_id=visit.visitID) }}" class="vet-form">
+<input type="hidden" name="csrf_token" value="{{ vet_csrf_token() }}"><input type="hidden" name="revision" value="{{ revision }}">
+<h2>Triệu chứng và khám lâm sàng</h2>
+{% if visit.appointment and visit.appointment.appointmentType == 'EMERGENCY' %}<p class="vet-urgent">Bệnh án cấp cứu: ghi đánh giá mức độ khẩn cấp trong triệu chứng/khám lâm sàng và xử trí ổn định trong hướng điều trị. Dùng chỉ định và kê đơn chung; không tạo bệnh án thứ hai.</p>{% endif %}
+<p class="vet-muted">Lưu nháp cho phép để trống chỉ số chưa đo. Hoàn tất yêu cầu lý do khám, khám lâm sàng và chẩn đoán cuối cùng.</p>
+<div class="vet-info-grid">{% for field, label in number_labels.items() %}<div class="vet-form"><label for="{{ field }}">{{ label }}{{ ' (kg)' if field == 'weightKg' else ' (°C)' if field == 'temperatureC' else ' (lần/phút)' }}</label><input id="{{ field }}" name="{{ field }}" type="number" min="{{ '0.001' if field == 'weightKg' else '0.01' if field == 'temperatureC' else '1' }}" step="{{ '0.001' if field == 'weightKg' else '0.01' if field == 'temperatureC' else '1' }}" value="{{ form_data.get(field, '') }}" {% if errors.get(field) %}aria-invalid="true" aria-describedby="{{ field }}Error"{% endif %}>{% if errors.get(field) %}<span id="{{ field }}Error" role="alert">{{ errors[field] }}</span>{% endif %}</div>{% endfor %}</div>
+<label class="vet-checkbox"><input type="checkbox" name="recordWeight" value="1" {{ 'checked' if form_data.get('recordWeight') == '1' else '' }}>Ghi nhận cân nặng này là một lần đo mới trong lịch sử</label>
+<p class="vet-muted">Không chọn nếu chỉ chỉnh lại bệnh án hoặc lưu lại lần đo đã ghi. Lưu nháp không tự thêm lịch sử cân nặng.</p>
+{% for field, label in text_fields.items() %}<label for="{{ field }}">{{ label }}{{ ' *' if field == 'chiefComplaint' else '' }}</label><textarea id="{{ field }}" name="{{ field }}" rows="{{ 4 if field in ['clinicalExamination', 'treatmentPlan'] else 3 }}" maxlength="10000" {{ 'required' if field == 'chiefComplaint' else '' }} {% if errors.get(field) %}aria-invalid="true" aria-describedby="{{ field }}Error"{% endif %}>{{ form_data.get(field, '') }}</textarea>{% if errors.get(field) %}<span id="{{ field }}Error" role="alert">{{ errors[field] }}</span>{% endif %}{% endfor %}
+<div class="vet-actions"><button class="dashboard-primary-button" type="submit">Lưu nháp</button>
+{% if current_user.has_permission('VISIT_COMPLETE') %}<button class="dashboard-secondary-button" type="submit" formaction="{{ url_for('veterinarian.visit_complete', visit_id=visit.visitID) }}">Lưu và hoàn tất ca khám</button>{% endif %}
+{% if current_user.has_permission('VISIT_VIEW_ASSIGNED') %}<a class="dashboard-secondary-button" href="{{ url_for('veterinarian.visit_detail', visit_id=visit.visitID) }}">Quay lại ca khám</a>{% endif %}</div>
+<p class="vet-muted">Hoàn tất sẽ khóa bệnh án và kết thúc lượt khám. Xử lý các chỉ định còn chờ trước khi chốt; đơn thuốc, tiêm phòng và đề nghị tái khám nằm trên trang ca khám. Thanh toán và cấp phát được theo dõi riêng.</p>
+</form></section>{% endblock %}
