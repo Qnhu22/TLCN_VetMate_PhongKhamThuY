@@ -141,17 +141,38 @@
                     <span>Khách hàng</span>
                 </a>
 
-                <div class="sidebar-item receptionist-nav-disabled"
-                     aria-disabled="true">
+                <a href="{{ url_for('receptionist.pets') }}"
+                class="sidebar-item
+                {% if request.endpoint and request.endpoint.startswith('receptionist.pet') %}
+                is-active
+                {% endif %}">
                     <span class="sidebar-icon">🐾</span>
                     <span>Thú cưng</span>
-                </div>
+                </a>
 
-                <div class="sidebar-item receptionist-nav-disabled"
-                     aria-disabled="true">
+                <a href="{{ url_for('receptionist.appointments') }}"
+                class="sidebar-item
+                {% if request.endpoint and (
+                    request.endpoint == 'receptionist.appointments'
+                    or (
+                        request.endpoint.startswith('receptionist.appointment')
+                        and request.endpoint != 'receptionist.appointment_queue'
+                    )
+                ) %}
+                is-active
+                {% endif %}">
+
                     <span class="sidebar-icon">▦</span>
                     <span>Lịch hẹn</span>
-                </div>
+                </a>
+                <a href="{{ url_for('receptionist.appointment_queue') }}"
+                class="sidebar-item
+                {% if request.endpoint == 'receptionist.appointment_queue' %}
+                is-active
+                {% endif %}">
+                    <span class="sidebar-icon">☷</span>
+                    <span>Hàng đợi khám</span>
+                </a>
 
                 <p class="sidebar-label">
                     TÀI KHOẢN

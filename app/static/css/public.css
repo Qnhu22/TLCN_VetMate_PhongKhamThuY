@@ -2191,3 +2191,36 @@ html[data-theme="dark"]
 .account-menu a.account-menu-item {
     text-decoration: none;
 }
+
+
+/* =========================================================
+   ACCOUNT MENU - ROLE DASHBOARD LINKS
+   Default / Light / Dark / Responsive
+   ========================================================= */
+
+.account-menu-dashboard {
+    font-weight: 750;
+    color: var(--public-primary);
+}
+
+.account-menu-dashboard i {
+    color: var(--public-primary);
+}
+
+.account-menu-dashboard:hover {
+    color: var(--public-primary-hover);
+    background: var(--public-bg);
+}
+
+.account-menu-dashboard:focus-visible {
+    outline: 2px solid var(--public-primary);
+    outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+    .account-menu-dashboard {
+        min-height: 44px;
+        padding: 11px 12px;
+        font-size: 12px;
+    }
+}

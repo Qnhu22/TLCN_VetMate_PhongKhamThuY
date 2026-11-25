@@ -42,8 +42,9 @@ from app.auth.decorators import role_required
 from app.extensions import db
 from app.models import OwnerProfile, Pet, User, Role, Species, Breed, Appointment
 from app.receptionist import receptionist_bp
+from app.models.queue_entry import QueueEntry
 
-from sqlalchemy import func, or_, text
+from sqlalchemy import func, or_, text, bindparam
 from app.pets.validation import (
     PetValidationError,
     validate_pet_form,
@@ -1149,6 +1150,84 @@ def appointment_create_form(pet_id):
     )
 
 
+@receptionist_bp.get("/appointments/create/pets/<int:pet_id>/availability")
+@role_required("RECEPTIONIST")
+def appointment_create_availability(pet_id):
+    from flask import jsonify
+
+    if current_user.status != "ACTIVE":
+        abort(403)
+
+    Pet.query.filter_by(
+        petID=pet_id,
+        status="ACTIVE"
+    ).first_or_404()
+
+    service_id = request.args.get("serviceID", type=int)
+    vet_id = request.args.get("veterinarianID", type=int)
+    day_str = request.args.get("scheduledDate", "").strip()
+
+    if not service_id or not day_str:
+        return jsonify({
+            "vets": [],
+            "slots": [],
+            "message": "Vui lòng chọn dịch vụ và ngày khám."
+        })
+
+    try:
+        day = date.fromisoformat(day_str)
+    except ValueError:
+        return jsonify({
+            "error": "Ngày khám không hợp lệ."
+        }), 400
+
+    today = datetime.now(
+        ZoneInfo("Asia/Ho_Chi_Minh")
+    ).date()
+
+    if day < today:
+        return jsonify({
+            "error": "Không thể đặt lịch vào ngày đã qua."
+        }), 400
+
+    service = next(
+        (
+            s for s in db.session.execute(SERVICES_SQL).mappings()
+            if s["serviceID"] == service_id
+        ),
+        None
+    )
+
+    if service is None:
+        return jsonify({
+            "error": "Dịch vụ không còn cho phép đặt lịch."
+        }), 400
+
+    vets = db.session.execute(
+        VETS_SQL,
+        {"day": day, "service_id": service_id}
+    ).mappings().all()
+
+    vet_options = [
+        {"id": v["id"], "name": v["name"]}
+        for v in vets
+    ]
+
+    valid_vet_ids = {v["id"] for v in vets}
+
+    slots = []
+    if vet_id in valid_vet_ids:
+        slots = available_slots(
+            service_id, day, pet_id, vet_id
+        )
+
+    return jsonify({
+        "vets": vet_options,
+        "slots": slots,
+        "selectedVet": vet_id if vet_id in valid_vet_ids else None
+    })
+
+
 @receptionist_bp.get("/appointments/<int:appointment_id>")
 @role_required("RECEPTIONIST")
 def appointment_detail(appointment_id):
@@ -1184,10 +1263,441 @@ def appointment_detail(appointment_id):
         {"vet_id": appointment.veterinarianID}
     ).mappings().first() if appointment.veterinarianID else None
 
+    
     return render_template(
         "receptionist/appointments/detail.html",
         appointment=appointment,
         service=service,
         veterinarian=veterinarian,
         queue_entry=appointment.queueEntry,
+        today=datetime.now(
+            ZoneInfo("Asia/Ho_Chi_Minh")
+        ).date(),
+        csrf_token=get_customer_csrf_token(),
     )
+
+@receptionist_bp.post("/appointments/<int:appointment_id>/check-in")
+@role_required("RECEPTIONIST")
+def appointment_check_in(appointment_id):
+    if current_user.status != "ACTIVE":
+        abort(403)
+
+    # Kiểm tra CSRF giống các form lễ tân hiện tại.
+    validate_customer_csrf()
+
+    today = datetime.now(
+        ZoneInfo("Asia/Ho_Chi_Minh")
+    ).date()
+
+    try:
+        # Khóa giao dịch theo ngày.
+        # Mọi lễ tân cấp số trong cùng ngày phải chờ nhau.
+        db.session.execute(
+            text("SELECT pg_advisory_xact_lock(:key)"),
+            {"key": int(today.strftime("%Y%m%d"))}
+        )
+
+        # Khóa lịch hẹn để tránh check-in trùng.
+        appointment = (
+            db.session.query(Appointment)
+            .filter(Appointment.appointmentID == appointment_id)
+            .with_for_update(of=Appointment)
+            .first()
+        )
+
+        if appointment is None:
+            db.session.rollback()
+            abort(404)
+
+        if appointment.status != "CONFIRMED":
+            db.session.rollback()
+            flash(
+                "Chỉ lịch hẹn đã xác nhận mới được check-in.",
+                "warning"
+            )
+            return redirect(url_for(
+                "receptionist.appointment_detail",
+                appointment_id=appointment_id
+            ))
+
+        if appointment.scheduledDate != today:
+            db.session.rollback()
+            flash(
+                "Chỉ có thể check-in vào đúng ngày khám.",
+                "warning"
+            )
+            return redirect(url_for(
+                "receptionist.appointment_detail",
+                appointment_id=appointment_id
+            ))
+
+        existing = (
+            db.session.query(QueueEntry)
+            .filter(QueueEntry.appointmentID == appointment_id)
+            .first()
+        )
+
+        if existing is not None:
+            db.session.rollback()
+            flash(
+                "Lịch hẹn này đã có số thứ tự tiếp nhận.",
+                "warning"
+            )
+            return redirect(url_for(
+                "receptionist.appointment_detail",
+                appointment_id=appointment_id
+            ))
+
+        # Lấy số thứ tự lớn nhất trong ngày.
+        # Không tái sử dụng số đã cấp, kể cả khi bị hủy.
+        last_number = (
+            db.session.query(
+                func.max(QueueEntry.queueNumber)
+            )
+            .filter(QueueEntry.queueDate == today)
+            .scalar()
+        )
+
+        next_number = (last_number or 0) + 1
+
+        now = datetime.now(timezone.utc)
+
+        queue_entry = QueueEntry(
+            appointmentID=appointment.appointmentID,
+            queueDate=today,
+            queueNumber=next_number,
+            checkedInAt=now,
+            status="WAITING"
+        )
+
+        appointment.status = "CHECKED_IN"
+        appointment.checkedInAt = now
+
+        db.session.add(queue_entry)
+        db.session.commit()
+
+        flash(
+            f"Check-in thành công! Số thứ tự: {next_number:03d}.",
+            "success"
+        )
+
+    except SQLAlchemyError:
+        db.session.rollback()
+        current_app.logger.exception(
+            "Failed to check in appointment %s",
+            appointment_id
+        )
+        flash(
+            "Không thể check-in. Vui lòng thử lại.",
+            "danger"
+        )
+
+    return redirect(url_for(
+        "receptionist.appointment_detail",
+        appointment_id=appointment_id
+    ))
+
+
+
+@receptionist_bp.get("/appointments/queue")
+@role_required("RECEPTIONIST")
+def appointment_queue():
+    if current_user.status != "ACTIVE":
+        abort(403)
+
+    # Ngày hiện tại theo múi giờ Việt Nam
+    vietnam_tz = ZoneInfo("Asia/Ho_Chi_Minh")
+    today = datetime.now(vietnam_tz).date()
+
+    # Lấy điều kiện lọc
+    day_str = request.args.get("date", "").strip()
+    selected_status = request.args.get("status", "").strip().upper()
+
+    try:
+        selected_day = (
+            date.fromisoformat(day_str)
+            if day_str else today
+        )
+    except ValueError:
+        selected_day = today
+
+    allowed_statuses = {
+        "WAITING",
+        "CALLED",
+        "IN_PROGRESS",
+        "COMPLETED",
+        "SKIPPED",
+        "CANCELLED"
+    }
+
+    if selected_status not in allowed_statuses:
+        selected_status = ""
+
+    # Lấy danh sách hàng đợi theo ngày
+    query = (
+        db.session.query(QueueEntry)
+        .filter(QueueEntry.queueDate == selected_day)
+    )
+
+    if selected_status:
+        query = query.filter(
+            QueueEntry.status == selected_status
+        )
+
+    entries = (
+        query.order_by(
+            QueueEntry.queueNumber.asc(),
+            QueueEntry.queueEntryID.asc()
+        ).all()
+    )
+
+    # Thống kê theo trạng thái (không phụ thuộc bộ lọc)
+    counts = dict(
+        db.session.query(
+            QueueEntry.status,
+            func.count(QueueEntry.queueEntryID)
+        )
+        .filter(QueueEntry.queueDate == selected_day)
+        .group_by(QueueEntry.status)
+        .all()
+    )
+
+    # Lấy danh sách ID bác sĩ từ các lịch hẹn
+    vet_ids = list({
+        entry.appointment.veterinarianID
+        for entry in entries
+        if entry.appointment.veterinarianID is not None
+    })
+
+    vet_names = {}
+
+    if vet_ids:
+        vet_rows = db.session.execute(
+            text("""
+                SELECT
+                    v."veterinarianID" AS id,
+                    u."fullName" AS name
+                FROM clinic."veterinarians" v
+                JOIN clinic."clinicStaff" st
+                    ON st."staffID" = v."staffID"
+                JOIN auth."users" u
+                    ON u."userID" = st."userID"
+                WHERE v."veterinarianID" IN :vet_ids
+            """).bindparams(
+                bindparam("vet_ids", expanding=True)
+            ),
+            {"vet_ids": vet_ids}
+        ).mappings().all()
+
+        vet_names = {
+            row["id"]: row["name"]
+            for row in vet_rows
+        }
+
+    # Render giao diện hàng đợi
+    return render_template(
+        "receptionist/appointments/queue.html",
+        entries=entries,
+        selected_day=selected_day,
+        selected_status=selected_status,
+        total_count=sum(counts.values()),
+        waiting_count=counts.get("WAITING", 0),
+        in_progress_count=counts.get("IN_PROGRESS", 0),
+        vet_names=vet_names,
+        vietnam_tz=vietnam_tz,
+    )
+
+
+
+@receptionist_bp.post("/appointments/<int:appointment_id>/confirm")
+@role_required("RECEPTIONIST")
+def appointment_confirm(appointment_id):
+    if current_user.status != "ACTIVE":
+        abort(403)
+
+    validate_customer_csrf()
+
+    try:
+        # Khóa theo ngày khám, dùng chung với route tạo lịch.
+        # Lấy ngày từ database, không tin dữ liệu gửi từ form.
+        appointment_day = db.session.execute(
+            db.select(Appointment.scheduledDate)
+            .where(Appointment.appointmentID == appointment_id)
+        ).scalar_one_or_none()
+
+        if appointment_day is None:
+            abort(404)
+
+        db.session.execute(
+            text("SELECT pg_advisory_xact_lock(:key)"),
+            {
+                "key": int(appointment_day.strftime("%Y%m%d"))
+            }
+        )
+
+        appointment = (
+            db.session.query(Appointment)
+            .filter(Appointment.appointmentID == appointment_id)
+            .with_for_update(of=Appointment)
+            .first()
+        )
+
+        if appointment is None:
+            db.session.rollback()
+            abort(404)
+
+        if (
+            appointment.status != "PENDING"
+            or appointment.bookingSource != "ONLINE"
+            or appointment.appointmentType != "SCHEDULED"
+        ):
+            db.session.rollback()
+            flash("Lịch hẹn không hợp lệ để xác nhận.", "warning")
+            return redirect(url_for(
+                "receptionist.appointment_detail",
+                appointment_id=appointment_id
+            ))
+
+        today = datetime.now(
+            ZoneInfo("Asia/Ho_Chi_Minh")
+        ).date()
+
+        if appointment.scheduledDate < today:
+            db.session.rollback()
+            flash(
+                "Không thể xác nhận lịch đã qua ngày khám.",
+                "warning"
+            )
+            return redirect(url_for(
+                "receptionist.appointment_detail",
+                appointment_id=appointment_id
+            ))
+
+        # Kiểm tra lại giờ trống, bỏ qua chính lịch đang duyệt.
+        valid_slots = available_slots(
+            appointment.serviceID,
+            appointment.scheduledDate,
+            appointment.petID,
+            appointment.veterinarianID,
+            exclude_appointment_id=appointment.appointmentID
+        )
+
+        appointment_time = appointment.startTime.strftime("%H:%M")
+
+        if appointment_time not in valid_slots:
+            db.session.rollback()
+            flash(
+                "Khung giờ không còn hợp lệ hoặc bác sĩ không thể "
+                "tiếp nhận. Vui lòng kiểm tra lại lịch.",
+                "warning"
+            )
+            return redirect(url_for(
+                "receptionist.appointment_detail",
+                appointment_id=appointment_id
+            ))
+
+        staff_id = db.session.execute(
+            text("""
+                SELECT "staffID"
+                FROM clinic."clinicStaff"
+                WHERE "userID" = :user_id
+                  AND "status" = 'ACTIVE'
+                  AND "staffType" = 'RECEPTIONIST'
+            """),
+            {"user_id": current_user.userID}
+        ).scalar()
+
+        if staff_id is None:
+            db.session.rollback()
+            abort(403)
+
+        appointment.status = "CONFIRMED"
+        appointment.confirmedByStaffID = staff_id
+        appointment.confirmedAt = datetime.now(timezone.utc)
+
+        db.session.commit()
+
+        flash("Đã xác nhận lịch hẹn thành công.", "success")
+
+    except SQLAlchemyError:
+        db.session.rollback()
+        current_app.logger.exception(
+            "Failed to confirm appointment %s",
+            appointment_id
+        )
+        flash(
+            "Không thể xác nhận lịch hẹn. Vui lòng thử lại.",
+            "danger"
+        )
+
+    return redirect(url_for(
+        "receptionist.appointment_detail",
+        appointment_id=appointment_id
+    ))
+
+
+
+@receptionist_bp.post("/appointments/<int:appointment_id>/reject")
+@role_required("RECEPTIONIST")
+def appointment_reject(appointment_id):
+    if current_user.status != "ACTIVE":
+        abort(403)
+
+    validate_customer_csrf()
+
+    reason = request.form.get("cancelReason", "").strip()
+
+    if not reason or len(reason) > 2000:
+        flash(
+            "Vui lòng nhập lý do từ chối (tối đa 2000 ký tự).",
+            "warning"
+        )
+        return redirect(url_for(
+            "receptionist.appointment_detail",
+            appointment_id=appointment_id
+        ))
+
+    try:
+        appointment = (
+            db.session.query(Appointment)
+            .filter(Appointment.appointmentID == appointment_id)
+            .with_for_update(of=Appointment)
+            .first()
+        )
+
+        if appointment is None:
+            db.session.rollback()
+            abort(404)
+
+        if (
+            appointment.status != "PENDING"
+            or appointment.bookingSource != "ONLINE"
+            or appointment.appointmentType != "SCHEDULED"
+        ):
+            db.session.rollback()
+            flash("Lịch hẹn không hợp lệ để từ chối.", "warning")
+            return redirect(url_for(
+                "receptionist.appointment_detail",
+                appointment_id=appointment_id
+            ))
+
+        appointment.status = "CANCELLED"
+        appointment.cancelReason = reason
+        appointment.cancelledAt = datetime.now(timezone.utc)
+
+        db.session.commit()
+
+        flash("Đã từ chối yêu cầu đặt lịch.", "success")
+
+    except SQLAlchemyError:
+        db.session.rollback()
+        current_app.logger.exception(
+            "Failed to reject appointment %s",
+            appointment_id
+        )
+        flash("Không thể từ chối lịch hẹn.", "danger")
+
+    return redirect(url_for(
+        "receptionist.appointment_detail",
+        appointment_id=appointment_id
+    ))

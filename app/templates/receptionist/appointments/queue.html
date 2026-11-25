@@ -1,0 +1,175 @@
+
+{% extends "layouts/receptionist.html" %}
+{% block title %}Hàng đợi khám | VetMate{% endblock %}
+
+{% block content %}
+{% set status_labels = {
+    'WAITING': 'Đang chờ',
+    'CALLED': 'Đã gọi',
+    'IN_PROGRESS': 'Đang khám',
+    'COMPLETED': 'Hoàn thành',
+    'SKIPPED': 'Bỏ lượt',
+    'CANCELLED': 'Đã hủy'
+} %}
+
+<div class="receptionist-customers receptionist-appointments-page vm-queue-page">
+
+    <div class="receptionist-detail-heading receptionist-appointments-heading">
+        <div>
+            <span class="receptionist-appointments-eyebrow">
+                VETMATE · LỄ TÂN
+            </span>
+            <h1>Hàng đợi khám</h1>
+            <p>Theo dõi các thú cưng đã được tiếp nhận tại phòng khám.</p>
+        </div>
+    </div>
+
+    <div class="vm-queue-stats">
+        <div class="vm-queue-stat">
+            <span>Tổng lượt tiếp nhận</span>
+            <strong>{{ total_count }}</strong>
+            <small>Trong ngày được chọn</small>
+        </div>
+
+        <div class="vm-queue-stat">
+            <span>Đang chờ khám</span>
+            <strong>{{ waiting_count }}</strong>
+            <small>Chưa đến lượt khám</small>
+        </div>
+
+        <div class="vm-queue-stat">
+            <span>Đang khám</span>
+            <strong>{{ in_progress_count }}</strong>
+            <small>Đang được bác sĩ khám</small>
+        </div>
+    </div>
+
+    <section class="receptionist-panel vm-queue-panel">
+
+        <div class="receptionist-panel-header">
+            <div>
+                <h2>Danh sách hàng đợi</h2>
+                <p>Danh sách được sắp xếp theo số thứ tự tiếp nhận.</p>
+            </div>
+        </div>
+
+        <form method="GET"
+              action="{{ url_for('receptionist.appointment_queue') }}"
+              class="vm-queue-filters">
+
+            <div class="receptionist-appointment-filter">
+                <label for="queue-date">Ngày tiếp nhận</label>
+                <input type="date"
+                       id="queue-date"
+                       name="date"
+                       value="{{ selected_day.isoformat() }}">
+            </div>
+
+            <div class="receptionist-appointment-filter">
+                <label for="queue-status">Trạng thái</label>
+                <select id="queue-status" name="status">
+                    <option value="">Tất cả trạng thái</option>
+                    {% for code, label in status_labels.items() %}
+                    <option value="{{ code }}"
+                        {% if selected_status == code %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="vm-queue-filter-actions">
+                <button type="submit" class="receptionist-pet-filter-btn">
+                    Lọc danh sách
+                </button>
+
+                <a href="{{ url_for('receptionist.appointment_queue') }}"
+                   class="receptionist-pet-reset-btn">
+                    Đặt lại bộ lọc
+                </a>
+            </div>
+        </form>
+
+        <div class="receptionist-table-wrap">
+            <table class="receptionist-customer-table vm-queue-table">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Thú cưng</th>
+                        <th>Chủ nuôi</th>
+                        <th>Bác sĩ phụ trách</th>
+                        <th>Giờ đến</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for entry in entries %}
+                    {% set appt = entry.appointment %}
+
+                    <tr>
+                        <td>
+                            <span class="vm-queue-number">
+                                {{ '%03d'|format(entry.queueNumber) }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <div class="vm-queue-pet">
+                                <strong>{{ appt.pet.name }}</strong>
+                                <small>{{ appt.appointmentCode }}</small>
+                            </div>
+                        </td>
+
+                        <td>
+                            {{ appt.pet.owner.user.fullName }}
+                        </td>
+
+                        <td>
+                            {% if appt.veterinarianID %}
+                                {{ vet_names.get(appt.veterinarianID, '—') }}
+                            {% else %}
+                                Chưa phân công
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {{ entry.checkedInAt.astimezone(vietnam_tz).strftime('%H:%M') if entry.checkedInAt else '—' }}
+                        </td>
+
+                        <td>
+                            <span class="vm-queue-status vm-queue-status-{{ entry.status|lower|replace('_', '-') }}">
+                                {{ status_labels.get(entry.status, entry.status) }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <a class="receptionist-pet-view-link"
+                               href="{{ url_for('receptionist.appointment_detail',
+                                               appointment_id=appt.appointmentID) }}">
+                                Xem chi tiết
+                            </a>
+                        </td>
+                    </tr>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="receptionist-empty-state vm-queue-empty">
+                                <span>🐾</span>
+                                <strong>Chưa có lượt tiếp nhận</strong>
+                                <p>
+                                    Không tìm thấy thú cưng trong hàng đợi
+                                    theo bộ lọc hiện tại.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

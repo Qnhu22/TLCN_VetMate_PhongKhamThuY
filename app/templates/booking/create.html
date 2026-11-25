@@ -1,0 +1,470 @@
+
+{% extends "layouts/public.html" %}
+
+{% block title %}Đặt lịch khám | VetMate{% endblock %}
+
+{% block page_styles %}
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/booking.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<section class="vm-booking-page vm-booking-create-page">
+    <div class="page-container">
+
+        <div class="vm-booking-heading">
+            <div>
+                <span class="vm-booking-eyebrow">
+                    VETMATE · ĐẶT LỊCH TRỰC TUYẾN
+                </span>
+
+                <h1>Đặt lịch khám cho thú cưng</h1>
+
+                <p>
+                    Chọn thú cưng, dịch vụ và thời gian
+                    mong muốn. Lễ tân sẽ kiểm tra và
+                    xác nhận yêu cầu của bạn.
+                </p>
+            </div>
+
+            <div class="vm-booking-heading-icon">
+                <i class="bi bi-calendar2-plus"></i>
+            </div>
+        </div>
+
+        <div class="vm-booking-create-layout">
+
+            <div class="vm-booking-create-main">
+
+                <div class="vm-booking-panel">
+
+                    <div class="vm-booking-panel-heading">
+                        <div>
+                            <h2>Thông tin đặt lịch</h2>
+                            <p>
+                                Các trường có dấu *
+                                là bắt buộc.
+                            </p>
+                        </div>
+                    </div>
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                            <div class="vm-create-alert"
+                                 role="alert">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    {% if pets and services %}
+
+                    <form method="POST"
+                          action="{{ url_for('booking.create_appointment') }}"
+                          class="vm-create-form">
+
+                        <input type="hidden"
+                               name="csrf_token"
+                               value="{{ csrf_token }}">
+
+                        <div class="vm-create-section-heading">
+                            <span>01</span>
+                            <h3>Thú cưng và dịch vụ</h3>
+                        </div>
+
+                        <div class="vm-create-grid">
+
+                            <div class="vm-create-field">
+                                <label for="petID">
+                                    Thú cưng *
+                                </label>
+
+                                <select id="petID"
+                                        name="petID"
+                                        required>
+                                    <option value="">
+                                        -- Chọn thú cưng --
+                                    </option>
+
+                                    {% for pet in pets %}
+                                    <option value="{{ pet.petID }}"
+                                        {% if form_data.petID|string == pet.petID|string %}
+                                            selected
+                                        {% endif %}>
+                                        {{ pet.name }} ({{ pet.petCode }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="vm-create-field">
+                                <label for="serviceID">
+                                    Dịch vụ khám *
+                                </label>
+
+                                <select id="serviceID"
+                                        name="serviceID"
+                                        required>
+                                    <option value="">
+                                        -- Chọn dịch vụ --
+                                    </option>
+
+                                    {% for service in services %}
+                                    <option value="{{ service.serviceID }}"
+                                        {% if form_data.serviceID|string == service.serviceID|string %}
+                                            selected
+                                        {% endif %}>
+                                        {{ service.name }}
+                                        ({{ "{:,.0f}".format(service.price) }}đ)
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <div class="vm-create-section-heading">
+                            <span>02</span>
+                            <h3>Ngày và giờ khám</h3>
+                        </div>
+
+                        <div class="vm-create-grid">
+
+                            <div class="vm-create-field">
+                                <label for="scheduledDate">
+                                    Ngày khám *
+                                </label>
+
+                                <input type="date"
+                                       id="scheduledDate"
+                                       name="scheduledDate"
+                                       min="{{ today.isoformat() }}"
+                                       max="{{ max_date.isoformat() }}"
+                                       value="{{ form_data.scheduledDate }}"
+                                       required>
+
+                                <small>
+                                    Đặt lịch trong vòng 90 ngày.
+                                </small>
+                            </div>
+
+                            <div class="vm-create-field">
+                                <label for="startTime">
+                                    Giờ bắt đầu *
+                                </label>
+
+                                <select id="startTime"
+                                        name="startTime"
+                                        required
+                                        data-selected-time="{{ form_data.startTime }}">
+                                    <option value="">
+                                        -- Chọn giờ khám --
+                                    </option>
+
+                                    {% for slot in booking_slots %}
+                                    <option value="{{ slot }}"
+                                        {% if form_data.startTime == slot %}
+                                            selected
+                                        {% endif %}>
+                                        {{ slot }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+
+                                <small id="bookingTimeMessage"
+                                    aria-live="polite">
+                                    Vui lòng chọn ngày khám trước.
+                                </small>
+                            </div>
+
+                        </div>
+
+                        <div class="vm-create-section-heading">
+                            <span>03</span>
+                            <h3>Thông tin khám</h3>
+                        </div>
+
+                        <div class="vm-create-field">
+                            <label for="reason">
+                                Lý do khám *
+                            </label>
+
+                            <textarea id="reason"
+                                      name="reason"
+                                      rows="4"
+                                      maxlength="1000"
+                                      required
+                                      placeholder="Ví dụ: Thú cưng bỏ ăn, mệt mỏi, cần khám tổng quát...">{{ form_data.reason }}</textarea>
+                        </div>
+
+                        <div class="vm-create-field">
+                            <label for="ownerNote">
+                                Ghi chú bổ sung
+                            </label>
+
+                            <textarea id="ownerNote"
+                                      name="ownerNote"
+                                      rows="3"
+                                      maxlength="2000"
+                                      placeholder="Thông tin khác cần thông báo cho phòng khám...">{{ form_data.ownerNote }}</textarea>
+                        </div>
+
+                        <div class="vm-create-notice">
+                            <i class="bi bi-info-circle"></i>
+                            <p>
+                                Đây là yêu cầu đặt lịch,
+                                chưa phải lịch đã xác nhận.
+                                Lễ tân sẽ kiểm tra và phản hồi.
+                            </p>
+                        </div>
+
+                        <div class="vm-create-actions">
+
+                            <a href="{{ url_for('booking.my_appointments') }}"
+                               class="vm-booking-filter-reset">
+                                <i class="bi bi-arrow-left"></i>
+                                Quay lại
+                            </a>
+
+                            <button type="submit"
+                                    class="vm-booking-filter-submit">
+                                <i class="bi bi-send"></i>
+                                Gửi yêu cầu đặt lịch
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                    {% else %}
+
+                    <div class="vm-booking-empty">
+                        <div class="vm-booking-empty-icon">
+                            <i class="bi bi-calendar2-x"></i>
+                        </div>
+
+                        <h3>Chưa thể đặt lịch</h3>
+
+                        {% if not pets %}
+                        <p>
+                            Bạn chưa có thú cưng trong
+                            hồ sơ. Vui lòng thêm thú cưng
+                            trước khi đặt lịch.
+                        </p>
+                        {% else %}
+                        <p>
+                            Hiện chưa có dịch vụ nào
+                            hỗ trợ đặt lịch trực tuyến.
+                        </p>
+                        {% endif %}
+
+                        <a href="{{ url_for('booking.my_appointments') }}"
+                           class="vm-booking-filter-reset">
+                            Quay lại danh sách
+                        </a>
+                    </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            <aside class="vm-create-sidebar">
+
+                <div class="vm-create-help-card">
+                    <div class="vm-create-help-icon">
+                        <i class="bi bi-heart-pulse"></i>
+                    </div>
+
+                    <h3>VetMate đồng hành cùng bạn</h3>
+
+                    <p>
+                        Hãy mô tả rõ triệu chứng và nhu cầu
+                        khám để phòng khám chuẩn bị
+                        tiếp nhận thú cưng tốt hơn.
+                    </p>
+                </div>
+
+                <div class="vm-create-steps-card">
+                    <h3>Quy trình đặt lịch</h3>
+
+                    <div class="vm-create-step">
+                        <span>1</span>
+                        <div>
+                            <strong>Gửi yêu cầu</strong>
+                            <p>Chọn thông tin và thời gian khám.</p>
+                        </div>
+                    </div>
+
+                    <div class="vm-create-step">
+                        <span>2</span>
+                        <div>
+                            <strong>Lễ tân xác nhận</strong>
+                            <p>Kiểm tra và duyệt lịch hẹn.</p>
+                        </div>
+                    </div>
+
+                    <div class="vm-create-step">
+                        <span>3</span>
+                        <div>
+                            <strong>Đến phòng khám</strong>
+                            <p>Đưa thú cưng đến theo lịch đã xác nhận.</p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </aside>
+
+        </div>
+
+    </div>
+</section>
+
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const dateInput = document.getElementById("scheduledDate");
+    const timeSelect = document.getElementById("startTime");
+    const timeMessage = document.getElementById("bookingTimeMessage");
+
+    if (!dateInput || !timeSelect || !timeMessage) {
+        return;
+    }
+
+    const allSlots = Array.from(
+        timeSelect.querySelectorAll("option[value]")
+    ).filter(option => option.value !== "");
+
+    const originalTime =
+        timeSelect.dataset.selectedTime || timeSelect.value;
+
+    const VN_TIMEZONE = "Asia/Ho_Chi_Minh";
+
+    function getVietnamNow() {
+        const parts = new Intl.DateTimeFormat("en-GB", {
+            timeZone: VN_TIMEZONE,
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hourCycle: "h23"
+        }).formatToParts(new Date());
+
+        const values = {};
+
+        parts.forEach(part => {
+            values[part.type] = part.value;
+        });
+
+        return {
+            date: `${values.year}-${values.month}-${values.day}`,
+            minutes:
+                Number(values.hour) * 60 +
+                Number(values.minute)
+        };
+    }
+
+    function timeToMinutes(value) {
+        const [hour, minute] = value.split(":").map(Number);
+        return hour * 60 + minute;
+    }
+
+    function updateAvailableTimes() {
+        const now = getVietnamNow();
+        const selectedDate = dateInput.value;
+        const previousTime = timeSelect.value || originalTime;
+
+        timeSelect.value = "";
+
+        let availableCount = 0;
+
+        allSlots.forEach(option => {
+            const slotMinutes = timeToMinutes(option.value);
+
+            const isPast =
+                selectedDate < now.date ||
+                (
+                    selectedDate === now.date &&
+                    slotMinutes < now.minutes + 30
+                );
+
+            option.hidden = isPast;
+            option.disabled = isPast;
+
+            if (!isPast) {
+                availableCount++;
+            }
+        });
+
+        if (!selectedDate) {
+            timeSelect.disabled = true;
+            timeMessage.textContent =
+                "Vui lòng chọn ngày khám trước.";
+            return;
+        }
+
+        if (selectedDate < now.date) {
+            timeSelect.disabled = true;
+            timeMessage.textContent =
+                "Không thể đặt lịch trong quá khứ.";
+            return;
+        }
+
+        if (availableCount === 0) {
+            timeSelect.disabled = true;
+            timeMessage.textContent =
+                "Hôm nay đã hết khung giờ đặt lịch. " +
+                "Vui lòng chọn ngày khác.";
+            return;
+        }
+
+        timeSelect.disabled = false;
+
+        const previousOption = allSlots.find(
+            option =>
+                option.value === previousTime &&
+                !option.disabled
+        );
+
+        if (previousOption) {
+            timeSelect.value = previousOption.value;
+        }
+
+        if (selectedDate === now.date) {
+            timeMessage.textContent =
+                "Chỉ hiển thị giờ khám có thể đặt trước ít nhất 30 phút.";
+        } else {
+            timeMessage.textContent =
+                "Chọn khung giờ khám phù hợp với bạn.";
+        }
+
+    }
+
+    dateInput.addEventListener(
+        "change",
+        updateAvailableTimes
+    );
+
+    dateInput.addEventListener(
+        "input",
+        updateAvailableTimes
+    );
+
+    timeSelect.addEventListener("focus", function () {
+        updateAvailableTimes();
+    });
+
+    updateAvailableTimes();
+});
+</script>
+{% endblock %}
+
+
+{% endblock %}

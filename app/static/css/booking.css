@@ -1,0 +1,1252 @@
+
+/* =========================================================
+   VETMATE - PET OWNER APPOINTMENTS
+   File: app/static/css/booking.css
+   Themes: Default / Light / Dark
+   Responsive: Desktop / Tablet / Mobile
+   ========================================================= */
+
+/* =========================================================
+   1. THEME VARIABLES
+   ========================================================= */
+
+.vm-booking-page {
+    --vm-bg: var(--public-bg, var(--background, #fffafc));
+    --vm-surface: var(--public-surface, var(--surface, #ffffff));
+    --vm-text: var(--public-text, var(--text-primary, #403544));
+    --vm-muted: var(--public-text-soft, var(--text-secondary, #746879));
+    --vm-border: var(--public-border, var(--border, rgba(152, 164, 216, .28)));
+    --vm-primary: var(--public-primary, #b56dae);
+    --vm-primary-hover: var(--public-primary-hover, #9a5994);
+
+    --vm-soft-primary: rgba(181, 109, 174, .10);
+    --vm-shadow: 0 12px 35px rgba(64, 53, 68, .065);
+
+    width: 100%;
+    min-height: 65vh;
+    padding: 48px 0 85px;
+    background: var(--vm-bg);
+    color: var(--vm-text);
+}
+
+html[data-theme="light"] .vm-booking-page {
+    --vm-soft-primary: rgba(168, 137, 173, .11);
+    --vm-shadow: 0 12px 35px rgba(70, 65, 85, .055);
+}
+
+html[data-theme="dark"] .vm-booking-page {
+    --vm-soft-primary: rgba(242, 80, 139, .13);
+    --vm-shadow: 0 12px 35px rgba(0, 0, 0, .20);
+}
+
+/* =========================================================
+   2. BASE
+   ========================================================= */
+
+.vm-booking-page,
+.vm-booking-page * {
+    box-sizing: border-box;
+}
+
+.vm-booking-page .page-container {
+    width: min(100% - 40px, 1440px);
+    margin-inline: auto;
+}
+
+.vm-booking-page button,
+.vm-booking-page input,
+.vm-booking-page select {
+    font: inherit;
+}
+
+.vm-booking-page button {
+    cursor: pointer;
+}
+
+.vm-booking-page a {
+    text-decoration: none;
+}
+
+.vm-booking-page :is(button, a, input, select):focus-visible {
+    outline: 3px solid var(--vm-primary);
+    outline-offset: 3px;
+}
+
+/* =========================================================
+   3. PAGE HEADING
+   ========================================================= */
+
+.vm-booking-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 30px;
+}
+
+.vm-booking-heading > div:first-child {
+    min-width: 0;
+}
+
+.vm-booking-eyebrow {
+    display: inline-block;
+    color: var(--vm-primary);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.vm-booking-heading h1 {
+    margin: 12px 0 10px;
+    color: var(--vm-text);
+    font-size: clamp(26px, 3.4vw, 38px);
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.vm-booking-heading p {
+    max-width: 720px;
+    margin: 0;
+    color: var(--vm-muted);
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.vm-booking-heading-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 76px;
+    height: 76px;
+    border: 1px solid var(--vm-border);
+    border-radius: 24px;
+    background: var(--vm-soft-primary);
+    color: var(--vm-primary);
+    font-size: 35px;
+}
+
+/* =========================================================
+   4. STATISTICS
+   ========================================================= */
+
+.vm-booking-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 30px;
+}
+
+.vm-booking-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 11px;
+    min-width: 0;
+    padding: 23px;
+    border: 1px solid var(--vm-border);
+    border-radius: 20px;
+    background: var(--vm-surface);
+    box-shadow: var(--vm-shadow);
+    transition: transform .2s ease, border-color .2s ease;
+}
+
+.vm-booking-stat:hover {
+    transform: translateY(-3px);
+    border-color: var(--vm-primary);
+}
+
+.vm-booking-stat-icon {
+    display: grid;
+    place-items: center;
+    width: 45px;
+    height: 45px;
+    border-radius: 14px;
+    background: var(--vm-soft-primary);
+    color: var(--vm-primary);
+    font-size: 21px;
+}
+
+.vm-booking-stat-icon.is-pending {
+    background: rgba(222, 155, 51, .13);
+    color: #b77b20;
+}
+
+.vm-booking-stat-icon.is-confirmed {
+    background: rgba(59, 137, 214, .13);
+    color: #397fc0;
+}
+
+.vm-booking-stat-icon.is-checked {
+    background: rgba(117, 93, 205, .13);
+    color: #8063c6;
+}
+
+.vm-booking-stat strong {
+    color: var(--vm-text);
+    font-size: clamp(27px, 3vw, 34px);
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.vm-booking-stat > span {
+    color: var(--vm-muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* =========================================================
+   5. MAIN PANEL
+   ========================================================= */
+
+.vm-booking-panel {
+    min-width: 0;
+    padding: 28px;
+    border: 1px solid var(--vm-border);
+    border-radius: 24px;
+    background: var(--vm-surface);
+    box-shadow: var(--vm-shadow);
+}
+
+.vm-booking-panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 26px;
+}
+
+.vm-booking-panel-heading h2 {
+    margin: 0 0 8px;
+    color: var(--vm-text);
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.vm-booking-panel-heading p {
+    margin: 0;
+    color: var(--vm-muted);
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.vm-booking-count,
+.vm-booking-group-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 14px;
+    border-radius: 999px;
+    background: var(--vm-soft-primary);
+    color: var(--vm-primary);
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+/* =========================================================
+   6. SEARCH AND FILTER
+   ========================================================= */
+
+.vm-booking-filters {
+    display: grid;
+    grid-template-columns:
+        minmax(180px, 1.7fr)
+        repeat(4, minmax(135px, 1fr));
+    align-items: end;
+    gap: 15px;
+    margin-bottom: 30px;
+    padding: 22px;
+    border: 1px solid var(--vm-border);
+    border-radius: 18px;
+    background: var(--vm-soft-primary);
+}
+
+.vm-booking-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.vm-booking-filter label {
+    color: var(--vm-text);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.vm-booking-filter input,
+.vm-booking-filter select {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    height: 46px;
+    padding: 10px 13px;
+    border: 1px solid var(--vm-border);
+    border-radius: 11px;
+    background: var(--vm-surface);
+    color: var(--vm-text);
+    font-size: 13px;
+    outline: none;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.vm-booking-filter input::placeholder {
+    color: var(--vm-muted);
+    opacity: .85;
+}
+
+.vm-booking-filter input:focus,
+.vm-booking-filter select:focus {
+    border-color: var(--vm-primary);
+    box-shadow: 0 0 0 3px var(--vm-soft-primary);
+}
+
+.vm-booking-filter-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 11px;
+}
+
+.vm-booking-filter-submit,
+.vm-booking-filter-reset {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 11px 19px;
+    border-radius: 11px;
+    font-size: 13px;
+    font-weight: 700;
+    transition: background .2s ease, transform .2s ease;
+}
+
+.vm-booking-filter-submit {
+    border: 1px solid var(--vm-primary);
+    background: var(--vm-primary);
+    color: #ffffff;
+}
+
+.vm-booking-filter-submit:hover {
+    background: var(--vm-primary-hover);
+    border-color: var(--vm-primary-hover);
+    color: #ffffff;
+}
+
+.vm-booking-filter-reset {
+    border: 1px solid var(--vm-border);
+    background: var(--vm-surface);
+    color: var(--vm-text);
+}
+
+.vm-booking-filter-reset:hover {
+    border-color: var(--vm-primary);
+    color: var(--vm-primary);
+}
+
+/* =========================================================
+   7. APPOINTMENT GROUPS
+   ========================================================= */
+
+.vm-booking-group + .vm-booking-group {
+    margin-top: 38px;
+}
+
+.vm-booking-group-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 18px;
+}
+
+.vm-booking-group-heading h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 7px;
+    color: var(--vm-text);
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.vm-booking-group-heading h3 i {
+    color: var(--vm-primary);
+}
+
+.vm-booking-group-heading p {
+    margin: 0;
+    color: var(--vm-muted);
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* =========================================================
+   8. DESKTOP TABLE
+   ========================================================= */
+
+.vm-booking-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--vm-border);
+    border-radius: 16px;
+    background: var(--vm-surface);
+    -webkit-overflow-scrolling: touch;
+}
+
+.vm-booking-table {
+    width: 100%;
+    min-width: 1120px;
+    border-collapse: collapse;
+    text-align: left;
+    color: var(--vm-text);
+}
+
+.vm-booking-table thead {
+    background: var(--vm-soft-primary);
+}
+
+.vm-booking-table th {
+    padding: 16px 14px;
+    border-bottom: 1px solid var(--vm-border);
+    color: var(--vm-muted);
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.vm-booking-table td {
+    padding: 17px 14px;
+    border-bottom: 1px solid var(--vm-border);
+    color: var(--vm-text);
+    font-size: 13px;
+    line-height: 1.6;
+    vertical-align: middle;
+}
+
+.vm-booking-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.vm-booking-table tbody tr:hover {
+    background: var(--vm-soft-primary);
+}
+
+.vm-booking-code {
+    color: var(--vm-primary);
+    font-size: 13px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.vm-booking-pet {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 130px;
+}
+
+.vm-booking-pet strong {
+    color: var(--vm-text);
+    font-weight: 700;
+}
+
+.vm-booking-pet-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 37px;
+    height: 37px;
+    border-radius: 12px;
+    background: var(--vm-soft-primary);
+    color: var(--vm-primary);
+    font-size: 17px;
+}
+
+/* =========================================================
+   9. APPOINTMENT STATUS
+   ========================================================= */
+
+.vm-booking-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: rgba(145, 145, 145, .13);
+    color: var(--vm-muted);
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.vm-booking-status.status-pending {
+    background: rgba(225, 155, 43, .14);
+    color: #a36b12;
+}
+
+.vm-booking-status.status-confirmed {
+    background: rgba(57, 137, 215, .13);
+    color: #2875b7;
+}
+
+.vm-booking-status.status-checked-in {
+    background: rgba(119, 94, 205, .13);
+    color: #7456bb;
+}
+
+.vm-booking-status.status-in-progress {
+    background: rgba(216, 92, 141, .13);
+    color: #bb467a;
+}
+
+.vm-booking-status.status-completed {
+    background: rgba(45, 170, 115, .13);
+    color: #247c55;
+}
+
+.vm-booking-status.status-cancelled,
+.vm-booking-status.status-no-show {
+    background: rgba(145, 145, 145, .13);
+    color: var(--vm-muted);
+}
+
+/* Status colors for Dark mode */
+
+html[data-theme="dark"] .vm-booking-status.status-pending {
+    color: #f3c46e;
+}
+
+html[data-theme="dark"] .vm-booking-status.status-confirmed {
+    color: #88bbff;
+}
+
+html[data-theme="dark"] .vm-booking-status.status-checked-in {
+    color: #c2a7ff;
+}
+
+html[data-theme="dark"] .vm-booking-status.status-in-progress {
+    color: #ff91bc;
+}
+
+html[data-theme="dark"] .vm-booking-status.status-completed {
+    color: #78ddb0;
+}
+
+html[data-theme="dark"] .vm-booking-stat-icon.is-pending {
+    color: #f3c46e;
+}
+
+html[data-theme="dark"] .vm-booking-stat-icon.is-confirmed {
+    color: #88bbff;
+}
+
+html[data-theme="dark"] .vm-booking-stat-icon.is-checked {
+    color: #c2a7ff;
+}
+
+/* =========================================================
+   10. MOBILE APPOINTMENT CARDS
+   ========================================================= */
+
+.vm-booking-mobile-list {
+    display: none;
+}
+
+.vm-booking-mobile-card {
+    min-width: 0;
+    padding: 19px;
+    border: 1px solid var(--vm-border);
+    border-radius: 17px;
+    background: var(--vm-surface);
+    box-shadow: var(--vm-shadow);
+}
+
+.vm-booking-mobile-card + .vm-booking-mobile-card {
+    margin-top: 14px;
+}
+
+.vm-booking-mobile-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--vm-border);
+}
+
+.vm-booking-mobile-pet {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0;
+}
+
+.vm-booking-mobile-pet > div {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.vm-booking-mobile-pet small {
+    color: var(--vm-muted);
+    font-size: 11px;
+}
+
+.vm-booking-mobile-pet strong {
+    color: var(--vm-text);
+    font-size: 16px;
+    overflow-wrap: anywhere;
+}
+
+.vm-booking-mobile-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 12px;
+    padding-top: 17px;
+    border-top: 1px solid var(--vm-border);
+}
+
+.vm-booking-mobile-details > div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.vm-booking-mobile-details span {
+    color: var(--vm-muted);
+    font-size: 11px;
+}
+
+.vm-booking-mobile-details strong {
+    color: var(--vm-text);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.vm-booking-mobile-full {
+    grid-column: 1 / -1;
+}
+
+/* =========================================================
+   11. EMPTY STATE
+   ========================================================= */
+
+.vm-booking-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.vm-booking-empty-icon {
+    display: grid;
+    place-items: center;
+    width: 74px;
+    height: 74px;
+    margin-bottom: 18px;
+    border-radius: 23px;
+    background: var(--vm-soft-primary);
+    color: var(--vm-primary);
+    font-size: 34px;
+}
+
+.vm-booking-empty h3 {
+    margin: 0 0 10px;
+    color: var(--vm-text);
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.vm-booking-empty p {
+    max-width: 420px;
+    margin: 0 0 18px;
+    color: var(--vm-muted);
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+/* =========================================================
+   12. RESPONSIVE - SMALL DESKTOP
+   ========================================================= */
+
+@media (max-width: 1200px) {
+
+    .vm-booking-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .vm-booking-filters {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .vm-booking-search {
+        grid-column: span 2;
+    }
+}
+
+/* =========================================================
+   13. RESPONSIVE - TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .vm-booking-page {
+        padding: 34px 0 65px;
+    }
+
+    .vm-booking-panel {
+        padding: 22px;
+    }
+
+    .vm-booking-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .vm-booking-search {
+        grid-column: 1 / -1;
+    }
+
+    .vm-booking-heading-icon {
+        width: 62px;
+        height: 62px;
+        font-size: 28px;
+    }
+}
+
+/* =========================================================
+   14. RESPONSIVE - MOBILE
+   ========================================================= */
+
+@media (max-width: 767px) {
+
+    .vm-booking-page .page-container {
+        width: calc(100% - 28px);
+    }
+
+    .vm-booking-heading {
+        align-items: flex-start;
+        margin-bottom: 24px;
+    }
+
+    .vm-booking-heading-icon {
+        display: none;
+    }
+
+    .vm-booking-heading h1 {
+        font-size: 27px;
+    }
+
+    .vm-booking-heading p {
+        font-size: 13px;
+    }
+
+    .vm-booking-stats {
+        gap: 12px;
+        margin-bottom: 22px;
+    }
+
+    .vm-booking-stat {
+        padding: 17px;
+        border-radius: 16px;
+    }
+
+    .vm-booking-stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 19px;
+    }
+
+    .vm-booking-stat strong {
+        font-size: 27px;
+    }
+
+    .vm-booking-stat > span {
+        font-size: 11px;
+    }
+
+    .vm-booking-panel {
+        padding: 18px;
+        border-radius: 19px;
+    }
+
+    .vm-booking-panel-heading h2 {
+        font-size: 19px;
+    }
+
+    .vm-booking-filters {
+        gap: 13px;
+        padding: 16px;
+    }
+
+    .vm-booking-group-heading h3 {
+        font-size: 16px;
+    }
+
+    /* Hide desktop table, show mobile cards */
+
+    .vm-booking-table-wrap {
+        display: none;
+    }
+
+    .vm-booking-mobile-list {
+        display: block;
+    }
+}
+
+/* =========================================================
+   15. RESPONSIVE - SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 520px) {
+
+    .vm-booking-page {
+        padding: 25px 0 50px;
+    }
+
+    .vm-booking-page .page-container {
+        width: calc(100% - 24px);
+    }
+
+    .vm-booking-heading h1 {
+        font-size: 25px;
+    }
+
+    .vm-booking-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .vm-booking-stat {
+        padding: 14px;
+    }
+
+    .vm-booking-stat strong {
+        font-size: 25px;
+    }
+
+    .vm-booking-panel {
+        padding: 14px;
+    }
+
+    .vm-booking-panel-heading {
+        align-items: flex-start;
+    }
+
+    .vm-booking-filters {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 14px;
+    }
+
+    .vm-booking-search {
+        grid-column: auto;
+    }
+
+    .vm-booking-filter-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .vm-booking-filter-submit,
+    .vm-booking-filter-reset {
+        width: 100%;
+    }
+
+    .vm-booking-mobile-card {
+        padding: 15px;
+    }
+
+    .vm-booking-mobile-details {
+        gap: 14px 10px;
+    }
+
+    .vm-booking-group + .vm-booking-group {
+        margin-top: 30px;
+    }
+}
+
+/* =========================================================
+   16. ACCESSIBILITY
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .vm-booking-page *,
+    .vm-booking-page *::before,
+    .vm-booking-page *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+    }
+}
+
+
+/* =========================================================
+   VETMATE - ONLINE BOOKING CREATE PAGE
+   Default / Light / Dark / Responsive
+   ========================================================= */
+
+.vm-booking-create-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    align-items: start;
+    gap: 24px;
+}
+
+.vm-booking-create-main,
+.vm-create-sidebar {
+    min-width: 0;
+}
+
+.vm-create-form {
+    display: flex;
+    flex-direction: column;
+    gap: 23px;
+}
+
+.vm-create-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 7px;
+    padding-bottom: 13px;
+    border-bottom: 1px solid var(--vm-border);
+}
+
+.vm-create-section-heading > span {
+    display: grid;
+    place-items: center;
+    width: 35px;
+    height: 35px;
+    flex-shrink: 0;
+    border-radius: 11px;
+    background: var(--vm-soft-primary);
+    color: var(--vm-primary);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.vm-create-section-heading h3 {
+    margin: 0;
+    color: var(--vm-text);
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.vm-create-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.vm-create-field {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-width: 0;
+}
+
+.vm-create-field label {
+    color: var(--vm-text);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.vm-create-field input,
+.vm-create-field select,
+.vm-create-field textarea {
+    width: 100%;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--vm-border);
+    border-radius: 12px;
+    background: var(--vm-surface);
+    color: var(--vm-text);
+    font-size: 14px;
+    line-height: 1.5;
+    outline: none;
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease;
+}
+
+.vm-create-field input,
+.vm-create-field select {
+    min-height: 48px;
+}
+
+.vm-create-field textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.vm-create-field input::placeholder,
+.vm-create-field textarea::placeholder {
+    color: var(--vm-muted);
+    opacity: .85;
+}
+
+.vm-create-field :is(input, select, textarea):focus {
+    border-color: var(--vm-primary);
+    box-shadow: 0 0 0 3px var(--vm-soft-primary);
+}
+
+.vm-create-field small {
+    color: var(--vm-muted);
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.vm-create-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 17px;
+    border: 1px solid var(--vm-border);
+    border-radius: 14px;
+    background: var(--vm-soft-primary);
+}
+
+.vm-create-notice i {
+    flex-shrink: 0;
+    color: var(--vm-primary);
+    font-size: 19px;
+}
+
+.vm-create-notice p {
+    margin: 0;
+    color: var(--vm-text);
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+.vm-create-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid var(--vm-border);
+}
+
+.vm-create-alert {
+    padding: 13px 16px;
+    margin-bottom: 18px;
+    border: 1px solid rgba(202, 71, 91, .35);
+    border-radius: 12px;
+    background: rgba(202, 71, 91, .09);
+    color: var(--vm-text);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* SIDEBAR */
+
+.vm-create-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.vm-create-help-card,
+.vm-create-steps-card {
+    padding: 24px;
+    border: 1px solid var(--vm-border);
+    border-radius: 20px;
+    background: var(--vm-surface);
+    box-shadow: var(--vm-shadow);
+}
+
+.vm-create-help-icon {
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    margin-bottom: 17px;
+    border-radius: 16px;
+    background: var(--vm-soft-primary);
+    color: var(--vm-primary);
+    font-size: 26px;
+}
+
+.vm-create-help-card h3,
+.vm-create-steps-card h3 {
+    margin: 0 0 12px;
+    color: var(--vm-text);
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.5;
+}
+
+.vm-create-help-card > p {
+    margin: 0;
+    color: var(--vm-muted);
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+.vm-create-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 15px 0;
+}
+
+.vm-create-step + .vm-create-step {
+    border-top: 1px solid var(--vm-border);
+}
+
+.vm-create-step > span {
+    display: grid;
+    place-items: center;
+    width: 31px;
+    height: 31px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--vm-soft-primary);
+    color: var(--vm-primary);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.vm-create-step strong {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--vm-text);
+    font-size: 13px;
+}
+
+.vm-create-step p {
+    margin: 0;
+    color: var(--vm-muted);
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* NATIVE INPUT THEME */
+
+.vm-booking-create-page {
+    color-scheme: light;
+}
+
+html[data-theme="dark"] .vm-booking-create-page {
+    color-scheme: dark;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1100px) {
+    .vm-booking-create-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .vm-create-sidebar {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .vm-create-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .vm-create-sidebar {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .vm-create-section-heading h3 {
+        font-size: 15px;
+    }
+
+    .vm-create-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .vm-create-actions > * {
+        width: 100%;
+    }
+}
+
+@media (max-width: 520px) {
+    .vm-create-help-card,
+    .vm-create-steps-card {
+        padding: 18px;
+        border-radius: 16px;
+    }
+
+    .vm-create-form {
+        gap: 19px;
+    }
+}
+
+
+/* Nút đặt lịch ở trang danh sách */
+
+.vm-booking-heading-actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 12px;
+}
+
+.vm-booking-heading-actions .vm-booking-filter-submit {
+    min-height: 46px;
+    white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+    .vm-booking-heading {
+        flex-wrap: wrap;
+    }
+
+    .vm-booking-heading-actions {
+        width: 100%;
+    }
+
+    .vm-booking-heading-actions .vm-booking-filter-submit {
+        width: 100%;
+    }
+}
+
+
+/* ==========================================
+   ONLINE BOOKING - TIME AVAILABILITY
+   ========================================== */
+
+.vm-create-field select:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    background: var(--vm-soft-primary);
+    color: var(--vm-muted);
+}
+
+#bookingTimeMessage {
+    display: block;
+    margin-top: 3px;
+    color: var(--vm-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.vm-create-field select option:disabled {
+    display: none;
+}

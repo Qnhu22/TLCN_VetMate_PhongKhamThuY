@@ -45,15 +45,13 @@ VetMate - Đồng hành cùng sức khỏe thú cưng
                     </p>
 
                     <div class="home-hero-actions">
-
                         <a
-                            href="#services"
+                            href="{{ url_for('booking.create_appointment') }}"
                             class="home-primary-button"
                         >
                             <i class="bi bi-calendar2-heart"></i>
                             Đặt lịch khám
                         </a>
-
                         <a
                             href="#services"
                             class="home-secondary-button"
@@ -539,7 +537,7 @@ VetMate - Đồng hành cùng sức khỏe thú cưng
                 {% if current_user.is_authenticated %}
 
                     <a
-                        href="#services"
+                        href="{{ url_for('booking.create_appointment') }}"
                         class="home-cta-primary"
                     >
                         Đặt lịch khám

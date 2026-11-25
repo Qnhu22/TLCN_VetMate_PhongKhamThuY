@@ -202,6 +202,14 @@
                             </div>
 
                             <div class="account-menu-divider"></div>
+                                <!-- Hồ sơ cá nhân -->
+                                <a
+                                    href="{{ url_for('account.profile') }}"
+                                    class="account-menu-item"
+                                >
+                                    <i class="bi bi-person"></i>
+                                    <span>Hồ sơ của tôi</span>
+                                </a>
 
                             {% if current_user.has_role('VETERINARIAN') %}
                             {% for permission, endpoint, label in [
@@ -215,32 +223,57 @@
                             {% endfor %}
                             {% endif %}
 
-                            <a
-                                href="{{ url_for('account.profile') }}"
-                                class="account-menu-item"
-                            >
-                                <i class="bi bi-person"></i>
-                                <span>Hồ sơ của tôi</span>
-                            </a>
 
-                            <a
-                                href="{{ url_for('pets.index') }}"
-                                class="account-menu-item"
-                            >
-                                <i class="bi bi-heart"></i>
-                                <span>Thú cưng của tôi</span>
-                            </a>
+                                <!-- MENU DÀNH CHO QUẢN TRỊ VIÊN -->
+                                {% if current_user.has_role('SYSTEM_ADMIN') %}
 
-                            <button
-                                type="button"
-                                class="account-menu-item"
-                                data-account-placeholder="appointments"
-                            >
-                                <i class="bi bi-calendar-check"></i>
-                                <span>Lịch hẹn của tôi</span>
-                            </button>
+                                <a
+                                    href="{{ url_for('admin.dashboard') }}"
+                                    class="account-menu-item account-menu-dashboard"
+                                >
+                                    <i class="bi bi-speedometer2"></i>
+                                    <span>Bảng điều khiển Quản trị</span>
+                                </a>
 
-                            <div class="account-menu-divider"></div>
+                                {% endif %}
+
+
+                                <!-- MENU DÀNH CHO LỄ TÂN -->
+                                {% if current_user.has_role('RECEPTIONIST') %}
+
+                                <a
+                                    href="{{ url_for('receptionist.dashboard') }}"
+                                    class="account-menu-item account-menu-dashboard"
+                                >
+                                    <i class="bi bi-grid-1x2"></i>
+                                    <span>Bảng điều khiển Lễ tân</span>
+                                </a>
+
+                                {% endif %}
+
+
+                                <!-- MENU DÀNH CHO CHỦ NUÔI -->
+                                {% if current_user.has_role('PET_OWNER') %}
+
+                                <a
+                                    href="{{ url_for('pets.index') }}"
+                                    class="account-menu-item"
+                                >
+                                    <i class="bi bi-heart"></i>
+                                    <span>Thú cưng của tôi</span>
+                                </a>
+
+                                <a
+                                    href="{{ url_for('booking.my_appointments') }}"
+                                    class="account-menu-item"
+                                >
+                                    <i class="bi bi-calendar-check"></i>
+                                    <span>Lịch hẹn của tôi</span>
+                                </a>
+
+                                {% endif %}
+
+                                <div class="account-menu-divider"></div>
 
                             <form
                                 class="account-menu-logout"
@@ -388,9 +421,8 @@
                 Liên hệ
             </a>
 
-
             <a
-                href="#"
+                href="{{ url_for('booking.create_appointment') }}"
                 class="header-booking-button"
             >
                 <i class="bi bi-calendar2-heart"></i>
@@ -479,7 +511,7 @@
                 class="footer-links"
                 aria-label="Liên kết hỗ trợ"
             >
-                <a href="#">
+                <a href="{{ url_for('booking.create_appointment') }}">
                     Đặt lịch
                 </a>
 
