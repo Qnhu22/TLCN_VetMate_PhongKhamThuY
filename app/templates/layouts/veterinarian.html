@@ -1,0 +1,269 @@
+
+<!DOCTYPE html>
+<html lang="vi" data-theme="default">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}VetMate | Bác sĩ thú y{% endblock %}
+    </title>
+
+    <script>
+        (() => {
+            const themes = ["default", "light", "dark"];
+            const savedTheme = localStorage.getItem("vetmate-theme");
+
+            document.documentElement.dataset.theme =
+                themes.includes(savedTheme)
+                    ? savedTheme
+                    : "default";
+        })();
+    </script>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/theme.css') }}">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/vetmate-mascot.css') }}">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/receptionist.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/veterinarian.css') }}">
+    {% block head %}{% endblock %}
+</head>
+
+<body class="dashboard-body receptionist-body">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="dashboard-toast-container"
+             id="dashboardToastContainer">
+
+            {% for category, message in messages %}
+            <div class="dashboard-toast toast-{{ category }}"
+                 data-dashboard-toast>
+
+                <span class="dashboard-toast-icon">
+                    {% if category == "success" %}
+                        ✓
+                    {% elif category == "error" %}
+                        !
+                    {% elif category == "warning" %}
+                        ⚠
+                    {% else %}
+                        i
+                    {% endif %}
+                </span>
+
+                <div class="dashboard-toast-content">
+                    {{ message }}
+                </div>
+
+                <button type="button"
+                        class="dashboard-toast-close"
+                        aria-label="Đóng thông báo">
+                    ×
+                </button>
+            </div>
+            {% endfor %}
+
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="dashboard-shell">
+
+        <!-- SIDEBAR -->
+        <aside class="dashboard-sidebar"
+               id="dashboardSidebar">
+
+            <div class="sidebar-brand">
+
+                <a href="{{ url_for('main.home') }}"
+                   class="sidebar-brand-link">
+
+                    <span class="brand-icon">🐾</span>
+
+                    <span class="brand-content">
+                        <strong>VetMate</strong>
+                        <small>Veterinary Desk</small>
+                    </span>
+                </a>
+
+                <button type="button"
+                        class="sidebar-toggle"
+                        id="sidebarToggle"
+                        aria-label="Thu gọn thanh điều hướng"
+                        title="Thu gọn thanh điều hướng">
+                    ☰
+                </button>
+
+                <button type="button"
+                        class="sidebar-close"
+                        id="sidebarClose"
+                        aria-label="Đóng menu">
+                    ×
+                </button>
+
+            </div>
+
+            <nav class="sidebar-nav">
+<p class="sidebar-label">BÁC SĨ THÚ Y</p>
+{% for permission, endpoint, icon, label in [
+ ('VET_DASHBOARD_VIEW', 'veterinarian.dashboard', '⌂', 'Tổng quan'),
+ ('VET_SCHEDULE_VIEW_SELF', 'veterinarian.working_schedules', '▦', 'Lịch làm việc'),
+ ('VET_LEAVE_VIEW_SELF', 'veterinarian.leaves', '◷', 'Yêu cầu nghỉ'),
+ ('APPOINTMENT_VIEW_ASSIGNED', 'veterinarian.appointments', '▦', 'Lịch khám'),
+ ('QUEUE_VIEW_ASSIGNED', 'veterinarian.queue', '◷', 'Chờ khám'),
+ ('VISIT_VIEW_ASSIGNED', 'veterinarian.visits', '▤', 'Ca khám')
+] %}
+{% if current_user.has_permission(permission) %}
+<a class="sidebar-item {{ 'is-active' if request.endpoint == endpoint or (endpoint == 'veterinarian.leaves' and request.endpoint == 'veterinarian.leave_create') else '' }}" href="{{ url_for(endpoint) }}"><span class="sidebar-icon">{{ icon }}</span><span>{{ label }}</span></a>
+{% endif %}
+{% endfor %}
+<p class="sidebar-label">TÀI KHOẢN</p>
+<a class="sidebar-item" href="{{ url_for('account.profile') }}"><span class="sidebar-icon">♙</span><span>Hồ sơ và mật khẩu</span></a>
+<a class="sidebar-item" href="{{ url_for('main.home') }}"><span class="sidebar-icon">↗</span><span>Trang VetMate</span></a>
+</nav>
+
+            <div class="sidebar-footer">
+                <form method="POST"
+                      action="{{ url_for('auth.logout') }}">
+
+                    <button type="submit"
+                            class="sidebar-logout">
+                        <span>↪</span>
+                        Đăng xuất
+                    </button>
+                </form>
+            </div>
+
+        </aside>
+
+        <div class="dashboard-overlay"
+             id="dashboardOverlay"></div>
+
+        <!-- MAIN -->
+        <div class="dashboard-main">
+
+            <header class="dashboard-topbar">
+
+                <div class="topbar-left">
+
+                    <button type="button"
+                            class="topbar-menu"
+                            id="sidebarOpen"
+                            aria-label="Mở thanh điều hướng"
+                            title="Mở menu">
+                        ☰
+                    </button>
+
+                    <div class="receptionist-topbar-heading">
+                        <strong>Khu vực bác sĩ thú y</strong>
+                        <small>Lịch làm việc và chăm sóc thú cưng</small>
+                    </div>
+
+                </div>
+
+                <div class="topbar-actions">
+
+                    <button type="button"
+                            class="topbar-button"
+                            id="themeToggle"
+                            title="Đổi giao diện"
+                            aria-label="Đổi giao diện">
+                        ☾
+                    </button>
+
+                    <div class="topbar-profile">
+
+                        <button type="button"
+                                class="profile-trigger"
+                                id="profileTrigger"
+                                aria-expanded="false"
+                                aria-controls="profileDropdown">
+
+                            {% set header_avatar_path =
+                                current_user.avatarUrl
+                                or 'images/avatars/avatar-default.webp'
+                            %}
+
+                            <img
+                                src="{{ url_for('static', filename=header_avatar_path) }}"
+                                alt="Avatar của {{ current_user.fullName }}"
+                                class="profile-avatar">
+
+                            <span class="profile-info">
+                                <strong>{{ current_user.fullName }}</strong>
+                                <small>Bác sĩ thú y</small>
+                            </span>
+
+                            <span class="profile-chevron">▾</span>
+                        </button>
+
+                        <div class="profile-dropdown"
+                             id="profileDropdown"
+                             hidden>
+
+                            <div class="profile-dropdown-header">
+
+                                <img
+                                    src="{{ url_for('static', filename=header_avatar_path) }}"
+                                    alt="Avatar của {{ current_user.fullName }}">
+
+                                <div>
+                                    <strong>{{ current_user.fullName }}</strong>
+                                    <span>{{ current_user.email }}</span>
+                                </div>
+
+                            </div>
+
+                            <div class="profile-dropdown-divider"></div>
+
+                            <a href="{{ url_for('main.home') }}"
+                               class="profile-dropdown-item">
+                                <span>↗</span>
+                                Xem website
+                            </a>
+
+                            <div class="profile-dropdown-divider"></div>
+
+                            <form method="POST"
+                                  action="{{ url_for('auth.logout') }}">
+
+                                <button type="submit"
+                                        class="profile-dropdown-item profile-dropdown-logout">
+                                    <span>↪</span>
+                                    Đăng xuất
+                                </button>
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </header>
+
+            <main class="dashboard-content">
+                {% block content %}{% endblock %}
+            </main>
+
+        </div>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+    {% block scripts %}{% endblock %}
+
+</body>
+</html>

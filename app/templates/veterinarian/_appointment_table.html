@@ -1,0 +1,13 @@
+<div class="receptionist-table-wrap"><table class="receptionist-customer-table">
+<caption class="vet-caption">Lượt khám trong phạm vi phân công của bạn</caption>
+<thead><tr><th>Lịch hẹn</th><th>Thú cưng / Chủ nuôi</th><th>Dịch vụ</th><th>Loại lượt</th><th>Thời gian</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+<tbody>{% for row in pagination.items %}<tr>
+<td>{{ row.appointmentCode }}{% if request.endpoint == 'veterinarian.queue' %}<br>Số thứ tự: {{ row.queueEntry.queueNumber }}<br>Đến: {{ row.queueEntry.checkedInAt|vet_local }}{% endif %}</td>
+<td>{{ row.pet.name }} · {{ row.pet.petCode }}<br>{{ row.pet.owner.user.fullName }}</td>
+<td>{{ service_names.get(row.serviceID, 'Chưa xác định') }}</td>
+<td>{{ appointment_types.get(row.appointmentType, row.appointmentType) }}{% if row.priority == 'URGENT' %}<br><strong class="vet-urgent">Ưu tiên khẩn cấp</strong>{% endif %}</td>
+<td>{{ row.scheduledDate.strftime('%d/%m/%Y') }}<br>{{ row.startTime.strftime('%H:%M') }}{% if row.endTime %}–{{ row.endTime.strftime('%H:%M') }}{% endif %}</td>
+<td>{{ appointment_statuses.get(row.status, row.status) }}</td>
+<td>{% if current_user.has_permission('APPOINTMENT_VIEW_ASSIGNED') %}<a class="dashboard-secondary-button" href="{{ url_for('veterinarian.appointment_detail', appointment_id=row.appointmentID) }}">Chi tiết</a>{% else %}—{% endif %}</td>
+</tr>{% else %}<tr><td colspan="7">Chưa có lượt khám phù hợp.</td></tr>{% endfor %}</tbody></table></div>
+{% include 'veterinarian/_pagination.html' %}

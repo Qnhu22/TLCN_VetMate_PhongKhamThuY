@@ -1,0 +1,6 @@
+<section class="receptionist-panel"><h2>Nội dung bệnh án</h2><div class="vet-info-grid">
+{% for field, label in [('weightKg','Cân nặng (kg)'),('temperatureC','Nhiệt độ (°C)'),('heartRate','Nhịp tim (lần/phút)'),('respiratoryRate','Nhịp thở (lần/phút)')] %}
+<div><strong>{{ label }}</strong><p>{{ visit|attr(field) if visit|attr(field) is not none else 'Chưa đo' }}</p></div>{% endfor %}</div>
+{% for field, label in [('chiefComplaint','Lý do khám'),('symptoms','Triệu chứng'),('clinicalExamination','Khám lâm sàng'),('preliminaryDiagnosis','Chẩn đoán ban đầu'),('finalDiagnosis','Chẩn đoán cuối cùng'),('treatmentPlan','Hướng điều trị'),('careInstructions','Dặn dò chăm sóc')] %}
+<h3>{{ label }}</h3><p class="vet-record-text">{{ visit|attr(field) or 'Chưa ghi nhận' }}</p>{% endfor %}
+<p class="vet-muted">Cập nhật: {{ visit.updatedAt|vet_local }}{% if visit.completedAt %} · Hoàn tất: {{ visit.completedAt|vet_local }}{% endif %}</p></section>

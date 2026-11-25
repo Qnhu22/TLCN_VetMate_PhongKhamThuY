@@ -114,6 +114,7 @@ def create_app() -> Flask:
     from app.account import account_bp
     from app.pets import pets_bp
     from app.receptionist import receptionist_bp
+    from app.veterinarian import veterinarian_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
@@ -121,5 +122,6 @@ def create_app() -> Flask:
     app.register_blueprint(account_bp)
     app.register_blueprint(pets_bp)
     app.register_blueprint(receptionist_bp)
+    app.register_blueprint(veterinarian_bp)
 
     return app
